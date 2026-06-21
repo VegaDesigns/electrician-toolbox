@@ -17,6 +17,7 @@ type Props = {
   onClose: () => void;
   onClear: () => void;
   onDeleteItem: (id: string) => void;
+  onSelectItem: (item: CalcHistoryItem) => void;
 };
 
 export default function HistoryDrawer({
@@ -25,6 +26,7 @@ export default function HistoryDrawer({
   onClose,
   onClear,
   onDeleteItem,
+  onSelectItem,
 }: Props) {
   return (
     <Modal
@@ -68,7 +70,13 @@ export default function HistoryDrawer({
               >
                 {items.map((item) => (
                   <View key={item.id} style={styles.card}>
-                    <View style={styles.cardMain}>
+                    <Pressable
+                      onPress={() => onSelectItem(item)}
+                      style={({ pressed }) => [
+                        styles.cardMain,
+                        pressed && styles.pressed,
+                      ]}
+                    >
                       <Text style={styles.expression} numberOfLines={1}>
                         {item.expression}
                       </Text>
@@ -80,7 +88,7 @@ export default function HistoryDrawer({
                       <Text style={styles.timestamp}>
                         {formatHistoryTime(item.createdAt)}
                       </Text>
-                    </View>
+                    </Pressable>
 
                     <Pressable
                       onPress={() => onDeleteItem(item.id)}

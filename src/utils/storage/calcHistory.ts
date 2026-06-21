@@ -3,11 +3,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const CALC_HISTORY_KEY = "electrician-toolbox:calc-history:v1";
 const MAX_HISTORY_ITEMS = 50;
 
+export type CalcHistoryResultKind = "number" | "measure";
+
 export type CalcHistoryItem = {
   id: string;
   expression: string;
   result: string;
   createdAt: number;
+
+  // Optional so older saved history items do not break.
+  resultKind?: CalcHistoryResultKind;
+  rawValue?: number;
 };
 
 export async function loadCalcHistory(): Promise<CalcHistoryItem[]> {
@@ -60,12 +66,18 @@ export async function clearCalcHistory(): Promise<void> {
 export function createCalcHistoryItem(
   expression: string,
   result: string,
+  rawResult?: {
+    kind: CalcHistoryResultKind;
+    value: number;
+  },
 ): CalcHistoryItem {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     expression,
     result,
     createdAt: Date.now(),
+    resultKind: rawResult?.kind,
+    rawValue: rawResult?.value,
   };
 }
 
@@ -74,10 +86,21 @@ function isCalcHistoryItem(value: unknown): value is CalcHistoryItem {
 
   const item = value as CalcHistoryItem;
 
-  return (
+  const baseIsValid =
     typeof item.id === "string" &&
     typeof item.expression === "string" &&
     typeof item.result === "string" &&
-    typeof item.createdAt === "number"
-  );
+    typeof item.createdAt === "number";
+
+  if (!baseIsValid) return false;
+
+  const hasNoRawFields =
+    item.resultKind === undefined && item.rawValue === undefined;
+
+  const hasValidRawFields =
+    (item.resultKind === "number" || item.resultKind === "measure") &&
+    typeof item.rawValue === "number" &&
+    Number.isFinite(item.rawValue);
+
+  return hasNoRawFields || hasValidRawFields;
 }

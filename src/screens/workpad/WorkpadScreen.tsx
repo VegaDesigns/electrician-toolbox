@@ -113,6 +113,7 @@ export default function WorkpadScreen() {
     useState<ResultFormatKey>("ft-in");
 
   const lastSavedHistoryKeyRef = useRef<string>("");
+  const skipNextHistorySaveRef = useRef(false);
 
   const precision: Precision = 16;
   const roundMode: "nearest" | "up" = "nearest";
@@ -192,6 +193,11 @@ export default function WorkpadScreen() {
       return;
     }
 
+    if (skipNextHistorySaveRef.current) {
+      skipNextHistorySaveRef.current = false;
+      return;
+    }
+
     const rawResultKey =
       result.kind === "measure"
         ? `measure:${result.inches}`
@@ -213,7 +219,10 @@ export default function WorkpadScreen() {
             precision,
           );
 
-    const item = createCalcHistoryItem(state.lastExpression, historyResult);
+    const item = createCalcHistoryItem(state.lastExpression, historyResult, {
+      kind: result.kind,
+      value: result.kind === "measure" ? result.inches : result.value,
+    });
 
     saveCalcHistoryItem(item)
       .then(setHistoryItems)
@@ -377,6 +386,53 @@ export default function WorkpadScreen() {
       .catch(() => {});
   }
 
+  function onSelectHistoryItem(item: CalcHistoryItem) {
+    if (item.resultKind !== "number" && item.resultKind !== "measure") {
+      setIsHistoryOpen(false);
+      return;
+    }
+
+    if (typeof item.rawValue !== "number" || !Number.isFinite(item.rawValue)) {
+      setIsHistoryOpen(false);
+      return;
+    }
+
+    skipNextHistorySaveRef.current = true;
+
+    if (item.resultKind === "measure") {
+      setState({
+        tokens: [],
+        buffer: "",
+        mode: "measure",
+        lastResult: {
+          kind: "measure",
+          inches: item.rawValue,
+        },
+        lastExpression: item.expression,
+        error: null,
+      });
+
+      setSelectedResultKey("ft-in");
+    } else {
+      setState({
+        tokens: [],
+        buffer: "",
+        mode: "number",
+        lastResult: {
+          kind: "number",
+          value: item.rawValue,
+        },
+        lastExpression: item.expression,
+        error: null,
+      });
+
+      setSelectedResultKey("standard");
+    }
+
+    setIsHistoryOpen(false);
+    Haptics.selectionAsync().catch(() => {});
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -443,6 +499,7 @@ export default function WorkpadScreen() {
         onClose={() => setIsHistoryOpen(false)}
         onClear={onClearHistory}
         onDeleteItem={onDeleteHistoryItem}
+        onSelectItem={onSelectHistoryItem}
       />
     </SafeAreaView>
   );
