@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
-import React, { useMemo, useState } from "react";
-import { SafeAreaView, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, SafeAreaView, Text, View } from "react-native";
 
 import CalcDisplay, {
   type ResultFormatKey,
@@ -8,6 +8,7 @@ import CalcDisplay, {
 } from "../../components/workpad/CalcDisplay";
 import CalcKeypad from "../../components/workpad/CalcKeypad";
 import FractionTray from "../../components/workpad/FractionTray";
+import HistoryDrawer from "../../components/workpad/HistoryDrawer";
 
 import {
   createInitialCalcState,
@@ -25,15 +26,93 @@ import {
   type Precision,
 } from "../../utils/calc/measure";
 
+import {
+  clearCalcHistory,
+  createCalcHistoryItem,
+  deleteCalcHistoryItem,
+  loadCalcHistory,
+  saveCalcHistoryItem,
+  type CalcHistoryItem,
+} from "../../utils/storage/calcHistory";
+
+import { Colors } from "../../theme";
 import { styles } from "./styles";
 
 type FractionPick = { label: string; value: number };
 
+function formatCleanDecimal(n: number, maxDecimals = 6): string {
+  if (!Number.isFinite(n)) return "0";
+
+  const factor = Math.pow(10, maxDecimals);
+  const rounded =
+    Math.round((n + Math.sign(n) * Number.EPSILON) * factor) / factor;
+
+  if (Object.is(rounded, -0)) return "0";
+
+  return rounded.toFixed(maxDecimals).replace(/\.?0+$/, "");
+}
+
+function formatPlainNumber(n: number): string {
+  return formatCleanDecimal(n, 8);
+}
+
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+
+  while (y !== 0) {
+    const t = y;
+    y = x % y;
+    x = t;
+  }
+
+  return x || 1;
+}
+
+function formatInchesOnlyFraction(
+  totalInches: number,
+  precisionValue: Precision,
+): string {
+  if (!Number.isFinite(totalInches)) return '0"';
+
+  const sign = totalInches < 0 ? "-" : "";
+  const absInches = Math.abs(totalInches);
+
+  const totalUnits = Math.round(absInches * precisionValue);
+
+  const wholeInches = Math.floor(totalUnits / precisionValue);
+  const fractionUnits = totalUnits - wholeInches * precisionValue;
+
+  const parts: string[] = [];
+
+  if (wholeInches > 0) {
+    parts.push(String(wholeInches));
+  }
+
+  if (fractionUnits > 0) {
+    const divisor = gcd(fractionUnits, precisionValue);
+    const numerator = fractionUnits / divisor;
+    const denominator = precisionValue / divisor;
+
+    parts.push(`${numerator}/${denominator}`);
+  }
+
+  if (parts.length === 0) {
+    return '0"';
+  }
+
+  return `${sign}${parts.join(" ")}"`;
+}
+
 export default function WorkpadScreen() {
   const [state, setState] = useState(createInitialCalcState());
   const [isFracOpen, setIsFracOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
   const [selectedResultKey, setSelectedResultKey] =
     useState<ResultFormatKey>("ft-in");
+
+  const lastSavedHistoryKeyRef = useRef<string>("");
 
   const precision: Precision = 16;
   const roundMode: "nearest" | "up" = "nearest";
@@ -45,77 +124,9 @@ export default function WorkpadScreen() {
   const isEditing = state.tokens.length > 0 || state.buffer.length > 0;
   const hasResult = !!result && !isEditing;
 
-  function formatCleanDecimal(n: number, maxDecimals = 6): string {
-    if (!Number.isFinite(n)) return "0";
-
-    const factor = Math.pow(10, maxDecimals);
-    const rounded =
-      Math.round((n + Math.sign(n) * Number.EPSILON) * factor) / factor;
-
-    if (Object.is(rounded, -0)) return "0";
-
-    return rounded.toFixed(maxDecimals).replace(/\.?0+$/, "");
-  }
-
-  function formatPlainNumber(n: number): string {
-    return formatCleanDecimal(n, 8);
-  }
-
-  function gcd(a: number, b: number): number {
-    let x = Math.abs(a);
-    let y = Math.abs(b);
-
-    while (y !== 0) {
-      const t = y;
-      y = x % y;
-      x = t;
-    }
-
-    return x || 1;
-  }
-
-  function formatInchesOnlyFraction(
-    totalInches: number,
-    precisionValue: Precision,
-  ): string {
-    if (!Number.isFinite(totalInches)) return '0"';
-
-    const sign = totalInches < 0 ? "-" : "";
-    const absInches = Math.abs(totalInches);
-
-    // Convert to precision units so we avoid floating point display weirdness.
-    const totalUnits = Math.round(absInches * precisionValue);
-
-    const wholeInches = Math.floor(totalUnits / precisionValue);
-    const fractionUnits = totalUnits - wholeInches * precisionValue;
-
-    const parts: string[] = [];
-
-    if (wholeInches > 0) {
-      parts.push(String(wholeInches));
-    }
-
-    if (fractionUnits > 0) {
-      const divisor = gcd(fractionUnits, precisionValue);
-      const numerator = fractionUnits / divisor;
-      const denominator = precisionValue / divisor;
-
-      parts.push(`${numerator}/${denominator}`);
-    }
-
-    if (parts.length === 0) {
-      return '0"';
-    }
-
-    return `${sign}${parts.join(" ")}"`;
-  }
-
   const resultOptions: ResultOption[] = useMemo(() => {
     if (!result) return [];
 
-    // Plain number math stays plain.
-    // Example: 4.55 = 4.55
-    // No automatic measurement conversion.
     if (result.kind === "number") {
       return [
         {
@@ -162,15 +173,52 @@ export default function WorkpadScreen() {
       return selected.value;
     }
 
-    // Fallback for plain number results.
     if (result.kind === "number") {
       return formatPlainNumber(result.value);
     }
 
-    // Fallback for measurement results.
     const rounded = roundInches(result.inches, precision, roundMode);
     return formatFeetInches(rounded, precision);
   }, [result, resultOptions, selectedResultKey, precision, roundMode]);
+
+  useEffect(() => {
+    loadCalcHistory()
+      .then(setHistoryItems)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!hasResult || !result || state.lastExpression.trim().length === 0) {
+      return;
+    }
+
+    const rawResultKey =
+      result.kind === "measure"
+        ? `measure:${result.inches}`
+        : `number:${result.value}`;
+
+    const historyKey = `${state.lastExpression}=${rawResultKey}`;
+
+    if (lastSavedHistoryKeyRef.current === historyKey) {
+      return;
+    }
+
+    lastSavedHistoryKeyRef.current = historyKey;
+
+    const historyResult =
+      result.kind === "number"
+        ? formatPlainNumber(result.value)
+        : formatFeetInches(
+            roundInches(result.inches, precision, roundMode),
+            precision,
+          );
+
+    const item = createCalcHistoryItem(state.lastExpression, historyResult);
+
+    saveCalcHistoryItem(item)
+      .then(setHistoryItems)
+      .catch(() => {});
+  }, [hasResult, result, state.lastExpression, precision, roundMode]);
 
   function applyFraction(
     buffer: string,
@@ -178,7 +226,6 @@ export default function WorkpadScreen() {
   ): { next: string; error: string | null } {
     const b = buffer.trim();
 
-    // Keep typed decimals as decimals until calculated.
     if (b.includes(".")) {
       return {
         next: buffer,
@@ -186,7 +233,6 @@ export default function WorkpadScreen() {
       };
     }
 
-    // Empty input: tapping 15/16 should show 15/16.
     if (b.length === 0) {
       return {
         next: fractionLabel,
@@ -194,9 +240,6 @@ export default function WorkpadScreen() {
       };
     }
 
-    // Existing pure fraction or mixed fraction:
-    // 1/4 -> tap 15/16 -> 15/16
-    // 5 1/4 -> tap 15/16 -> 5 15/16
     const existingFractionMatch = b.match(/^(?:(\d+)\s+)?(\d+)\/(\d+)$/);
 
     if (existingFractionMatch) {
@@ -208,8 +251,6 @@ export default function WorkpadScreen() {
       };
     }
 
-    // Whole number:
-    // 5 -> tap 15/16 -> 5 15/16
     const whole = Number(b);
 
     if (Number.isInteger(whole) && whole >= 0) {
@@ -232,14 +273,6 @@ export default function WorkpadScreen() {
       return;
     }
 
-    // Special result behavior:
-    // If the user has a plain number result, tapping IN or FT should turn it
-    // back into an editable measurement expression, not instantly convert it.
-    //
-    // Example:
-    // 4.55 =
-    // tap IN -> 4.55in
-    // tap =  -> 4 9/16"
     if (
       hasResult &&
       result?.kind === "number" &&
@@ -272,8 +305,6 @@ export default function WorkpadScreen() {
       return;
     }
 
-    // If a measurement result is already showing, IN/FT should not mutate it.
-    // Use the result cards to switch measurement display formats.
     if (
       hasResult &&
       result?.kind === "measure" &&
@@ -328,6 +359,24 @@ export default function WorkpadScreen() {
     Haptics.selectionAsync().catch(() => {});
   }
 
+  function onClearHistory() {
+    clearCalcHistory()
+      .then(() => {
+        setHistoryItems([]);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      })
+      .catch(() => {});
+  }
+
+  function onDeleteHistoryItem(id: string) {
+    deleteCalcHistoryItem(id)
+      .then((next) => {
+        setHistoryItems(next);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      })
+      .catch(() => {});
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -338,6 +387,34 @@ export default function WorkpadScreen() {
               Tap a measurement result format to make it the main answer.
             </Text>
           </View>
+
+          <Pressable
+            onPress={() => setIsHistoryOpen(true)}
+            style={({ pressed }) => [
+              {
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 999,
+                backgroundColor: Colors.surface,
+                borderWidth: 1,
+                borderColor: Colors.border,
+              },
+              pressed && {
+                opacity: 0.75,
+                transform: [{ scale: 0.98 }],
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: Colors.text,
+                fontSize: 13,
+                fontWeight: "900",
+              }}
+            >
+              History
+            </Text>
+          </Pressable>
         </View>
 
         <CalcDisplay
@@ -359,6 +436,14 @@ export default function WorkpadScreen() {
 
         <CalcKeypad onKeyPress={onKeyPress} />
       </View>
+
+      <HistoryDrawer
+        visible={isHistoryOpen}
+        items={historyItems}
+        onClose={() => setIsHistoryOpen(false)}
+        onClear={onClearHistory}
+        onDeleteItem={onDeleteHistoryItem}
+      />
     </SafeAreaView>
   );
 }
