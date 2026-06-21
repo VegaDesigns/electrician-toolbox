@@ -32,6 +32,7 @@ import {
   deleteCalcHistoryItem,
   loadCalcHistory,
   saveCalcHistoryItem,
+  toggleCalcHistoryFavorite,
   type CalcHistoryItem,
 } from "../../utils/storage/calcHistory";
 
@@ -370,8 +371,8 @@ export default function WorkpadScreen() {
 
   function onClearHistory() {
     clearCalcHistory()
-      .then(() => {
-        setHistoryItems([]);
+      .then((next) => {
+        setHistoryItems(next);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       })
       .catch(() => {});
@@ -382,6 +383,15 @@ export default function WorkpadScreen() {
       .then((next) => {
         setHistoryItems(next);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      })
+      .catch(() => {});
+  }
+
+  function onToggleHistoryFavorite(id: string) {
+    toggleCalcHistoryFavorite(id)
+      .then((next) => {
+        setHistoryItems(next);
+        Haptics.selectionAsync().catch(() => {});
       })
       .catch(() => {});
   }
@@ -500,6 +510,7 @@ export default function WorkpadScreen() {
         onClear={onClearHistory}
         onDeleteItem={onDeleteHistoryItem}
         onSelectItem={onSelectHistoryItem}
+        onToggleFavorite={onToggleHistoryFavorite}
       />
     </SafeAreaView>
   );

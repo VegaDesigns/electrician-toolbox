@@ -18,6 +18,7 @@ type Props = {
   onClear: () => void;
   onDeleteItem: (id: string) => void;
   onSelectItem: (item: CalcHistoryItem) => void;
+  onToggleFavorite: (id: string) => void;
 };
 
 export default function HistoryDrawer({
@@ -27,7 +28,71 @@ export default function HistoryDrawer({
   onClear,
   onDeleteItem,
   onSelectItem,
+  onToggleFavorite,
 }: Props) {
+  const savedItems = items.filter((item) => item.isFavorite);
+  const recentItems = items.filter((item) => !item.isFavorite);
+
+  const hasItems = items.length > 0;
+  const hasRecentItems = recentItems.length > 0;
+
+  function renderHistoryCard(item: CalcHistoryItem) {
+    const isSaved = !!item.isFavorite;
+
+    return (
+      <View key={item.id} style={styles.card}>
+        <Pressable
+          onPress={() => onSelectItem(item)}
+          style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
+        >
+          <Text style={styles.expression} numberOfLines={1}>
+            {item.expression}
+          </Text>
+
+          <Text style={styles.result} numberOfLines={1}>
+            {item.result}
+          </Text>
+
+          <Text style={styles.timestamp}>
+            {formatHistoryTime(item.createdAt)}
+          </Text>
+        </Pressable>
+
+        <View style={styles.actionsColumn}>
+          <Pressable
+            onPress={() => onToggleFavorite(item.id)}
+            style={({ pressed }) => [
+              styles.favoriteButton,
+              isSaved && styles.favoriteButtonActive,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text
+              style={[
+                styles.favoriteText,
+                isSaved && styles.favoriteTextActive,
+              ]}
+            >
+              {isSaved ? "★" : "☆"}
+            </Text>
+          </Pressable>
+
+          {!isSaved && (
+            <Pressable
+              onPress={() => onDeleteItem(item.id)}
+              style={({ pressed }) => [
+                styles.deleteButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.deleteText}>Delete</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <Modal
       visible={visible}
@@ -45,7 +110,7 @@ export default function HistoryDrawer({
             <View>
               <Text style={styles.title}>History</Text>
               <Text style={styles.subtitle}>
-                Last {items.length} calculation{items.length === 1 ? "" : "s"}
+                {savedItems.length} saved · {recentItems.length} recent
               </Text>
             </View>
 
@@ -54,7 +119,7 @@ export default function HistoryDrawer({
             </Pressable>
           </View>
 
-          {items.length === 0 ? (
+          {!hasItems ? (
             <View style={styles.emptyBox}>
               <Text style={styles.emptyTitle}>No history yet</Text>
               <Text style={styles.emptyText}>
@@ -68,50 +133,32 @@ export default function HistoryDrawer({
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
               >
-                {items.map((item) => (
-                  <View key={item.id} style={styles.card}>
-                    <Pressable
-                      onPress={() => onSelectItem(item)}
-                      style={({ pressed }) => [
-                        styles.cardMain,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <Text style={styles.expression} numberOfLines={1}>
-                        {item.expression}
-                      </Text>
-
-                      <Text style={styles.result} numberOfLines={1}>
-                        {item.result}
-                      </Text>
-
-                      <Text style={styles.timestamp}>
-                        {formatHistoryTime(item.createdAt)}
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => onDeleteItem(item.id)}
-                      style={({ pressed }) => [
-                        styles.deleteButton,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <Text style={styles.deleteText}>Delete</Text>
-                    </Pressable>
+                {savedItems.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Saved</Text>
+                    {savedItems.map(renderHistoryCard)}
                   </View>
-                ))}
+                )}
+
+                {recentItems.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Recent</Text>
+                    {recentItems.map(renderHistoryCard)}
+                  </View>
+                )}
               </ScrollView>
 
-              <Pressable
-                onPress={onClear}
-                style={({ pressed }) => [
-                  styles.clearButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.clearText}>Clear History</Text>
-              </Pressable>
+              {hasRecentItems && (
+                <Pressable
+                  onPress={onClear}
+                  style={({ pressed }) => [
+                    styles.clearButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.clearText}>Clear Recent</Text>
+                </Pressable>
+              )}
             </>
           )}
         </View>
@@ -219,12 +266,25 @@ const styles = StyleSheet.create({
   },
 
   list: {
-    maxHeight: 420,
+    maxHeight: 430,
   },
 
   listContent: {
-    gap: 10,
     paddingBottom: 12,
+  },
+
+  section: {
+    gap: 10,
+    marginBottom: 18,
+  },
+
+  sectionTitle: {
+    color: Colors.textSubtle,
+    fontSize: 12,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+    marginBottom: 2,
   },
 
   card: {
@@ -263,6 +323,37 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  actionsColumn: {
+    gap: 7,
+    alignItems: "stretch",
+  },
+
+  favoriteButton: {
+    minWidth: 62,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 12,
+    backgroundColor: Colors.bg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+  },
+
+  favoriteButtonActive: {
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primaryMuted,
+  },
+
+  favoriteText: {
+    color: Colors.textMuted,
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  favoriteTextActive: {
+    color: Colors.primary,
+  },
+
   deleteButton: {
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -270,6 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3A1D24",
     borderWidth: 1,
     borderColor: "#EF4444",
+    alignItems: "center",
   },
 
   deleteText: {
