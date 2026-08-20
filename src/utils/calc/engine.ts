@@ -364,8 +364,14 @@ export function evaluateTokens(tokens: Token[]): {
   }
 
   try {
+    let expectsValue = true;
+
     for (const t of tokens) {
       if (t.kind === "op") {
+        if (expectsValue) {
+          throw new Error("Expression incomplete");
+        }
+
         while (
           ops.length > 0 &&
           precedence(ops[ops.length - 1]) >= precedence(t.op)
@@ -374,7 +380,12 @@ export function evaluateTokens(tokens: Token[]): {
         }
 
         ops.push(t.op);
+        expectsValue = true;
       } else {
+        if (!expectsValue) {
+          throw new Error("Add an operator between values");
+        }
+
         if (t.kind === "measure") {
           values.push(t.inches);
         } else {
@@ -382,7 +393,13 @@ export function evaluateTokens(tokens: Token[]): {
           // are treated as inches.
           values.push(t.value);
         }
+
+        expectsValue = false;
       }
+    }
+
+    if (expectsValue) {
+      throw new Error("Expression incomplete");
     }
 
     while (ops.length > 0) {
@@ -391,7 +408,7 @@ export function evaluateTokens(tokens: Token[]): {
 
     const out = values.pop();
 
-    if (out === undefined || !Number.isFinite(out)) {
+    if (out === undefined || values.length > 0 || !Number.isFinite(out)) {
       return {
         result: null,
         error: "Invalid result",
