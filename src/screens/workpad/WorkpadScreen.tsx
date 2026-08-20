@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, SafeAreaView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import CalcDisplay, {
   type ResultFormatKey,
@@ -9,6 +10,7 @@ import CalcDisplay, {
 import CalcKeypad from "../../components/workpad/CalcKeypad";
 import FractionTray from "../../components/workpad/FractionTray";
 import HistoryDrawer from "../../components/workpad/HistoryDrawer";
+import SmartInputSheet from "../../components/workpad/SmartInputSheet";
 
 import {
   createInitialCalcState,
@@ -25,6 +27,7 @@ import {
   roundInches,
   type Precision,
 } from "../../utils/calc/measure";
+import { parseSmartExpression } from "../../utils/calc/parser";
 
 import {
   clearCalcHistory,
@@ -35,6 +38,12 @@ import {
   toggleCalcHistoryFavorite,
   type CalcHistoryItem,
 } from "../../utils/storage/calcHistory";
+import {
+  DEFAULT_WORKPAD_PREFERENCES,
+  loadWorkpadPreferences,
+  saveWorkpadPreferences,
+  type RoundMode,
+} from "../../utils/storage/preferences";
 
 import { Colors } from "../../theme";
 import { styles } from "./styles";
@@ -106,18 +115,27 @@ function formatInchesOnlyFraction(
 }
 
 export default function WorkpadScreen() {
+  const { height } = useWindowDimensions();
   const [state, setState] = useState(createInitialCalcState());
   const [isFracOpen, setIsFracOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
+  const [cleanedExpression, setCleanedExpression] = useState("");
+  const [precision, setPrecision] = useState<Precision>(
+    DEFAULT_WORKPAD_PREFERENCES.precision,
+  );
+  const [roundMode, setRoundMode] = useState<RoundMode>(
+    DEFAULT_WORKPAD_PREFERENCES.roundMode,
+  );
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [selectedResultKey, setSelectedResultKey] =
     useState<ResultFormatKey>("ft-in");
 
   const lastSavedHistoryKeyRef = useRef<string>("");
   const skipNextHistorySaveRef = useRef(false);
 
-  const precision: Precision = 16;
-  const roundMode: "nearest" | "up" = "nearest";
+  const isCompact = height < 740;
 
   const expression = useMemo(() => getExpressionString(state), [state]);
 
@@ -190,6 +208,21 @@ export default function WorkpadScreen() {
   }, []);
 
   useEffect(() => {
+    loadWorkpadPreferences()
+      .then((preferences) => {
+        setPrecision(preferences.precision);
+        setRoundMode(preferences.roundMode);
+      })
+      .finally(() => setPreferencesLoaded(true));
+  }, []);
+
+  useEffect(() => {
+    if (!preferencesLoaded) return;
+
+    saveWorkpadPreferences({ precision, roundMode }).catch(() => {});
+  }, [precision, preferencesLoaded, roundMode]);
+
+  useEffect(() => {
     if (!hasResult || !result || state.lastExpression.trim().length === 0) {
       return;
     }
@@ -220,15 +253,27 @@ export default function WorkpadScreen() {
             precision,
           );
 
-    const item = createCalcHistoryItem(state.lastExpression, historyResult, {
-      kind: result.kind,
-      value: result.kind === "measure" ? result.inches : result.value,
-    });
+    const item = createCalcHistoryItem(
+      state.lastExpression,
+      historyResult,
+      {
+        kind: result.kind,
+        value: result.kind === "measure" ? result.inches : result.value,
+      },
+      cleanedExpression || state.lastExpression,
+    );
 
     saveCalcHistoryItem(item)
       .then(setHistoryItems)
       .catch(() => {});
-  }, [hasResult, result, state.lastExpression, precision, roundMode]);
+  }, [
+    cleanedExpression,
+    hasResult,
+    result,
+    state.lastExpression,
+    precision,
+    roundMode,
+  ]);
 
   function applyFraction(
     buffer: string,
@@ -281,6 +326,10 @@ export default function WorkpadScreen() {
       setIsFracOpen((v) => !v);
       Haptics.selectionAsync().catch(() => {});
       return;
+    }
+
+    if (key !== "=") {
+      setCleanedExpression("");
     }
 
     if (
@@ -408,6 +457,7 @@ export default function WorkpadScreen() {
     }
 
     skipNextHistorySaveRef.current = true;
+    setCleanedExpression(item.cleanedExpression ?? item.expression);
 
     if (item.resultKind === "measure") {
       setState({
@@ -443,9 +493,51 @@ export default function WorkpadScreen() {
     Haptics.selectionAsync().catch(() => {});
   }
 
+  function onSubmitSmartInput(value: string): string | null {
+    const parsed = parseSmartExpression(value);
+
+    if (!parsed.ok) return parsed.error;
+
+    setState({
+      tokens: [],
+      buffer: "",
+      mode: parsed.result.kind === "measure" ? "measure" : "number",
+      lastResult: parsed.result,
+      lastExpression: value.trim(),
+      error: null,
+    });
+    setCleanedExpression(parsed.cleaned);
+    setSelectedResultKey(
+      parsed.result.kind === "measure" ? "ft-in" : "standard",
+    );
+    setIsSmartInputOpen(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+      () => {},
+    );
+    return null;
+  }
+
+  function updatePrecision(next: Precision) {
+    setPrecision(next);
+    Haptics.selectionAsync().catch(() => {});
+  }
+
+  function updateRoundMode(next: RoundMode) {
+    setRoundMode(next);
+    Haptics.selectionAsync().catch(() => {});
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={[
+          styles.container,
+          isCompact && styles.containerCompact,
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Workpad Calculator</Text>
@@ -455,6 +547,8 @@ export default function WorkpadScreen() {
           </View>
 
           <Pressable
+            accessibilityLabel="Open calculation history"
+            accessibilityRole="button"
             onPress={() => setIsHistoryOpen(true)}
             style={({ pressed }) => [
               {
@@ -484,6 +578,7 @@ export default function WorkpadScreen() {
         </View>
 
         <CalcDisplay
+          cleanedExpression={cleanedExpression || (hasResult ? expression : "")}
           expression={expression}
           primary={primary}
           resultOptions={resultOptions}
@@ -493,6 +588,82 @@ export default function WorkpadScreen() {
           hasResult={hasResult}
         />
 
+        <Pressable
+          accessibilityHint="Opens a text field for measurements such as one foot six inches"
+          accessibilityLabel="Open smart measurement entry"
+          accessibilityRole="button"
+          onPress={() => setIsSmartInputOpen(true)}
+          style={({ pressed }) => [
+            styles.smartInputButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={styles.smartInputTextWrap}>
+            <Text style={styles.smartInputTitle}>Smart Entry</Text>
+            <Text numberOfLines={1} style={styles.smartInputSubtitle}>
+              Type 1&apos; 6&quot;, 1.5ft, or 5 and 4/8th
+            </Text>
+          </View>
+          <Text style={styles.smartInputArrow}>›</Text>
+        </Pressable>
+
+        <View style={styles.settingsRow}>
+          <View style={styles.settingGroup}>
+            <Text style={styles.settingLabel}>Precision</Text>
+            <View accessibilityRole="radiogroup" style={styles.segmented}>
+              {([16, 8, 4, 2] as Precision[]).map((value) => (
+                <Pressable
+                  accessibilityLabel={`Round to one ${value === 2 ? "half" : `${value}th`} inch`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: precision === value }}
+                  key={value}
+                  onPress={() => updatePrecision(value)}
+                  style={[
+                    styles.segment,
+                    precision === value && styles.segmentSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      precision === value && styles.segmentTextSelected,
+                    ]}
+                  >
+                    1/{value}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.settingGroup}>
+            <Text style={styles.settingLabel}>Rounding</Text>
+            <View accessibilityRole="radiogroup" style={styles.segmented}>
+              {(["nearest", "up"] as RoundMode[]).map((mode) => (
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: roundMode === mode }}
+                  key={mode}
+                  onPress={() => updateRoundMode(mode)}
+                  style={[
+                    styles.segment,
+                    roundMode === mode && styles.segmentSelected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      roundMode === mode && styles.segmentTextSelected,
+                    ]}
+                  >
+                    {mode === "nearest" ? "Normal" : "Up"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+
         {isFracOpen && (
           <FractionTray
             onClose={() => setIsFracOpen(false)}
@@ -500,8 +671,8 @@ export default function WorkpadScreen() {
           />
         )}
 
-        <CalcKeypad onKeyPress={onKeyPress} />
-      </View>
+        <CalcKeypad compact={isCompact} onKeyPress={onKeyPress} />
+      </ScrollView>
 
       <HistoryDrawer
         visible={isHistoryOpen}
@@ -511,6 +682,13 @@ export default function WorkpadScreen() {
         onDeleteItem={onDeleteHistoryItem}
         onSelectItem={onSelectHistoryItem}
         onToggleFavorite={onToggleHistoryFavorite}
+      />
+
+      <SmartInputSheet
+        initialValue={state.lastExpression}
+        onClose={() => setIsSmartInputOpen(false)}
+        onSubmit={onSubmitSmartInput}
+        visible={isSmartInputOpen}
       />
     </SafeAreaView>
   );

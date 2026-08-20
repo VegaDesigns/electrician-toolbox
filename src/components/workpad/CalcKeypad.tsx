@@ -5,6 +5,7 @@ import type { CalcKey } from "../../utils/calc/engine";
 
 type Props = {
   onKeyPress: (key: CalcKey) => void;
+  compact?: boolean;
 };
 
 type KeySpec = {
@@ -27,7 +28,7 @@ const ROWS: KeySpec[][] = [
   [{ key: "=", span: 4 }],
 ];
 
-export default function CalcKeypad({ onKeyPress }: Props) {
+export default function CalcKeypad({ onKeyPress, compact = false }: Props) {
   return (
     <View style={styles.container}>
       {ROWS.map((row, rowIndex) => (
@@ -36,6 +37,7 @@ export default function CalcKeypad({ onKeyPress }: Props) {
             <KeyButton
               key={`${item.key}-${rowIndex}`}
               item={item}
+              compact={compact}
               onPress={() => onKeyPress(item.key)}
             />
           ))}
@@ -45,15 +47,26 @@ export default function CalcKeypad({ onKeyPress }: Props) {
   );
 }
 
-function KeyButton({ item, onPress }: { item: KeySpec; onPress: () => void }) {
+function KeyButton({
+  item,
+  compact,
+  onPress,
+}: {
+  item: KeySpec;
+  compact: boolean;
+  onPress: () => void;
+}) {
   const variant = getVariant(item.key);
   const label = item.label ?? item.key;
 
   return (
     <Pressable
+      accessibilityLabel={getAccessibilityLabel(item.key)}
+      accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         styles.keyBase,
+        compact && styles.keyCompact,
         item.span === 4 && styles.keyFull,
         variant === "operator" && styles.keyOperator,
         variant === "primary" && styles.keyPrimary,
@@ -77,6 +90,24 @@ function KeyButton({ item, onPress }: { item: KeySpec; onPress: () => void }) {
       </Text>
     </Pressable>
   );
+}
+
+function getAccessibilityLabel(key: CalcKey): string {
+  const labels: Partial<Record<CalcKey, string>> = {
+    C: "Clear",
+    "⌫": "Delete last entry",
+    FT: "Feet",
+    IN: "Inches",
+    FRAC: "Choose fraction",
+    "×": "Multiply",
+    "÷": "Divide",
+    "+": "Add",
+    "-": "Subtract",
+    "=": "Calculate",
+    ".": "Decimal point",
+  };
+
+  return labels[key] ?? key;
 }
 
 type Variant =
@@ -126,6 +157,10 @@ const styles = StyleSheet.create({
 
   keyFull: {
     flex: 4.25,
+  },
+
+  keyCompact: {
+    height: 44,
   },
 
   keyOperator: {

@@ -9,6 +9,7 @@ export type CalcHistoryItem = {
   id: string;
   expression: string;
   result: string;
+  cleanedExpression?: string;
   createdAt: number;
 
   // Optional so older saved history items do not break.
@@ -121,11 +122,13 @@ export function createCalcHistoryItem(
     kind: CalcHistoryResultKind;
     value: number;
   },
+  cleanedExpression?: string,
 ): CalcHistoryItem {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     expression,
     result,
+    cleanedExpression,
     createdAt: Date.now(),
     resultKind: rawResult?.kind,
     rawValue: rawResult?.value,
@@ -150,6 +153,13 @@ function isCalcHistoryItem(value: unknown): value is CalcHistoryItem {
     item.isFavorite === undefined || typeof item.isFavorite === "boolean";
 
   if (!favoriteIsValid) return false;
+
+  if (
+    item.cleanedExpression !== undefined &&
+    typeof item.cleanedExpression !== "string"
+  ) {
+    return false;
+  }
 
   const hasNoRawFields =
     item.resultKind === undefined && item.rawValue === undefined;

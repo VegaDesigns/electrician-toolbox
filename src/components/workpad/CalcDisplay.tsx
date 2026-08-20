@@ -17,6 +17,7 @@ export type ResultOption = {
 
 type Props = {
   expression: string;
+  cleanedExpression?: string;
   primary: string;
   resultOptions: ResultOption[];
   selectedResultKey: ResultFormatKey;
@@ -27,6 +28,7 @@ type Props = {
 
 export default function CalcDisplay({
   expression,
+  cleanedExpression,
   primary,
   resultOptions,
   selectedResultKey,
@@ -108,6 +110,17 @@ export default function CalcDisplay({
             );
           })}
         </View>
+      )}
+
+      {hasResult && !!cleanedExpression && (
+        <Text
+          accessibilityLabel={`Cleaned input: ${cleanedExpression}`}
+          numberOfLines={2}
+          style={styles.cleaned}
+        >
+          <Text style={styles.cleanedLabel}>Cleaned: </Text>
+          {cleanedExpression}
+        </Text>
       )}
 
       {!!error && (
@@ -280,6 +293,19 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: "right",
     fontSize: 12,
+    fontWeight: "900",
+  },
+
+  cleaned: {
+    marginTop: 8,
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+
+  cleanedLabel: {
+    color: Colors.primary,
     fontWeight: "900",
   },
 });
