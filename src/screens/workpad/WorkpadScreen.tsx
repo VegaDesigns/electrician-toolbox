@@ -1,3 +1,4 @@
+import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
@@ -122,6 +123,7 @@ export default function WorkpadScreen() {
   const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
   const [cleanedExpression, setCleanedExpression] = useState("");
+  const [copyLabel, setCopyLabel] = useState("Copy answer");
   const [precision, setPrecision] = useState<Precision>(
     DEFAULT_WORKPAD_PREFERENCES.precision,
   );
@@ -134,6 +136,7 @@ export default function WorkpadScreen() {
 
   const lastSavedHistoryKeyRef = useRef<string>("");
   const skipNextHistorySaveRef = useRef(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isCompact = height < 740;
 
@@ -205,6 +208,12 @@ export default function WorkpadScreen() {
     loadCalcHistory()
       .then(setHistoryItems)
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -415,7 +424,27 @@ export default function WorkpadScreen() {
 
   function onSelectResultOption(key: ResultFormatKey) {
     setSelectedResultKey(key);
+    setCopyLabel("Copy answer");
     Haptics.selectionAsync().catch(() => {});
+  }
+
+  function onCopyPrimary() {
+    Clipboard.setStringAsync(primary)
+      .then(() => {
+        setCopyLabel("Copied");
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        ).catch(() => {});
+
+        if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = setTimeout(
+          () => setCopyLabel("Copy answer"),
+          1600,
+        );
+      })
+      .catch(() => {
+        setCopyLabel("Copy failed");
+      });
   }
 
   function onClearHistory() {
@@ -584,6 +613,8 @@ export default function WorkpadScreen() {
           resultOptions={resultOptions}
           selectedResultKey={selectedResultKey}
           onSelectResultOption={onSelectResultOption}
+          onCopy={onCopyPrimary}
+          copyLabel={copyLabel}
           error={state.error}
           hasResult={hasResult}
         />
@@ -684,12 +715,13 @@ export default function WorkpadScreen() {
         onToggleFavorite={onToggleHistoryFavorite}
       />
 
-      <SmartInputSheet
-        initialValue={state.lastExpression}
-        onClose={() => setIsSmartInputOpen(false)}
-        onSubmit={onSubmitSmartInput}
-        visible={isSmartInputOpen}
-      />
+      {isSmartInputOpen && (
+        <SmartInputSheet
+          initialValue={state.lastExpression}
+          onClose={() => setIsSmartInputOpen(false)}
+          onSubmit={onSubmitSmartInput}
+        />
+      )}
     </SafeAreaView>
   );
 }

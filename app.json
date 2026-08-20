@@ -7,7 +7,6 @@
     "icon": "./assets/images/electrician-toolbox-icon.png",
     "scheme": "electriciantoolbox",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.vegadesigns.electriciantoolbox",
@@ -20,7 +19,6 @@
       },
       "package": "com.vegadesigns.electriciantoolbox",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {

@@ -22,6 +22,8 @@ type Props = {
   resultOptions: ResultOption[];
   selectedResultKey: ResultFormatKey;
   onSelectResultOption: (key: ResultFormatKey) => void;
+  onCopy: () => void;
+  copyLabel: string;
   error: string | null;
   hasResult: boolean;
 };
@@ -33,6 +35,8 @@ export default function CalcDisplay({
   resultOptions,
   selectedResultKey,
   onSelectResultOption,
+  onCopy,
+  copyLabel,
   error,
   hasResult,
 }: Props) {
@@ -79,6 +83,9 @@ export default function CalcDisplay({
 
             return (
               <Pressable
+                accessibilityLabel={`${option.label}: ${option.value}`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
                 key={option.key}
                 onPress={() => onSelectResultOption(option.key)}
                 style={({ pressed }) => [
@@ -110,6 +117,20 @@ export default function CalcDisplay({
             );
           })}
         </View>
+      )}
+
+      {hasResult && (
+        <Pressable
+          accessibilityLabel={copyLabel}
+          accessibilityRole="button"
+          onPress={onCopy}
+          style={({ pressed }) => [
+            styles.copyButton,
+            pressed && styles.copyButtonPressed,
+          ]}
+        >
+          <Text style={styles.copyButtonText}>{copyLabel}</Text>
+        </Pressable>
       )}
 
       {hasResult && !!cleanedExpression && (
@@ -306,6 +327,31 @@ const styles = StyleSheet.create({
 
   cleanedLabel: {
     color: Colors.primary,
+    fontWeight: "900",
+  },
+
+  copyButton: {
+    alignSelf: "flex-end",
+    minHeight: 44,
+    minWidth: 108,
+    marginTop: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.primaryMuted,
+    backgroundColor: Colors.primarySoft,
+    paddingHorizontal: 14,
+  },
+
+  copyButtonPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.98 }],
+  },
+
+  copyButtonText: {
+    color: Colors.primary,
+    fontSize: 13,
     fontWeight: "900",
   },
 });

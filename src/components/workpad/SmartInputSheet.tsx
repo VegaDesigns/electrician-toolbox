@@ -14,7 +14,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../theme";
 
 type Props = {
-  visible: boolean;
   initialValue: string;
   onClose: () => void;
   onSubmit: (value: string) => string | null;
@@ -23,7 +22,6 @@ type Props = {
 const EXAMPLES = [`1' 6" + 5 1/2"`, "1.5ft", "5 and 4/8th"];
 
 export default function SmartInputSheet({
-  visible,
   initialValue,
   onClose,
   onSubmit,
@@ -33,13 +31,9 @@ export default function SmartInputSheet({
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    if (!visible) return;
-
-    setValue(initialValue);
-    setError(null);
     const timer = setTimeout(() => inputRef.current?.focus(), 250);
     return () => clearTimeout(timer);
-  }, [initialValue, visible]);
+  }, []);
 
   function submit() {
     const nextError = onSubmit(value);
@@ -50,7 +44,7 @@ export default function SmartInputSheet({
     <Modal
       animationType="slide"
       presentationStyle="pageSheet"
-      visible={visible}
+      visible
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>

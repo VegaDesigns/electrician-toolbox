@@ -40,7 +40,12 @@ export default function FractionTray({
           <Text style={styles.subtitle}>Tap one to add it to your input</Text>
         </View>
 
-        <Pressable onPress={onClose} style={styles.closeBtn}>
+        <Pressable
+          accessibilityLabel="Close fraction picker"
+          accessibilityRole="button"
+          onPress={onClose}
+          style={styles.closeBtn}
+        >
           <Text style={styles.closeText}>Close</Text>
         </Pressable>
       </View>
@@ -48,6 +53,8 @@ export default function FractionTray({
       <View style={styles.grid}>
         {FRACTIONS.map((f) => (
           <Pressable
+            accessibilityLabel={`${f.label} inch`}
+            accessibilityRole="button"
             key={f.label}
             onPress={() => onPick(f)}
             style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}

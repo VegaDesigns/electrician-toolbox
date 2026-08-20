@@ -319,6 +319,19 @@ export function evaluateTokens(tokens: Token[]): {
   }
 
   const hasExplicitMeasure = tokens.some((t) => t.kind === "measure");
+  const explicitMeasureCount = tokens.filter(
+    (t) => t.kind === "measure",
+  ).length;
+  const hasScalingOperator = tokens.some(
+    (t) => t.kind === "op" && (t.op === "*" || t.op === "/"),
+  );
+
+  if (hasScalingOperator && explicitMeasureCount > 1) {
+    return {
+      result: null,
+      error: "Multiply or divide a measurement by a plain number",
+    };
+  }
 
   const hasFractionInput = tokens.some(
     (t) =>

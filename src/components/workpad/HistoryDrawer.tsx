@@ -42,6 +42,8 @@ export default function HistoryDrawer({
     return (
       <View key={item.id} style={styles.card}>
         <Pressable
+          accessibilityLabel={`Use calculation ${item.expression}, result ${item.result}`}
+          accessibilityRole="button"
           onPress={() => onSelectItem(item)}
           style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
         >
@@ -60,6 +62,8 @@ export default function HistoryDrawer({
 
         <View style={styles.actionsColumn}>
           <Pressable
+            accessibilityLabel={isSaved ? "Remove from saved" : "Save calculation"}
+            accessibilityRole="button"
             onPress={() => onToggleFavorite(item.id)}
             style={({ pressed }) => [
               styles.favoriteButton,
@@ -79,6 +83,8 @@ export default function HistoryDrawer({
 
           {!isSaved && (
             <Pressable
+              accessibilityLabel={`Delete calculation ${item.expression}`}
+              accessibilityRole="button"
               onPress={() => onDeleteItem(item.id)}
               style={({ pressed }) => [
                 styles.deleteButton,
@@ -114,7 +120,12 @@ export default function HistoryDrawer({
               </Text>
             </View>
 
-            <Pressable onPress={onClose} style={styles.closeButton}>
+            <Pressable
+              accessibilityLabel="Close calculation history"
+              accessibilityRole="button"
+              onPress={onClose}
+              style={styles.closeButton}
+            >
               <Text style={styles.closeText}>Close</Text>
             </Pressable>
           </View>
@@ -150,6 +161,8 @@ export default function HistoryDrawer({
 
               {hasRecentItems && (
                 <Pressable
+                  accessibilityLabel="Clear recent calculation history"
+                  accessibilityRole="button"
                   onPress={onClear}
                   style={({ pressed }) => [
                     styles.clearButton,
@@ -186,7 +199,7 @@ const styles = StyleSheet.create({
   },
 
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 
   sheet: {
