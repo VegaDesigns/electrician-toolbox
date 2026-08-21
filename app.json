@@ -9,7 +9,7 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.vegadesigns.electriciantoolbox",
+      "bundleIdentifier": "com.brokecoderlabs.electriciantoolbox",
       "buildNumber": "1"
     },
     "android": {
@@ -17,7 +17,7 @@
         "backgroundColor": "#0B1220",
         "foregroundImage": "./assets/images/electrician-toolbox-icon.png"
       },
-      "package": "com.vegadesigns.electriciantoolbox",
+      "package": "com.brokecoderlabs.electriciantoolbox",
       "versionCode": 1,
       "predictiveBackGestureEnabled": false
     },
