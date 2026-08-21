@@ -43,6 +43,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "412fb0c1-3331-4880-b7ee-a5c298810996"
+      }
+    },
+    "owner": "brokecoderlabs"
   }
 }
