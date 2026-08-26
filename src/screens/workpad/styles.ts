@@ -9,10 +9,12 @@ export const styles = StyleSheet.create({
 
   container: {
     flexGrow: 1,
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 10,
-    justifyContent: "flex-end",
+    paddingTop: 10,
+    paddingBottom: 12,
     gap: 10,
   },
 
@@ -23,67 +25,111 @@ export const styles = StyleSheet.create({
   },
 
   headerRow: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    minHeight: 58,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 4,
-    paddingBottom: 4,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
   },
 
   title: {
     color: Colors.text,
+    fontSize: 21,
+    fontWeight: "900",
+    letterSpacing: 0.2,
+  },
+
+  historyButton: {
+    minHeight: 40,
+    justifyContent: "center",
+    paddingHorizontal: 15,
+    borderRadius: 14,
+    backgroundColor: Colors.surface3,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+
+  historyButtonText: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  interpretationBanner: {
+    minHeight: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 17,
+    backgroundColor: Colors.primarySoft,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+
+  interpretationSparkle: {
+    color: Colors.primary,
     fontSize: 22,
     fontWeight: "900",
-    letterSpacing: 0.6,
   },
 
-  subtitle: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: 2,
+  interpretationText: {
+    flex: 1,
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: "800",
   },
 
-  smartInputButton: {
+  interpretationDismiss: {
+    width: 34,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  interpretationDismissText: {
+    color: Colors.primary,
+    fontSize: 30,
+    fontWeight: "500",
+    lineHeight: 32,
+  },
+
+  settingsSummary: {
     minHeight: 50,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 16,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    borderRadius: 17,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.primaryMuted,
+    borderColor: Colors.borderStrong,
   },
 
-  smartInputTextWrap: {
-    flex: 1,
-    minWidth: 0,
-  },
-
-  smartInputTitle: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: "900",
-  },
-
-  smartInputSubtitle: {
+  settingsSummaryText: {
     color: Colors.textMuted,
-    fontSize: 11,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
+  settingsChevron: {
+    color: Colors.textMuted,
+    fontSize: 24,
     fontWeight: "700",
-    marginTop: 2,
   },
 
-  smartInputArrow: {
-    color: Colors.primary,
-    fontSize: 28,
-    fontWeight: "500",
-  },
-
-  settingsRow: {
+  settingsPanel: {
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 10,
+    paddingHorizontal: 2,
   },
 
   settingGroup: {

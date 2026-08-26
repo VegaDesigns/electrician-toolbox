@@ -46,7 +46,6 @@ import {
   type RoundMode,
 } from "../../utils/storage/preferences";
 
-import { Colors } from "../../theme";
 import { styles } from "./styles";
 
 type FractionPick = { label: string; value: number };
@@ -121,6 +120,7 @@ export default function WorkpadScreen() {
   const [isFracOpen, setIsFracOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
+  const [areSettingsOpen, setAreSettingsOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
   const [cleanedExpression, setCleanedExpression] = useState("");
   const [copyLabel, setCopyLabel] = useState("Copy answer");
@@ -556,8 +556,31 @@ export default function WorkpadScreen() {
     Haptics.selectionAsync().catch(() => {});
   }
 
+  const interpretation =
+    hasResult &&
+    cleanedExpression.trim().length > 0 &&
+    cleanedExpression.trim() !== state.lastExpression.trim()
+      ? cleanedExpression.trim()
+      : "";
+
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Workpad Calculator</Text>
+
+        <Pressable
+          accessibilityLabel="Open calculation history"
+          accessibilityRole="button"
+          onPress={() => setIsHistoryOpen(true)}
+          style={({ pressed }) => [
+            styles.historyButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.historyButtonText}>History</Text>
+        </Pressable>
+      </View>
+
       <ScrollView
         bounces={false}
         contentContainerStyle={[
@@ -567,47 +590,7 @@ export default function WorkpadScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Workpad Calculator</Text>
-            <Text style={styles.subtitle}>
-              Tap a measurement result format to make it the main answer.
-            </Text>
-          </View>
-
-          <Pressable
-            accessibilityLabel="Open calculation history"
-            accessibilityRole="button"
-            onPress={() => setIsHistoryOpen(true)}
-            style={({ pressed }) => [
-              {
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: Colors.surface,
-                borderWidth: 1,
-                borderColor: Colors.border,
-              },
-              pressed && {
-                opacity: 0.75,
-                transform: [{ scale: 0.98 }],
-              },
-            ]}
-          >
-            <Text
-              style={{
-                color: Colors.text,
-                fontSize: 13,
-                fontWeight: "900",
-              }}
-            >
-              History
-            </Text>
-          </Pressable>
-        </View>
-
         <CalcDisplay
-          cleanedExpression={cleanedExpression || (hasResult ? expression : "")}
           expression={expression}
           primary={primary}
           resultOptions={resultOptions}
@@ -615,85 +598,107 @@ export default function WorkpadScreen() {
           onSelectResultOption={onSelectResultOption}
           onCopy={onCopyPrimary}
           copyLabel={copyLabel}
+          onOpenSmartInput={() => setIsSmartInputOpen(true)}
           error={state.error}
           hasResult={hasResult}
         />
 
+        {!!interpretation && (
+          <View accessibilityRole="alert" style={styles.interpretationBanner}>
+            <Text style={styles.interpretationSparkle}>✦</Text>
+            <Text numberOfLines={2} style={styles.interpretationText}>
+              Interpreted as {interpretation}
+            </Text>
+            <Pressable
+              accessibilityLabel="Dismiss interpretation"
+              accessibilityRole="button"
+              hitSlop={10}
+              onPress={() => setCleanedExpression("")}
+              style={({ pressed }) => [
+                styles.interpretationDismiss,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.interpretationDismissText}>×</Text>
+            </Pressable>
+          </View>
+        )}
+
         <Pressable
-          accessibilityHint="Opens a text field for measurements such as one foot six inches"
-          accessibilityLabel="Open smart measurement entry"
+          accessibilityHint="Shows precision and rounding choices"
+          accessibilityLabel={`Settings: one ${precision}th inch, ${roundMode === "nearest" ? "normal rounding" : "round up"}`}
           accessibilityRole="button"
-          onPress={() => setIsSmartInputOpen(true)}
+          accessibilityState={{ expanded: areSettingsOpen }}
+          onPress={() => setAreSettingsOpen((open) => !open)}
           style={({ pressed }) => [
-            styles.smartInputButton,
+            styles.settingsSummary,
             pressed && styles.pressed,
           ]}
         >
-          <View style={styles.smartInputTextWrap}>
-            <Text style={styles.smartInputTitle}>Smart Entry</Text>
-            <Text numberOfLines={1} style={styles.smartInputSubtitle}>
-              Type 1&apos; 6&quot;, 1.5ft, or 5 and 4/8th
-            </Text>
-          </View>
-          <Text style={styles.smartInputArrow}>›</Text>
+          <Text style={styles.settingsSummaryText}>
+            1/{precision}  •  {roundMode === "nearest" ? "Normal" : "Round up"}
+          </Text>
+          <Text style={styles.settingsChevron}>{areSettingsOpen ? "⌃" : "⌄"}</Text>
         </Pressable>
 
-        <View style={styles.settingsRow}>
-          <View style={styles.settingGroup}>
-            <Text style={styles.settingLabel}>Precision</Text>
-            <View accessibilityRole="radiogroup" style={styles.segmented}>
-              {([16, 8, 4, 2] as Precision[]).map((value) => (
-                <Pressable
-                  accessibilityLabel={`Round to one ${value === 2 ? "half" : `${value}th`} inch`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: precision === value }}
-                  key={value}
-                  onPress={() => updatePrecision(value)}
-                  style={[
-                    styles.segment,
-                    precision === value && styles.segmentSelected,
-                  ]}
-                >
-                  <Text
+        {areSettingsOpen && (
+          <View style={styles.settingsPanel}>
+            <View style={styles.settingGroup}>
+              <Text style={styles.settingLabel}>Precision</Text>
+              <View accessibilityRole="radiogroup" style={styles.segmented}>
+                {([16, 8, 4, 2] as Precision[]).map((value) => (
+                  <Pressable
+                    accessibilityLabel={`Round to one ${value === 2 ? "half" : `${value}th`} inch`}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: precision === value }}
+                    key={value}
+                    onPress={() => updatePrecision(value)}
                     style={[
-                      styles.segmentText,
-                      precision === value && styles.segmentTextSelected,
+                      styles.segment,
+                      precision === value && styles.segmentSelected,
                     ]}
                   >
-                    1/{value}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        precision === value && styles.segmentTextSelected,
+                      ]}
+                    >
+                      1/{value}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.settingGroup}>
-            <Text style={styles.settingLabel}>Rounding</Text>
-            <View accessibilityRole="radiogroup" style={styles.segmented}>
-              {(["nearest", "up"] as RoundMode[]).map((mode) => (
-                <Pressable
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: roundMode === mode }}
-                  key={mode}
-                  onPress={() => updateRoundMode(mode)}
-                  style={[
-                    styles.segment,
-                    roundMode === mode && styles.segmentSelected,
-                  ]}
-                >
-                  <Text
+            <View style={styles.settingGroup}>
+              <Text style={styles.settingLabel}>Rounding</Text>
+              <View accessibilityRole="radiogroup" style={styles.segmented}>
+                {(["nearest", "up"] as RoundMode[]).map((mode) => (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: roundMode === mode }}
+                    key={mode}
+                    onPress={() => updateRoundMode(mode)}
                     style={[
-                      styles.segmentText,
-                      roundMode === mode && styles.segmentTextSelected,
+                      styles.segment,
+                      roundMode === mode && styles.segmentSelected,
                     ]}
                   >
-                    {mode === "nearest" ? "Normal" : "Up"}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        roundMode === mode && styles.segmentTextSelected,
+                      ]}
+                    >
+                      {mode === "nearest" ? "Normal" : "Up"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         {isFracOpen && (
           <FractionTray

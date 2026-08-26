@@ -17,29 +17,30 @@ export type ResultOption = {
 
 type Props = {
   expression: string;
-  cleanedExpression?: string;
   primary: string;
   resultOptions: ResultOption[];
   selectedResultKey: ResultFormatKey;
   onSelectResultOption: (key: ResultFormatKey) => void;
   onCopy: () => void;
   copyLabel: string;
+  onOpenSmartInput: () => void;
   error: string | null;
   hasResult: boolean;
 };
 
 export default function CalcDisplay({
   expression,
-  cleanedExpression,
   primary,
   resultOptions,
   selectedResultKey,
   onSelectResultOption,
   onCopy,
   copyLabel,
+  onOpenSmartInput,
   error,
   hasResult,
 }: Props) {
+  const [areDetailsOpen, setAreDetailsOpen] = React.useState(false);
   const cleanExpression = expression.trim();
 
   const mainDisplay = hasResult
@@ -48,78 +49,123 @@ export default function CalcDisplay({
       ? cleanExpression
       : "0";
 
-  const topLine = hasResult ? cleanExpression : "";
+  const topLine = hasResult
+    ? cleanExpression
+    : cleanExpression.length === 0
+      ? "Tap to type a measurement"
+      : "";
 
   const shouldShowResultOptions = hasResult && resultOptions.length > 1;
 
   return (
-    <View style={styles.display}>
-      <Text
-        style={styles.topLine}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.5}
+    <View style={styles.wrapper}>
+      <Pressable
+        accessibilityHint="Opens a text field for entries such as one foot six inches"
+        accessibilityLabel="Calculator display. Tap to type a measurement"
+        accessibilityRole="button"
+        onPress={onOpenSmartInput}
+        style={({ pressed }) => [
+          styles.display,
+          pressed && styles.displayPressed,
+        ]}
       >
-        {topLine}
-      </Text>
-
-      {hasResult ? (
-        <FormattedMainValue value={mainDisplay} />
-      ) : (
         <Text
-          style={styles.mainValue}
+          style={[styles.topLine, !hasResult && !cleanExpression && styles.topLineHint]}
           numberOfLines={1}
           adjustsFontSizeToFit
-          minimumFontScale={0.35}
+          minimumFontScale={0.5}
         >
-          {mainDisplay}
+          {topLine}
         </Text>
-      )}
+
+        {hasResult ? (
+          <FormattedMainValue value={mainDisplay} />
+        ) : (
+          <Text
+            style={styles.mainValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.35}
+          >
+            {mainDisplay}
+          </Text>
+        )}
+      </Pressable>
 
       {shouldShowResultOptions && (
-        <View style={styles.detailsRow}>
-          {resultOptions.map((option) => {
-            const isSelected = option.key === selectedResultKey;
+        <Pressable
+          accessibilityLabel="Other result formats and copy"
+          accessibilityRole="button"
+          accessibilityState={{ expanded: areDetailsOpen }}
+          onPress={() => setAreDetailsOpen((open) => !open)}
+          style={({ pressed }) => [
+            styles.detailsToggle,
+            pressed && styles.detailPillPressed,
+          ]}
+        >
+          <Text style={styles.detailsToggleText}>Other formats</Text>
+          <Text style={styles.detailsToggleChevron}>{areDetailsOpen ? "⌃" : "⌄"}</Text>
+        </Pressable>
+      )}
 
-            return (
-              <Pressable
-                accessibilityLabel={`${option.label}: ${option.value}`}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                key={option.key}
-                onPress={() => onSelectResultOption(option.key)}
-                style={({ pressed }) => [
-                  styles.detailPill,
-                  isSelected && styles.detailPillSelected,
-                  pressed && styles.detailPillPressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.detailLabel,
-                    isSelected && styles.detailLabelSelected,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {option.label}
-                </Text>
+      {shouldShowResultOptions && areDetailsOpen && (
+        <View style={styles.expandedDetails}>
+          <View style={styles.detailsRow}>
+            {resultOptions.map((option) => {
+              const isSelected = option.key === selectedResultKey;
 
-                <Text
-                  style={[
-                    styles.detailText,
-                    isSelected && styles.detailTextSelected,
+              return (
+                <Pressable
+                  accessibilityLabel={`${option.label}: ${option.value}`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
+                  key={option.key}
+                  onPress={() => onSelectResultOption(option.key)}
+                  style={({ pressed }) => [
+                    styles.detailPill,
+                    isSelected && styles.detailPillSelected,
+                    pressed && styles.detailPillPressed,
                   ]}
-                  numberOfLines={1}
                 >
-                  {option.value}
-                </Text>
-              </Pressable>
-            );
-          })}
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      isSelected && styles.detailLabelSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {option.label}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.detailText,
+                      isSelected && styles.detailTextSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {option.value}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Pressable
+            accessibilityLabel={copyLabel}
+            accessibilityRole="button"
+            onPress={onCopy}
+            style={({ pressed }) => [
+              styles.copyButton,
+              pressed && styles.copyButtonPressed,
+            ]}
+          >
+            <Text style={styles.copyButtonText}>{copyLabel}</Text>
+          </Pressable>
         </View>
       )}
 
-      {hasResult && (
+      {hasResult && !shouldShowResultOptions && (
         <Pressable
           accessibilityLabel={copyLabel}
           accessibilityRole="button"
@@ -131,17 +177,6 @@ export default function CalcDisplay({
         >
           <Text style={styles.copyButtonText}>{copyLabel}</Text>
         </Pressable>
-      )}
-
-      {hasResult && !!cleanedExpression && (
-        <Text
-          accessibilityLabel={`Cleaned input: ${cleanedExpression}`}
-          numberOfLines={2}
-          style={styles.cleaned}
-        >
-          <Text style={styles.cleanedLabel}>Cleaned: </Text>
-          {cleanedExpression}
-        </Text>
       )}
 
       {!!error && (
@@ -210,11 +245,23 @@ function parseFractionDisplay(value: string): {
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    gap: 7,
+  },
+
   display: {
-    minHeight: 150,
+    minHeight: 175,
     justifyContent: "flex-end",
-    paddingHorizontal: 4,
-    paddingBottom: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
+  },
+
+  displayPressed: {
+    opacity: 0.86,
   },
 
   topLine: {
@@ -223,6 +270,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "right",
     minHeight: 26,
+  },
+
+  topLineHint: {
+    color: Colors.textSubtle,
+    fontSize: 14,
+    fontWeight: "700",
   },
 
   mainValue: {
@@ -251,7 +304,38 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     flexWrap: "wrap",
     gap: 6,
-    marginTop: 8,
+  },
+
+  detailsToggle: {
+    minHeight: 30,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    borderRadius: 13,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+
+  detailsToggleText: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  detailsToggleChevron: {
+    color: Colors.textMuted,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+
+  expandedDetails: {
+    padding: 9,
+    borderRadius: 15,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
 
   detailPill: {
@@ -314,19 +398,6 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: "right",
     fontSize: 12,
-    fontWeight: "900",
-  },
-
-  cleaned: {
-    marginTop: 8,
-    color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "700",
-    textAlign: "right",
-  },
-
-  cleanedLabel: {
-    color: Colors.primary,
     fontWeight: "900",
   },
 

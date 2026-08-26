@@ -30,7 +30,7 @@ const ROWS: KeySpec[][] = [
 
 export default function CalcKeypad({ onKeyPress, compact = false }: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, compact && styles.containerCompact]}>
       {ROWS.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>
           {row.map((item) => (
@@ -125,7 +125,7 @@ function getVariant(k: CalcKey): Variant {
     return "operator";
   }
 
-  if (k === "FT" || k === "IN" || k === "FRAC") {
+  if (k === "FT" || k === "IN") {
     return "unit";
   }
 
@@ -138,21 +138,31 @@ function getVariant(k: CalcKey): Variant {
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
+    minHeight: 390,
+    maxHeight: 480,
     gap: 8,
   },
 
+  containerCompact: {
+    minHeight: 310,
+  },
+
   row: {
+    flex: 1,
     flexDirection: "row",
     gap: 8,
   },
 
   keyBase: {
     flex: 1,
-    height: 52,
-    borderRadius: 999,
+    minHeight: 52,
+    borderRadius: 18,
     backgroundColor: Colors.key,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
   },
 
   keyFull: {
@@ -160,7 +170,8 @@ const styles = StyleSheet.create({
   },
 
   keyCompact: {
-    height: 44,
+    minHeight: 44,
+    borderRadius: 15,
   },
 
   keyOperator: {
@@ -169,6 +180,7 @@ const styles = StyleSheet.create({
 
   keyPrimary: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 
   keyUtility: {
@@ -176,13 +188,13 @@ const styles = StyleSheet.create({
   },
 
   keyUnit: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.keyUtility,
     borderWidth: 1,
-    borderColor: Colors.primaryMuted,
+    borderColor: Colors.borderStrong,
   },
 
   keyDanger: {
-    backgroundColor: Colors.keyDanger,
+    backgroundColor: Colors.keyUtility,
   },
 
   pressed: {
@@ -209,13 +221,13 @@ const styles = StyleSheet.create({
   },
 
   keyTextUnit: {
-    color: Colors.primary,
+    color: Colors.text,
     fontSize: 18,
     fontWeight: "900",
   },
 
   keyTextDanger: {
-    color: Colors.error,
+    color: Colors.text,
     fontWeight: "800",
   },
 });
