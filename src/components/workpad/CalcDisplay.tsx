@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Colors } from "../../theme";
+import { Colors, Effects } from "../../theme";
 
 export type ResultFormatKey =
   | "standard"
@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.borderStrong,
+    ...Effects.surfaceRaised,
   },
 
   displayPressed: {
@@ -316,6 +317,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Effects.controlRaised,
   },
 
   detailsToggleText: {
@@ -336,6 +338,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface2,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Effects.recessed,
   },
 
   detailPill: {
@@ -347,6 +350,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Effects.controlRaised,
   },
 
   detailPillSelected: {
@@ -357,6 +361,7 @@ const styles = StyleSheet.create({
   detailPillPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.85,
+    ...Effects.pressed,
   },
 
   detailLabel: {
@@ -413,11 +418,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.primaryMuted,
     backgroundColor: Colors.primarySoft,
     paddingHorizontal: 14,
+    ...Effects.controlRaised,
   },
 
   copyButtonPressed: {
     opacity: 0.72,
     transform: [{ scale: 0.98 }],
+    ...Effects.pressed,
   },
 
   copyButtonText: {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Colors } from "../../theme";
+import { Colors, Effects } from "../../theme";
 import type { CalcKey } from "../../utils/calc/engine";
 
 type Props = {
@@ -314,7 +314,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.borderStrong,
+    borderColor: Colors.border,
+    ...Effects.controlRaised,
   },
 
   keyFull: {
@@ -333,6 +334,7 @@ const styles = StyleSheet.create({
   keyPrimary: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    ...Effects.primaryRaised,
   },
 
   keyUtility: {
@@ -388,6 +390,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
+    ...Effects.pressed,
   },
 
   keyText: {

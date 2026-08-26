@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Colors } from "../../theme";
+import { Colors, Effects } from "../../theme";
 
 export const styles = StyleSheet.create({
   safe: {
@@ -53,6 +53,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.surface3,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Effects.controlRaised,
   },
 
   historyButtonText: {
@@ -72,6 +73,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.primarySoft,
     borderWidth: 1,
     borderColor: Colors.primary,
+    ...Effects.primaryRaised,
   },
 
   interpretationSparkle: {
@@ -111,6 +113,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.borderStrong,
+    ...Effects.surfaceRaised,
   },
 
   settingsSummaryText: {
@@ -154,6 +157,7 @@ export const styles = StyleSheet.create({
     borderColor: Colors.border,
     padding: 3,
     gap: 2,
+    ...Effects.recessed,
   },
 
   segment: {
@@ -167,6 +171,7 @@ export const styles = StyleSheet.create({
 
   segmentSelected: {
     backgroundColor: Colors.primarySoft,
+    ...Effects.controlRaised,
   },
 
   segmentText: {
@@ -183,5 +188,6 @@ export const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
     transform: [{ scale: 0.99 }],
+    ...Effects.pressed,
   },
 });

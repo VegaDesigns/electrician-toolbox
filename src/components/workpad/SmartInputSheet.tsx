@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "../../theme";
+import { Colors, Effects } from "../../theme";
 
 type Props = {
   initialValue: string;
@@ -169,6 +169,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     textAlignVertical: "top",
+    borderTopColor: "rgba(0, 0, 0, 0.65)",
+    borderBottomColor: "rgba(255, 255, 255, 0.07)",
+    boxShadow:
+      "inset 0 2px 5px rgba(0, 0, 0, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.035)",
   },
   errorBox: {
     borderRadius: 14,
@@ -195,8 +199,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     paddingHorizontal: 14,
+    ...Effects.controlRaised,
   },
   exampleText: { color: Colors.text, fontSize: 16, fontWeight: "800" },
   help: { color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
-  pressed: { opacity: 0.72, transform: [{ scale: 0.99 }] },
+  pressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.99 }],
+    ...Effects.pressed,
+  },
 });
