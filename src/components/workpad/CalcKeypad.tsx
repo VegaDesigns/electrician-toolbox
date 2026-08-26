@@ -1,5 +1,11 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { Colors, Effects } from "../../theme";
 import type { CalcKey } from "../../utils/calc/engine";
 
@@ -7,8 +13,6 @@ type Props = {
   onKeyPress: (key: CalcKey) => void;
   onPickFraction: (fraction: FractionSpec) => void;
   onExitFractionMode: () => void;
-  onToggleFractionPage: () => void;
-  showMoreFractions?: boolean;
   fractionMode?: boolean;
   compact?: boolean;
 };
@@ -46,54 +50,120 @@ const COMMON_FRACTIONS: FractionSpec[] = [
   { label: "7/8", value: 7 / 8 },
 ];
 
-const MORE_FRACTIONS: FractionSpec[] = [
-  { label: "3/16", value: 3 / 16 },
-  { label: "5/16", value: 5 / 16 },
-  { label: "7/16", value: 7 / 16 },
-  { label: "9/16", value: 9 / 16 },
-  { label: "11/16", value: 11 / 16 },
-  { label: "13/16", value: 13 / 16 },
-  { label: "15/16", value: 15 / 16 },
-];
-
 export default function CalcKeypad({
   onKeyPress,
   onPickFraction,
   onExitFractionMode,
-  onToggleFractionPage,
-  showMoreFractions = false,
   fractionMode = false,
   compact = false,
 }: Props) {
+  const [customNumerator, setCustomNumerator] = useState("");
+  const [customDenominator, setCustomDenominator] = useState("");
+  const [customError, setCustomError] = useState("");
+  const denominatorInputRef = useRef<TextInput | null>(null);
+
+  function resetCustomFraction() {
+    setCustomNumerator("");
+    setCustomDenominator("");
+    setCustomError("");
+  }
+
+  function exitFractionMode() {
+    resetCustomFraction();
+    onExitFractionMode();
+  }
+
+  function pressFractionUtility(key: CalcKey) {
+    resetCustomFraction();
+    onKeyPress(key);
+  }
+
+  function pickFraction(fraction: FractionSpec) {
+    resetCustomFraction();
+    onPickFraction(fraction);
+  }
+
+  function updateCustomValue(
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string>>,
+  ) {
+    setter(value.replace(/\D/g, "").slice(0, 3));
+    setCustomError("");
+  }
+
+  function submitCustomFraction() {
+    const numerator = Number(customNumerator);
+    const denominator = Number(customDenominator);
+
+    if (!customNumerator || !customDenominator || denominator === 0) {
+      setCustomError("Enter both numbers. The bottom number cannot be zero.");
+      return;
+    }
+
+    if (numerator <= 0 || numerator >= denominator) {
+      setCustomError("Use a fraction greater than 0 and less than 1.");
+      return;
+    }
+
+    pickFraction({
+      label: `${numerator}/${denominator}`,
+      value: numerator / denominator,
+    });
+  }
+
   if (fractionMode) {
-    const activeFractions = showMoreFractions
-      ? MORE_FRACTIONS
-      : COMMON_FRACTIONS;
-    const fractionRows = chunkFractions(activeFractions);
+    const fractionRows = chunkFractions(COMMON_FRACTIONS);
 
     return (
       <View
         accessibilityLabel="Fraction keypad"
         style={[styles.container, compact && styles.containerCompact]}
       >
-        <View style={styles.row}>
-          {ROWS[0].map((item) => (
+        <View
+          style={[
+            styles.row,
+            styles.fractionUtilityRow,
+            compact && styles.fractionUtilityRowCompact,
+          ]}
+        >
+          <Pressable
+            accessibilityLabel="Return to number keypad"
+            accessibilityRole="button"
+            hitSlop={4}
+            onPress={exitFractionMode}
+            style={({ pressed }) => [
+              styles.keyBase,
+              compact && styles.keyCompact,
+              styles.backKey,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.backKeyText}>← Back</Text>
+          </Pressable>
+
+          {ROWS[0].slice(1).map((item) => (
             <KeyButton
               key={`fraction-utility-${item.key}`}
               item={item}
               compact={compact}
-              onPress={() => onKeyPress(item.key)}
+              onPress={() => pressFractionUtility(item.key)}
             />
           ))}
         </View>
 
+        <Text style={styles.fractionSectionLabel}>Common fractions</Text>
+
         {fractionRows.map((row, rowIndex) => (
-          <View key={`fraction-row-${rowIndex}`} style={styles.row}>
+          <View
+            key={`fraction-row-${rowIndex}`}
+            style={[styles.row, styles.fractionChoiceRow]}
+          >
             {row.map((fraction) => (
               <FractionButton
+                compact={compact}
                 fraction={fraction}
                 key={fraction.label}
-                onPress={() => onPickFraction(fraction)}
+                onPress={() => pickFraction(fraction)}
               />
             ))}
 
@@ -107,42 +177,76 @@ export default function CalcKeypad({
           </View>
         ))}
 
-        <View style={styles.row}>
-          <Pressable
-            accessibilityLabel={
-              showMoreFractions
-                ? "Show common fractions"
-                : "Show more fractions"
-            }
-            accessibilityRole="button"
-            onPress={onToggleFractionPage}
-            style={({ pressed }) => [
-              styles.keyBase,
-              styles.keyFull,
-              styles.fractionPageKey,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.fractionPageKeyText}>
-              {showMoreFractions ? "Common fractions" : "More fractions"}
-            </Text>
-          </Pressable>
-        </View>
+        <View
+          style={[
+            styles.customFractionCard,
+            compact && styles.customFractionCardCompact,
+          ]}
+        >
+          <Text style={styles.customFractionTitle}>Custom fraction</Text>
 
-        <View style={styles.row}>
-          <Pressable
-            accessibilityLabel="Return to number keypad"
-            accessibilityRole="button"
-            onPress={onExitFractionMode}
-            style={({ pressed }) => [
-              styles.keyBase,
-              styles.keyFull,
-              styles.numberModeKey,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.numberModeKeyText}>123 · Number keypad</Text>
-          </Pressable>
+          <View style={styles.customFractionRow}>
+            <View style={styles.customField}>
+              <Text style={styles.customFieldLabel}>Top</Text>
+              <TextInput
+                accessibilityLabel="Custom fraction numerator"
+                keyboardType="number-pad"
+                maxLength={3}
+                onChangeText={(value) =>
+                  updateCustomValue(value, setCustomNumerator)
+                }
+                onSubmitEditing={() => denominatorInputRef.current?.focus()}
+                placeholder="1"
+                placeholderTextColor={Colors.textSubtle}
+                returnKeyType="next"
+                selectTextOnFocus
+                style={styles.customInput}
+                value={customNumerator}
+              />
+            </View>
+
+            <Text aria-hidden style={styles.customSlash}>
+              /
+            </Text>
+
+            <View style={styles.customField}>
+              <Text style={styles.customFieldLabel}>Bottom</Text>
+              <TextInput
+                accessibilityLabel="Custom fraction denominator"
+                keyboardType="number-pad"
+                maxLength={3}
+                onChangeText={(value) =>
+                  updateCustomValue(value, setCustomDenominator)
+                }
+                onSubmitEditing={submitCustomFraction}
+                placeholder="16"
+                placeholderTextColor={Colors.textSubtle}
+                ref={denominatorInputRef}
+                returnKeyType="done"
+                selectTextOnFocus
+                style={styles.customInput}
+                value={customDenominator}
+              />
+            </View>
+
+            <Pressable
+              accessibilityLabel="Add custom fraction"
+              accessibilityRole="button"
+              onPress={submitCustomFraction}
+              style={({ pressed }) => [
+                styles.customAddKey,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.customAddKeyText}>Add</Text>
+            </Pressable>
+          </View>
+
+          {!!customError && (
+            <Text accessibilityRole="alert" style={styles.customError}>
+              {customError}
+            </Text>
+          )}
         </View>
       </View>
     );
@@ -177,9 +281,11 @@ function chunkFractions(fractions: FractionSpec[]): FractionSpec[][] {
 }
 
 function FractionButton({
+  compact,
   fraction,
   onPress,
 }: {
+  compact: boolean;
   fraction: FractionSpec;
   onPress: () => void;
 }) {
@@ -190,6 +296,7 @@ function FractionButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.keyBase,
+        compact && styles.keyCompact,
         styles.fractionKey,
         pressed && styles.pressed,
       ]}
@@ -351,6 +458,43 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.keyDanger,
   },
 
+  fractionUtilityRow: {
+    flexBasis: 60,
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 60,
+  },
+
+  fractionUtilityRowCompact: {
+    flexBasis: 52,
+    height: 52,
+  },
+
+  backKey: {
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primaryMuted,
+  },
+
+  backKeyText: {
+    color: Colors.primary,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  fractionSectionLabel: {
+    color: Colors.textMuted,
+    flexShrink: 0,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    marginLeft: 4,
+    textTransform: "uppercase",
+  },
+
+  fractionChoiceRow: {
+    minHeight: 52,
+  },
+
   fractionKey: {
     backgroundColor: Colors.surface2,
   },
@@ -365,26 +509,93 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  fractionPageKey: {
+  customFractionCard: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    flexGrow: 0,
+    gap: 8,
+    padding: 12,
+    ...Effects.surfaceRaised,
   },
 
-  fractionPageKeyText: {
+  customFractionCardCompact: {
+    gap: 6,
+    paddingVertical: 9,
+  },
+
+  customFractionTitle: {
     color: Colors.textMuted,
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "800",
   },
 
-  numberModeKey: {
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
+  customFractionRow: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: 8,
   },
 
-  numberModeKeyText: {
-    color: Colors.primary,
-    fontSize: 17,
+  customField: {
+    flex: 1,
+    gap: 4,
+  },
+
+  customFieldLabel: {
+    color: Colors.textSubtle,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+
+  customInput: {
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    borderTopColor: "rgba(0, 0, 0, 0.65)",
+    borderBottomColor: "rgba(255, 255, 255, 0.07)",
+    borderWidth: 1,
+    boxShadow:
+      "inset 0 2px 5px rgba(0, 0, 0, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.035)",
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: "800",
+    height: 48,
+    paddingHorizontal: 10,
+    textAlign: "center",
+  },
+
+  customSlash: {
+    color: Colors.textMuted,
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 48,
+  },
+
+  customAddKey: {
+    alignItems: "center",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    borderRadius: 12,
+    borderWidth: 1,
+    height: 48,
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    ...Effects.primaryRaised,
+  },
+
+  customAddKeyText: {
+    color: Colors.inverseText,
+    fontSize: 15,
     fontWeight: "900",
+  },
+
+  customError: {
+    color: Colors.error,
+    fontSize: 12,
+    fontWeight: "700",
   },
 
   pressed: {
