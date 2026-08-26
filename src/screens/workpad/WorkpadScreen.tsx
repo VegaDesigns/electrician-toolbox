@@ -9,7 +9,6 @@ import CalcDisplay, {
   type ResultOption,
 } from "../../components/workpad/CalcDisplay";
 import CalcKeypad from "../../components/workpad/CalcKeypad";
-import FractionTray from "../../components/workpad/FractionTray";
 import HistoryDrawer from "../../components/workpad/HistoryDrawer";
 import SmartInputSheet from "../../components/workpad/SmartInputSheet";
 
@@ -335,6 +334,10 @@ export default function WorkpadScreen() {
       setIsFracOpen((v) => !v);
       Haptics.selectionAsync().catch(() => {});
       return;
+    }
+
+    if (isFracOpen) {
+      setIsFracOpen(false);
     }
 
     if (key !== "=") {
@@ -700,14 +703,13 @@ export default function WorkpadScreen() {
           </View>
         )}
 
-        {isFracOpen && (
-          <FractionTray
-            onClose={() => setIsFracOpen(false)}
-            onPick={(f) => onPickFraction(f)}
-          />
-        )}
-
-        <CalcKeypad compact={isCompact} onKeyPress={onKeyPress} />
+        <CalcKeypad
+          compact={isCompact}
+          fractionMode={isFracOpen}
+          onExitFractionMode={() => setIsFracOpen(false)}
+          onKeyPress={onKeyPress}
+          onPickFraction={onPickFraction}
+        />
       </ScrollView>
 
       <HistoryDrawer
