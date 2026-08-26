@@ -1,36 +1,36 @@
 // src/theme/color.ts
 export const Colors = {
   // Base
-  bg: "#0B1220",
-  surface: "#0F1B33",
-  surface2: "#111C35",
-  surface3: "#17213A",
+  bg: "#12161B",
+  surface: "#1D2430",
+  surface2: "#222B36",
+  surface3: "#2A3442",
 
   // Borders
-  border: "#1F2A44",
-  borderStrong: "#334155",
+  border: "#35414F",
+  borderStrong: "#4D6A86",
 
   // Text
-  text: "#E5E7EB",
-  textMuted: "#9CA3AF",
-  textSubtle: "#6B7280",
+  text: "#E8ECEF",
+  textMuted: "#98A2AD",
+  textSubtle: "#707B87",
 
   // Accent
-  primary: "#A3E635",
-  primarySoft: "#1A2E05",
-  primaryMuted: "#365314",
+  primary: "#E0A526",
+  primarySoft: "#35290F",
+  primaryMuted: "#7A5B19",
 
   // Calculator keys
-  key: "#1B263B",
-  keyOperator: "#243B25",
-  keyUtility: "#334155",
-  keyDanger: "#3A1D24",
+  key: "#232B35",
+  keyOperator: "#302B1E",
+  keyUtility: "#2A3442",
+  keyDanger: "#A6463A",
 
   // Status
-  error: "#EF4444",
-  errorSoft: "#3A1D24",
-  success: "#22C55E",
+  error: "#D26457",
+  errorSoft: "#3E2523",
+  success: "#4D6A86",
 
   // Inverse
-  inverseText: "#0B1220",
+  inverseText: "#12161B",
 };

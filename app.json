@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0B1220",
+        "backgroundColor": "#12161B",
         "foregroundImage": "./assets/images/electrician-toolbox-icon.png"
       },
       "package": "com.brokecoderlabs.electriciantoolbox",
@@ -36,9 +36,9 @@
           "image": "./assets/images/electrician-toolbox-icon.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#0B1220",
+          "backgroundColor": "#12161B",
           "dark": {
-            "backgroundColor": "#0B1220"
+            "backgroundColor": "#12161B"
           }
         }
       ]

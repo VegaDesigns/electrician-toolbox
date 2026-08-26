@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
 
   keyDanger: {
-    backgroundColor: Colors.keyUtility,
+    backgroundColor: Colors.keyDanger,
   },
 
   fractionKey: {

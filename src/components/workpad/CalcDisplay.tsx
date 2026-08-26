@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 12,
-    backgroundColor: Colors.errorSoft ?? "#3A1D24",
+    backgroundColor: Colors.errorSoft,
     borderWidth: 1,
     borderColor: Colors.error,
   },
