@@ -7,6 +7,8 @@ type Props = {
   onKeyPress: (key: CalcKey) => void;
   onPickFraction: (fraction: FractionSpec) => void;
   onExitFractionMode: () => void;
+  onToggleFractionPage: () => void;
+  showMoreFractions?: boolean;
   fractionMode?: boolean;
   compact?: boolean;
 };
@@ -33,40 +35,42 @@ const ROWS: KeySpec[][] = [
   [{ key: "=", span: 4 }],
 ];
 
-const FRACTION_ROWS: FractionSpec[][] = [
-  [
-    { label: "1/16", value: 1 / 16 },
-    { label: "1/8", value: 1 / 8 },
-    { label: "3/16", value: 3 / 16 },
-    { label: "1/4", value: 1 / 4 },
-  ],
-  [
-    { label: "5/16", value: 5 / 16 },
-    { label: "3/8", value: 3 / 8 },
-    { label: "7/16", value: 7 / 16 },
-    { label: "1/2", value: 1 / 2 },
-  ],
-  [
-    { label: "9/16", value: 9 / 16 },
-    { label: "5/8", value: 5 / 8 },
-    { label: "11/16", value: 11 / 16 },
-    { label: "3/4", value: 3 / 4 },
-  ],
-  [
-    { label: "13/16", value: 13 / 16 },
-    { label: "7/8", value: 7 / 8 },
-    { label: "15/16", value: 15 / 16 },
-  ],
+const COMMON_FRACTIONS: FractionSpec[] = [
+  { label: "1/16", value: 1 / 16 },
+  { label: "1/8", value: 1 / 8 },
+  { label: "1/4", value: 1 / 4 },
+  { label: "3/8", value: 3 / 8 },
+  { label: "1/2", value: 1 / 2 },
+  { label: "5/8", value: 5 / 8 },
+  { label: "3/4", value: 3 / 4 },
+  { label: "7/8", value: 7 / 8 },
+];
+
+const MORE_FRACTIONS: FractionSpec[] = [
+  { label: "3/16", value: 3 / 16 },
+  { label: "5/16", value: 5 / 16 },
+  { label: "7/16", value: 7 / 16 },
+  { label: "9/16", value: 9 / 16 },
+  { label: "11/16", value: 11 / 16 },
+  { label: "13/16", value: 13 / 16 },
+  { label: "15/16", value: 15 / 16 },
 ];
 
 export default function CalcKeypad({
   onKeyPress,
   onPickFraction,
   onExitFractionMode,
+  onToggleFractionPage,
+  showMoreFractions = false,
   fractionMode = false,
   compact = false,
 }: Props) {
   if (fractionMode) {
+    const activeFractions = showMoreFractions
+      ? MORE_FRACTIONS
+      : COMMON_FRACTIONS;
+    const fractionRows = chunkFractions(activeFractions);
+
     return (
       <View
         accessibilityLabel="Fraction keypad"
@@ -83,7 +87,7 @@ export default function CalcKeypad({
           ))}
         </View>
 
-        {FRACTION_ROWS.map((row, rowIndex) => (
+        {fractionRows.map((row, rowIndex) => (
           <View key={`fraction-row-${rowIndex}`} style={styles.row}>
             {row.map((fraction) => (
               <FractionButton
@@ -93,22 +97,53 @@ export default function CalcKeypad({
               />
             ))}
 
-            {rowIndex === FRACTION_ROWS.length - 1 && (
-              <Pressable
-                accessibilityLabel="Return to number keypad"
-                accessibilityRole="button"
-                onPress={onExitFractionMode}
-                style={({ pressed }) => [
-                  styles.keyBase,
-                  styles.numberModeKey,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.numberModeKeyText}>123</Text>
-              </Pressable>
-            )}
+            {Array.from({ length: 4 - row.length }).map((_, spacerIndex) => (
+              <View
+                aria-hidden
+                key={`fraction-spacer-${rowIndex}-${spacerIndex}`}
+                style={styles.keySpacer}
+              />
+            ))}
           </View>
         ))}
+
+        <View style={styles.row}>
+          <Pressable
+            accessibilityLabel={
+              showMoreFractions
+                ? "Show common fractions"
+                : "Show more fractions"
+            }
+            accessibilityRole="button"
+            onPress={onToggleFractionPage}
+            style={({ pressed }) => [
+              styles.keyBase,
+              styles.keyFull,
+              styles.fractionPageKey,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.fractionPageKeyText}>
+              {showMoreFractions ? "Common fractions" : "More fractions"}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.row}>
+          <Pressable
+            accessibilityLabel="Return to number keypad"
+            accessibilityRole="button"
+            onPress={onExitFractionMode}
+            style={({ pressed }) => [
+              styles.keyBase,
+              styles.keyFull,
+              styles.numberModeKey,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.numberModeKeyText}>123 · Number keypad</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -129,6 +164,16 @@ export default function CalcKeypad({
       ))}
     </View>
   );
+}
+
+function chunkFractions(fractions: FractionSpec[]): FractionSpec[][] {
+  const rows: FractionSpec[][] = [];
+
+  for (let index = 0; index < fractions.length; index += 4) {
+    rows.push(fractions.slice(index, index + 4));
+  }
+
+  return rows;
 }
 
 function FractionButton({
@@ -311,6 +356,21 @@ const styles = StyleSheet.create({
   fractionKeyText: {
     color: Colors.text,
     fontSize: 17,
+    fontWeight: "800",
+  },
+
+  keySpacer: {
+    flex: 1,
+  },
+
+  fractionPageKey: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
+
+  fractionPageKeyText: {
+    color: Colors.textMuted,
+    fontSize: 16,
     fontWeight: "800",
   },
 

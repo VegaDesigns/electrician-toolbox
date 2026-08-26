@@ -117,6 +117,7 @@ export default function WorkpadScreen() {
   const { height } = useWindowDimensions();
   const [state, setState] = useState(createInitialCalcState());
   const [isFracOpen, setIsFracOpen] = useState(false);
+  const [isMoreFractionsOpen, setIsMoreFractionsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
   const [areSettingsOpen, setAreSettingsOpen] = useState(false);
@@ -332,12 +333,14 @@ export default function WorkpadScreen() {
   function onKeyPress(key: CalcKey) {
     if (key === "FRAC") {
       setIsFracOpen((v) => !v);
+      setIsMoreFractionsOpen(false);
       Haptics.selectionAsync().catch(() => {});
       return;
     }
 
     if (isFracOpen) {
       setIsFracOpen(false);
+      setIsMoreFractionsOpen(false);
     }
 
     if (key !== "=") {
@@ -422,6 +425,7 @@ export default function WorkpadScreen() {
     });
 
     setIsFracOpen(false);
+    setIsMoreFractionsOpen(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }
 
@@ -706,9 +710,16 @@ export default function WorkpadScreen() {
         <CalcKeypad
           compact={isCompact}
           fractionMode={isFracOpen}
-          onExitFractionMode={() => setIsFracOpen(false)}
+          onExitFractionMode={() => {
+            setIsFracOpen(false);
+            setIsMoreFractionsOpen(false);
+          }}
           onKeyPress={onKeyPress}
           onPickFraction={onPickFraction}
+          onToggleFractionPage={() =>
+            setIsMoreFractionsOpen((isOpen) => !isOpen)
+          }
+          showMoreFractions={isMoreFractionsOpen}
         />
       </ScrollView>
 
