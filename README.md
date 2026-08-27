@@ -1,8 +1,8 @@
 # Electrician Toolbox
 
-An offline-first field measurement calculator built with React Native and Expo.
-This beta focuses on making the Workpad dependable, fast, and comfortable to
-use on an iPhone before adding the rest of the toolbox.
+An offline-first field toolkit built with React Native and Expo. The app now
+combines the Workpad measurement calculator with a dedicated conduit bending
+suite in one scalable toolbox home.
 
 ## Workpad beta features
 
@@ -28,6 +28,21 @@ Smart Entry accepts formats such as:
 12/8
 1' 6" + 5 1/2"
 ```
+
+## Conduit bending suite
+
+- Two-bend offsets with standard angle multipliers, shrink, and optional marks
+- Rolling offsets using combined rise and roll
+- 90-degree stub-ups with saved bender deducts for each EMT size
+- Three-point saddle layouts with adjusted center and outside marks
+- Four-point saddle layouts with optional end-to-mark measurements
+- 1/2-inch, 3/4-inch, and 1-inch EMT preferences
+- Fraction and decimal inputs with tape-ready results rounded to 1/16 inch
+- Offline storage for conduit size and bender deduct preferences
+
+The offset math follows the common Greenlee multiplier and shrink table. Field
+results should still be checked against the exact bender, shoe, and conduit in
+use before making production bends.
 
 ## Requirements
 
@@ -97,12 +112,9 @@ storage.
 
 ## Planned additions
 
-The intended sequence after the Workpad beta is stable:
+The toolbox home is designed to accept future tools without mixing their
+workflows. Likely additions include a panel color checker, box/conduit fill,
+and a basic jobsite to-do list.
 
-1. Panel Color checker
-2. Basic jobsite To-Do list
-3. Save Workpad results into tasks
-4. Conduit bending tools, one bend type at a time
-
-Keep calculation and formatting logic in `src/utils/calc` so future features
+Calculation and formatting logic lives under `src/utils` so future features can
 reuse the same tested measurement foundation.

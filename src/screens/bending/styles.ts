@@ -1,253 +1,148 @@
 import { StyleSheet } from "react-native";
 import { Colors, Effects } from "../../theme";
 
+const pipeBlue = "#7191AE";
+
 export const styles = StyleSheet.create({
-  safe: {
-    backgroundColor: Colors.bg,
-    flex: 1,
-  },
-
+  safe: { backgroundColor: Colors.bg, flex: 1 },
   header: {
-    alignItems: "center",
-    alignSelf: "center",
-    borderBottomColor: Colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 58,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    width: "100%",
-    maxWidth: 520,
+    alignItems: "center", alignSelf: "center", borderBottomColor: Colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: "row", gap: 12,
+    maxWidth: 560, minHeight: 58, paddingHorizontal: 16, paddingVertical: 8, width: "100%",
   },
-
-  homeButton: {
-    alignItems: "center",
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
-    borderRadius: 13,
-    borderWidth: 1,
-    justifyContent: "center",
-    minHeight: 40,
-    paddingHorizontal: 12,
-    ...Effects.controlRaised,
+  backButton: {
+    alignItems: "center", backgroundColor: Colors.primarySoft, borderColor: Colors.primaryMuted,
+    borderRadius: 13, borderWidth: 1, justifyContent: "center", minHeight: 40,
+    minWidth: 76, paddingHorizontal: 11, ...Effects.controlRaised,
   },
-
-  homeButtonText: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: "900",
-  },
-
-  headerTitle: {
-    color: Colors.text,
-    flex: 1,
-    fontSize: 20,
-    fontWeight: "900",
-    textAlign: "right",
-  },
-
+  backButtonText: { color: Colors.primary, fontSize: 13, fontWeight: "900" },
+  headerCopy: { alignItems: "flex-end", flex: 1 },
+  headerEyebrow: { color: Colors.textSubtle, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  headerTitle: { color: Colors.text, fontSize: 19, fontWeight: "900", marginTop: 1 },
   container: {
-    alignSelf: "center",
-    flexGrow: 1,
-    gap: 14,
-    maxWidth: 520,
-    padding: 16,
-    width: "100%",
+    alignSelf: "center", flexGrow: 1, gap: 14, maxWidth: 560, paddingBottom: 34,
+    paddingHorizontal: 16, paddingTop: 13, width: "100%",
   },
-
+  conduitPicker: {
+    alignItems: "center", backgroundColor: Colors.surface2, borderColor: Colors.border,
+    borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 12, justifyContent: "space-between",
+    padding: 10, ...Effects.surfaceRaised,
+  },
+  pickerLabelGroup: { flex: 1, paddingLeft: 3 },
+  pickerLabel: { color: Colors.text, fontSize: 10, fontWeight: "900", letterSpacing: 0.7 },
+  pickerSubLabel: { color: Colors.textSubtle, fontSize: 10, fontWeight: "700", marginTop: 2 },
+  segmentedControl: {
+    backgroundColor: Colors.bg, borderColor: Colors.border, borderRadius: 11, borderWidth: 1,
+    flexDirection: "row", gap: 2, padding: 3, ...Effects.recessed,
+  },
+  segment: { alignItems: "center", borderRadius: 8, justifyContent: "center", minHeight: 35, minWidth: 48, paddingHorizontal: 9 },
+  segmentSelected: { backgroundColor: Colors.primary, ...Effects.primaryRaised },
+  segmentText: { color: Colors.textMuted, fontSize: 12, fontWeight: "900" },
+  segmentTextSelected: { color: Colors.inverseText },
   hero: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.borderStrong,
-    borderRadius: 24,
-    borderWidth: 1,
-    minHeight: 330,
-    overflow: "hidden",
-    padding: 18,
-    ...Effects.surfaceRaised,
+    backgroundColor: Colors.surface, borderColor: Colors.borderStrong, borderRadius: 24,
+    borderWidth: 1, minHeight: 300, overflow: "hidden", padding: 18, ...Effects.surfaceRaised,
   },
-
-  heroTopRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 28,
+  heroTopRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 24 },
+  heroIcon: { alignItems: "center", backgroundColor: Colors.surface3, borderRadius: 15, height: 50, justifyContent: "center", width: 50 },
+  heroIconText: { color: "#89A6C1", fontSize: 29, fontWeight: "900" },
+  offlineBadge: { alignItems: "center", backgroundColor: "#1B2B27", borderColor: "#36564E", borderRadius: 10, borderWidth: 1, flexDirection: "row", gap: 6, paddingHorizontal: 9, paddingVertical: 6 },
+  onlineDot: { backgroundColor: "#68A58D", borderRadius: 4, height: 6, width: 6 },
+  offlineBadgeText: { color: "#87B4A3", fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
+  eyebrow: { color: Colors.primary, fontSize: 10, fontWeight: "900", letterSpacing: 1 },
+  title: { color: Colors.text, fontSize: 28, fontWeight: "900", letterSpacing: -0.3, marginTop: 5 },
+  description: { color: Colors.textMuted, fontSize: 14, lineHeight: 20, marginTop: 7, maxWidth: 420 },
+  sectionHeading: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginTop: 5, paddingHorizontal: 3 },
+  sectionLabel: { color: Colors.text, fontSize: 11, fontWeight: "900", letterSpacing: 0.8 },
+  sectionCount: { color: Colors.textSubtle, fontSize: 9, fontWeight: "900", letterSpacing: 0.5 },
+  toolList: { gap: 10 },
+  toolCard: {
+    alignItems: "center", backgroundColor: Colors.surface2, borderColor: Colors.border,
+    borderRadius: 18, borderWidth: 1, flexDirection: "row", gap: 13, minHeight: 94,
+    padding: 13, ...Effects.surfaceRaised,
   },
-
-  heroIcon: {
-    alignItems: "center",
-    backgroundColor: Colors.surface3,
-    borderRadius: 15,
-    height: 50,
-    justifyContent: "center",
-    width: 50,
+  toolIcon: { alignItems: "center", backgroundColor: Colors.surface3, borderRadius: 13, height: 48, justifyContent: "center", width: 48 },
+  toolIconText: { color: pipeBlue, fontSize: 25, fontWeight: "900" },
+  toolCardCopy: { flex: 1 },
+  toolEyebrow: { color: Colors.primary, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  toolTitle: { color: Colors.text, fontSize: 17, fontWeight: "900", marginTop: 2 },
+  toolDescription: { color: Colors.textMuted, fontSize: 12, lineHeight: 16, marginTop: 3 },
+  toolArrow: { color: Colors.primary, fontSize: 31, fontWeight: "500", paddingHorizontal: 4 },
+  fieldNote: { alignItems: "flex-start", backgroundColor: "#24251F", borderColor: "#575033", borderRadius: 15, borderWidth: 1, flexDirection: "row", gap: 10, padding: 13 },
+  fieldNoteIcon: { color: Colors.primary, fontSize: 16, fontWeight: "900" },
+  fieldNoteText: { color: Colors.textMuted, flex: 1, fontSize: 11, lineHeight: 16 },
+  calculatorHero: {
+    backgroundColor: Colors.surface, borderColor: Colors.borderStrong, borderRadius: 22,
+    borderWidth: 1, minHeight: 248, overflow: "hidden", padding: 17, ...Effects.surfaceRaised,
   },
-
-  heroIconText: {
-    color: "#89A6C1",
-    fontSize: 29,
-    fontWeight: "900",
+  calculatorHeroTop: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  largeToolIcon: { alignItems: "center", backgroundColor: Colors.surface3, borderRadius: 13, height: 44, justifyContent: "center", width: 44 },
+  largeToolIconText: { color: pipeBlue, fontSize: 24, fontWeight: "900" },
+  calculatorEyebrow: { color: Colors.primary, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
+  calculatorTitle: { color: Colors.text, fontSize: 25, fontWeight: "900", marginTop: 17 },
+  calculatorDescription: { color: Colors.textMuted, fontSize: 13, lineHeight: 18, marginTop: 4 },
+  formCard: {
+    backgroundColor: Colors.surface2, borderColor: Colors.border, borderRadius: 19,
+    borderWidth: 1, gap: 15, padding: 14, ...Effects.surfaceRaised,
   },
-
-  defaultBadge: {
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
-    borderRadius: 11,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+  inputGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  inputGroup: { flex: 1, minWidth: 145 },
+  inputLabel: { color: Colors.textMuted, fontSize: 9, fontWeight: "900", letterSpacing: 0.7, marginBottom: 6 },
+  inputShell: {
+    alignItems: "center", backgroundColor: Colors.bg, borderColor: Colors.borderStrong,
+    borderRadius: 12, borderWidth: 1, flexDirection: "row", minHeight: 50, ...Effects.recessed,
   },
-
-  defaultBadgeText: {
-    color: Colors.primary,
-    fontSize: 10,
-    fontWeight: "900",
-    letterSpacing: 0.6,
-  },
-
-  eyebrow: {
-    color: Colors.textSubtle,
-    fontSize: 10,
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-
-  title: {
-    color: Colors.text,
-    fontSize: 29,
-    fontWeight: "900",
-    letterSpacing: -0.3,
-    marginTop: 5,
-  },
-
-  description: {
-    color: Colors.textMuted,
-    fontSize: 15,
-    lineHeight: 21,
-    marginTop: 7,
-    maxWidth: 370,
-  },
-
-  pipeDiagram: {
-    height: 82,
-    marginTop: 28,
-    position: "relative",
-  },
-
-  pipeSegment: {
-    backgroundColor: "#6F8DA8",
-    borderRadius: 4,
-    height: 8,
-    position: "absolute",
-  },
-
-  pipeStart: {
-    bottom: 12,
-    left: 0,
-    width: "34%",
-  },
-
-  pipeRise: {
-    bottom: 32,
-    left: "31%",
-    transform: [{ rotate: "-28deg" }],
-    width: "30%",
-  },
-
-  pipeEnd: {
-    bottom: 51,
-    left: "58%",
-    width: "38%",
-  },
-
-  mark: {
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    height: 17,
-    position: "absolute",
-    width: 3,
-  },
-
-  markOne: {
-    bottom: 7,
-    left: "30%",
-  },
-
-  markTwo: {
-    bottom: 46,
-    left: "59%",
-  },
-
-  nextCard: {
-    backgroundColor: Colors.surface2,
-    borderColor: Colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 5,
-    padding: 17,
-    ...Effects.surfaceRaised,
-  },
-
-  nextLabel: {
-    color: Colors.primary,
-    fontSize: 10,
-    fontWeight: "900",
-    letterSpacing: 0.9,
-  },
-
-  nextTitle: {
-    color: Colors.text,
-    fontSize: 21,
-    fontWeight: "900",
-  },
-
-  nextDescription: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 3,
-  },
-
-  toolTags: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 7,
-    marginTop: 12,
-  },
-
-  toolTag: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-
-  toolTagActive: {
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-
-  toolTagText: {
-    color: Colors.textMuted,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-
-  toolTagActiveText: {
-    color: Colors.primary,
-    fontSize: 11,
-    fontWeight: "900",
-  },
-
-  pressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.98 }],
-    ...Effects.pressed,
-  },
+  input: { color: Colors.text, flex: 1, fontSize: 18, fontWeight: "800", minHeight: 48, paddingHorizontal: 12, paddingVertical: 9 },
+  inputUnit: { color: Colors.primary, fontSize: 10, fontWeight: "900", letterSpacing: 0.7, paddingRight: 11 },
+  inputHint: { color: Colors.textSubtle, fontSize: 9, fontWeight: "700", marginTop: 5 },
+  angleGroup: { gap: 1 },
+  angleRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  angleButton: { alignItems: "center", backgroundColor: Colors.bg, borderColor: Colors.border, borderRadius: 10, borderWidth: 1, flexBasis: "30%", flexGrow: 1, justifyContent: "center", minHeight: 42, paddingHorizontal: 8, ...Effects.controlRaised },
+  angleButtonSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary, ...Effects.primaryRaised },
+  angleText: { color: Colors.textMuted, fontSize: 12, fontWeight: "900" },
+  angleTextSelected: { color: Colors.inverseText },
+  fixedAngleStrip: { alignItems: "center", backgroundColor: Colors.bg, borderColor: Colors.border, borderRadius: 11, borderWidth: 1, flexDirection: "row", justifyContent: "space-between", padding: 11, ...Effects.recessed },
+  fixedAngleLabel: { color: Colors.textSubtle, fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
+  fixedAngleValue: { color: Colors.primary, fontSize: 12, fontWeight: "900" },
+  resultsCard: { backgroundColor: Colors.surface, borderColor: Colors.primaryMuted, borderRadius: 20, borderWidth: 1, overflow: "hidden", padding: 14, ...Effects.surfaceRaised },
+  resultsHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 12, paddingHorizontal: 2 },
+  resultsEyebrow: { color: Colors.primary, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
+  resultsTitle: { color: Colors.text, fontSize: 19, fontWeight: "900", marginTop: 2 },
+  readyBadge: { backgroundColor: Colors.primarySoft, borderColor: Colors.primaryMuted, borderRadius: 9, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 5 },
+  readyBadgeText: { color: Colors.primary, fontSize: 8, fontWeight: "900", letterSpacing: 0.7 },
+  resultsList: { gap: 7 },
+  resultRow: { alignItems: "center", backgroundColor: Colors.surface2, borderColor: Colors.border, borderRadius: 11, borderWidth: 1, flexDirection: "row", justifyContent: "space-between", minHeight: 48, paddingHorizontal: 11, paddingVertical: 8 },
+  resultRowAccent: { backgroundColor: Colors.primarySoft, borderColor: Colors.primaryMuted },
+  resultLabel: { color: Colors.textMuted, flex: 1, fontSize: 9, fontWeight: "900", letterSpacing: 0.5 },
+  resultValue: { color: Colors.text, fontSize: 17, fontWeight: "900", marginLeft: 10, textAlign: "right" },
+  resultValueAccent: { color: Colors.primary, fontSize: 20 },
+  resultNote: { color: Colors.textSubtle, fontSize: 10, lineHeight: 15, marginTop: 11, paddingHorizontal: 2 },
+  emptyResults: { alignItems: "center", backgroundColor: Colors.surface2, borderColor: Colors.border, borderRadius: 17, borderStyle: "dashed", borderWidth: 1, flexDirection: "row", gap: 10, justifyContent: "center", minHeight: 72, padding: 14 },
+  emptyResultsIcon: { color: Colors.primary, fontSize: 20, fontWeight: "900" },
+  emptyResultsText: { color: Colors.textMuted, flex: 1, fontSize: 12, lineHeight: 17 },
+  diagram: { height: 76, marginTop: 19, position: "relative" },
+  pipe: { backgroundColor: pipeBlue, borderRadius: 4, height: 7, position: "absolute" },
+  diagramMark: { backgroundColor: Colors.primary, borderRadius: 2, height: 16, position: "absolute", width: 3 },
+  diagramLabel: { color: Colors.textSubtle, fontSize: 9, fontWeight: "900", position: "absolute" },
+  offsetStart: { bottom: 10, left: 0, width: "33%" },
+  offsetRise: { bottom: 28, left: "30%", transform: [{ rotate: "-27deg" }], width: "30%" },
+  offsetEnd: { bottom: 46, left: "57%", width: "39%" },
+  offsetMarkOne: { bottom: 5, left: "30%" }, offsetMarkTwo: { bottom: 41, left: "58%" },
+  rollingLabel: { color: Colors.textSubtle, fontSize: 8, fontWeight: "900", letterSpacing: 0.7, position: "absolute", right: 3, top: 2 },
+  stubHorizontal: { bottom: 9, left: 0, width: "60%" },
+  stubVertical: { bottom: 34, left: "53%", transform: [{ rotate: "-90deg" }], width: 58 },
+  stubMark: { bottom: 4, left: "51%" }, stubLabel: { bottom: 22, left: "64%" },
+  saddleLeft: { bottom: 9, left: 0, width: "29%" },
+  saddleRiseLeft: { bottom: 28, left: "26%", transform: [{ rotate: "-31deg" }], width: "26%" },
+  saddleRiseRight: { bottom: 28, left: "48%", transform: [{ rotate: "31deg" }], width: "26%" },
+  saddleRight: { bottom: 9, left: "71%", width: "29%" },
+  saddleMarkOne: { bottom: 4, left: "26%" }, saddleMarkTwo: { bottom: 42, left: "50%" }, saddleMarkThree: { bottom: 4, left: "73%" },
+  fourLeft: { bottom: 9, left: 0, width: "22%" },
+  fourRiseLeft: { bottom: 25, left: "20%", transform: [{ rotate: "-28deg" }], width: "23%" },
+  fourTop: { bottom: 40, left: "40%", width: "22%" },
+  fourRiseRight: { bottom: 25, left: "60%", transform: [{ rotate: "28deg" }], width: "23%" },
+  fourRight: { bottom: 9, left: "80%", width: "20%" },
+  fourMarkOne: { bottom: 4, left: "20%" }, fourMarkTwo: { bottom: 35, left: "41%" },
+  fourMarkThree: { bottom: 35, left: "61%" }, fourMarkFour: { bottom: 4, left: "81%" },
+  pressed: { opacity: 0.76, transform: [{ scale: 0.985 }], ...Effects.pressed },
 });
