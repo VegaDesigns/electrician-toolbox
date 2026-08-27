@@ -1,5 +1,5 @@
-import WorkpadScreen from "../src/screens/workpad/WorkpadScreen";
+import HomeScreen from "../src/screens/home/HomeScreen";
 
-export default function WorkpadRoute() {
-  return <WorkpadScreen />;
+export default function HomeRoute() {
+  return <HomeScreen />;
 }

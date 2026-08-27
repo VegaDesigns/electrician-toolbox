@@ -1,5 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -569,6 +570,21 @@ export default function WorkpadScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.headerRow}>
+        <Pressable
+          accessibilityLabel="Return to toolbox home"
+          accessibilityRole="button"
+          onPress={() => {
+            Haptics.selectionAsync().catch(() => {});
+            router.replace("/");
+          }}
+          style={({ pressed }) => [
+            styles.homeButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.homeButtonText}>←</Text>
+        </Pressable>
+
         <Text style={styles.title}>Workpad Calculator</Text>
 
         <Pressable

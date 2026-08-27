@@ -11,6 +11,8 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="workpad" />
+          <Stack.Screen name="bending" />
         </Stack>
         <StatusBar style="light" />
       </SafeAreaProvider>

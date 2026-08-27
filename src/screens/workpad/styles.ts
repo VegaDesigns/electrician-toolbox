@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
     minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -40,9 +40,28 @@ export const styles = StyleSheet.create({
 
   title: {
     color: Colors.text,
+    flex: 1,
     fontSize: 21,
     fontWeight: "900",
     letterSpacing: 0.2,
+  },
+
+  homeButton: {
+    alignItems: "center",
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primaryMuted,
+    borderRadius: 13,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+    ...Effects.controlRaised,
+  },
+
+  homeButtonText: {
+    color: Colors.primary,
+    fontSize: 22,
+    fontWeight: "900",
   },
 
   historyButton: {
