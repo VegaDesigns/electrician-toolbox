@@ -10,7 +10,6 @@ export const styles = StyleSheet.create({
   container: {
     alignSelf: "center",
     flexGrow: 1,
-    gap: 14,
     maxWidth: 520,
     paddingBottom: 22,
     paddingHorizontal: 16,
@@ -22,26 +21,26 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 28,
   },
 
   brandMark: {
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 16,
+    borderRadius: 15,
     borderWidth: 1,
-    height: 52,
+    height: 50,
     justifyContent: "center",
-    width: 52,
+    width: 50,
     ...Effects.primaryRaised,
   },
 
   brandMarkText: {
     color: Colors.inverseText,
-    fontSize: 31,
+    fontSize: 30,
     fontWeight: "900",
-    lineHeight: 34,
+    lineHeight: 33,
   },
 
   headerCopy: {
@@ -58,59 +57,69 @@ export const styles = StyleSheet.create({
 
   headline: {
     color: Colors.text,
-    fontSize: 24,
+    fontSize: 23,
     fontWeight: "900",
     letterSpacing: 0.1,
   },
 
   sectionLabel: {
-    color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
-    marginLeft: 3,
+    color: Colors.textSubtle,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.25,
+    marginBottom: 10,
+    marginLeft: 2,
   },
 
-  toolStack: {
-    gap: 14,
+  toolGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
   },
 
-  toolCard: {
+  toolTile: {
+    aspectRatio: 1,
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 23,
+    borderRadius: 20,
     borderWidth: 1,
-    minHeight: 214,
+    flexBasis: "47%",
+    flexGrow: 1,
+    maxWidth: "48.5%",
     overflow: "hidden",
-    padding: 17,
+    padding: 15,
     ...Effects.surfaceRaised,
   },
 
-  toolCardAmber: {
+  toolTileAmber: {
     borderBottomColor: Colors.primaryMuted,
   },
 
-  toolCardBlue: {
+  toolTileBlue: {
     borderBottomColor: Colors.borderStrong,
   },
 
-  toolCardPhase: {
+  toolTilePhase: {
     borderBottomColor: "#713932",
   },
 
   toolTopRow: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 19,
   },
 
   toolIcon: {
     alignItems: "center",
     backgroundColor: Colors.primarySoft,
-    borderRadius: 14,
-    height: 46,
+    borderColor: "rgba(255,255,255,0.05)",
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    height: 44,
     justifyContent: "center",
-    width: 46,
+    width: 44,
+    ...Effects.recessed,
   },
 
   toolIconBlue: {
@@ -118,7 +127,10 @@ export const styles = StyleSheet.create({
   },
 
   toolIconPhase: {
-    backgroundColor: "#302229",
+    backgroundColor: "#171D24",
+    gap: 3,
+    paddingHorizontal: 6,
+    width: 53,
   },
 
   toolIconText: {
@@ -132,115 +144,12 @@ export const styles = StyleSheet.create({
     color: "#89A6C1",
   },
 
-  toolIconTextPhase: {
-    color: "#D94A43",
-  },
-
-  openArrow: {
-    color: Colors.textMuted,
-    fontSize: 25,
-    fontWeight: "700",
-  },
-
-  toolEyebrow: {
-    color: Colors.textSubtle,
-    fontSize: 10,
-    fontWeight: "900",
-    letterSpacing: 0.9,
-    marginBottom: 3,
-  },
-
-  toolTitle: {
-    color: Colors.text,
-    fontSize: 23,
-    fontWeight: "900",
-    letterSpacing: 0.1,
-  },
-
-  toolDescription: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 4,
-    maxWidth: 360,
-  },
-
-  workpadPreview: {
-    alignItems: "flex-end",
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 22,
-  },
-
-  workpadPreviewValue: {
-    color: Colors.primary,
-    fontSize: 21,
-    fontWeight: "900",
-  },
-
-  workpadPreviewLabel: {
-    color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 0.7,
-    paddingBottom: 3,
-  },
-
-  pipePreview: {
-    height: 38,
-    marginTop: 18,
-    position: "relative",
-  },
-
-  pipeSegment: {
-    backgroundColor: "#6F8DA8",
-    borderRadius: 3,
-    height: 5,
-    position: "absolute",
-  },
-
-  pipeSegmentStart: {
-    bottom: 4,
-    left: 0,
-    width: "29%",
-  },
-
-  pipeSegmentRise: {
-    bottom: 12,
-    left: "27%",
-    transform: [{ rotate: "-25deg" }],
-    width: "23%",
-  },
-
-  pipeSegmentEnd: {
-    bottom: 19,
-    left: "47%",
-    width: "29%",
-  },
-
-  pipeDefault: {
-    bottom: 13,
-    color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 0.6,
-    position: "absolute",
-    right: 0,
-  },
-
-  phasePreview: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 7,
-    marginTop: 21,
-  },
-
-  phaseSwatch: {
-    borderColor: "rgba(255,255,255,0.26)",
-    borderRadius: 9,
+  phaseDot: {
+    borderColor: "rgba(255,255,255,0.28)",
+    borderRadius: 8,
     borderWidth: 1,
-    height: 18,
-    width: 18,
+    height: 13,
+    width: 13,
   },
 
   phaseBlack: {
@@ -255,39 +164,62 @@ export const styles = StyleSheet.create({
     backgroundColor: "#3277D5",
   },
 
-  phasePreviewText: {
+  openArrow: {
     color: Colors.textSubtle,
-    fontSize: 9,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+
+  toolCopy: {
+    gap: 4,
+    marginTop: "auto",
+  },
+
+  statusText: {
+    color: "#89A6C1",
+    fontSize: 8,
     fontWeight: "900",
-    letterSpacing: 0.7,
-    marginLeft: 4,
+    letterSpacing: 0.8,
+  },
+
+  toolTitle: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: 0.1,
+  },
+
+  toolSubtitle: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    lineHeight: 15,
   },
 
   pressed: {
-    opacity: 0.78,
-    transform: [{ scale: 0.99 }],
+    opacity: 0.8,
+    transform: [{ scale: 0.975 }],
     ...Effects.pressed,
   },
 
   footer: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 8,
-    justifyContent: "center",
+    gap: 7,
     marginTop: "auto",
-    paddingTop: 10,
+    paddingTop: 22,
+  },
+
+  offlineDot: {
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+    height: 6,
+    width: 6,
   },
 
   footerText: {
     color: Colors.textSubtle,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  footerDot: {
-    backgroundColor: Colors.borderStrong,
-    borderRadius: 2,
-    height: 3,
-    width: 3,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.9,
   },
 });

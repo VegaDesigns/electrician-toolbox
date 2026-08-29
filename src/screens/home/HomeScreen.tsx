@@ -6,84 +6,63 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles } from "./styles";
 
-type ToolCardProps = {
+type ToolTileProps = {
   accent: "amber" | "blue" | "phase";
-  description: string;
-  eyebrow: string;
   icon: string;
   onPress: () => void;
+  status?: string;
+  subtitle: string;
   title: string;
 };
 
-function ToolCard({
-  accent,
-  description,
-  eyebrow,
-  icon,
-  onPress,
-  title,
-}: ToolCardProps) {
+function ToolIcon({ accent, icon }: Pick<ToolTileProps, "accent" | "icon">) {
+  if (accent === "phase") {
+    return (
+      <View accessibilityElementsHidden style={[styles.toolIcon, styles.toolIconPhase]}>
+        <View style={[styles.phaseDot, styles.phaseBlack]} />
+        <View style={[styles.phaseDot, styles.phaseRed]} />
+        <View style={[styles.phaseDot, styles.phaseBlue]} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.toolIcon, accent === "blue" && styles.toolIconBlue]}>
+      <Text style={[styles.toolIconText, accent === "blue" && styles.toolIconTextBlue]}>
+        {icon}
+      </Text>
+    </View>
+  );
+}
+
+function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTileProps) {
   return (
     <Pressable
       accessibilityHint={`Opens ${title}`}
+      accessibilityLabel={`${title}${status ? `, ${status}` : ""}`}
       accessibilityRole="button"
       onPress={() => {
         Haptics.selectionAsync().catch(() => {});
         onPress();
       }}
       style={({ pressed }) => [
-        styles.toolCard,
-        accent === "amber" ? styles.toolCardAmber : styles.toolCardBlue,
-        accent === "phase" && styles.toolCardPhase,
+        styles.toolTile,
+        accent === "amber" && styles.toolTileAmber,
+        accent === "blue" && styles.toolTileBlue,
+        accent === "phase" && styles.toolTilePhase,
         pressed && styles.pressed,
       ]}
     >
       <View style={styles.toolTopRow}>
-        <View
-          style={[
-            styles.toolIcon,
-            accent === "blue" && styles.toolIconBlue,
-            accent === "phase" && styles.toolIconPhase,
-          ]}
-        >
-          <Text
-            style={[
-              styles.toolIconText,
-              accent === "blue" && styles.toolIconTextBlue,
-              accent === "phase" && styles.toolIconTextPhase,
-            ]}
-          >
-            {icon}
-          </Text>
-        </View>
-
+        <ToolIcon accent={accent} icon={icon} />
         <Text style={styles.openArrow}>↗</Text>
       </View>
 
-      <Text style={styles.toolEyebrow}>{eyebrow}</Text>
-      <Text style={styles.toolTitle}>{title}</Text>
-      <Text style={styles.toolDescription}>{description}</Text>
-
-      {accent === "amber" ? (
-        <View style={styles.workpadPreview}>
-          <Text style={styles.workpadPreviewValue}>ft · in · frac</Text>
-          <Text style={styles.workpadPreviewLabel}>FIELD MATH</Text>
-        </View>
-      ) : accent === "blue" ? (
-        <View accessibilityElementsHidden style={styles.pipePreview}>
-          <View style={[styles.pipeSegment, styles.pipeSegmentStart]} />
-          <View style={[styles.pipeSegment, styles.pipeSegmentRise]} />
-          <View style={[styles.pipeSegment, styles.pipeSegmentEnd]} />
-          <Text style={styles.pipeDefault}>UNDER CONSTRUCTION</Text>
-        </View>
-      ) : (
-        <View accessibilityElementsHidden style={styles.phasePreview}>
-          <View style={[styles.phaseSwatch, styles.phaseBlack]} />
-          <View style={[styles.phaseSwatch, styles.phaseRed]} />
-          <View style={[styles.phaseSwatch, styles.phaseBlue]} />
-          <Text style={styles.phasePreviewText}>CIRCUIT → COLOR</Text>
-        </View>
-      )}
+      <View style={styles.toolCopy}>
+        {status ? <Text style={styles.statusText}>{status}</Text> : null}
+        <Text style={styles.toolTitle}>{title}</Text>
+        <Text numberOfLines={2} style={styles.toolSubtitle}>{subtitle}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -103,45 +82,42 @@ export default function HomeScreen() {
 
           <View style={styles.headerCopy}>
             <Text style={styles.brandName}>ELECTRICIAN TOOLBOX</Text>
-            <Text style={styles.headline}>Ready for the job.</Text>
+            <Text style={styles.headline}>What do you need?</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionLabel}>Choose a tool</Text>
+        <Text style={styles.sectionLabel}>TOOLS</Text>
 
-        <View style={styles.toolStack}>
-          <ToolCard
+        <View style={styles.toolGrid}>
+          <ToolTile
             accent="amber"
-            description="Fast measurements, fractions, and field calculations."
-            eyebrow="CALCULATE"
             icon="＋"
             onPress={() => router.push("/workpad")}
-            title="Workpad Calculator"
+            subtitle="Measurements and field math"
+            title="Workpad"
           />
 
-          <ToolCard
+          <ToolTile
             accent="phase"
-            description="Enter a circuit and see its phase and conductor color instantly."
-            eyebrow="PANEL CHECK"
             icon="●"
             onPress={() => router.push("/panel-colors")}
-            title="Circuit Colors"
+            subtitle="Circuit phase and wire color"
+            title="Panel Colors"
           />
 
-          <ToolCard
+          <ToolTile
             accent="blue"
-            description="A field-first bending suite is on the workbench."
-            eyebrow="COMING SOON"
             icon="↱"
             onPress={() => router.push("/bending")}
-            title="Conduit Bending"
+            status="COMING SOON"
+            subtitle="Field-first conduit bending"
+            title="Bending"
           />
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Works offline</Text>
-          <View style={styles.footerDot} />
-          <Text style={styles.footerText}>3 tools</Text>
+          <View style={styles.offlineDot} />
+          <Text style={styles.footerText}>READY OFFLINE</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
