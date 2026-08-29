@@ -14,10 +14,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   BUILT_IN_PANEL_SCHEMES,
+  getColorForPhase,
   getNearbyCircuits,
+  getPhaseDisplayName,
   getPhaseForCircuit,
   type PanelColorScheme,
-  type Phase,
 } from "../../utils/panelColors/phase";
 import {
   createCustomPanelScheme,
@@ -26,7 +27,7 @@ import {
 } from "../../utils/storage/panelColorPreferences";
 import { styles } from "./styles";
 
-type Selector = "scheme" | "system" | null;
+type OpenSheet = "advanced" | "palette" | null;
 
 type CustomDraft = {
   A: string;
@@ -59,13 +60,20 @@ function pulse() {
   Haptics.selectionAsync().catch(() => {});
 }
 
+function getPaletteCaption(scheme: PanelColorScheme) {
+  if (scheme.id === "standard-120-208") return "Common commercial 120V panel";
+  if (scheme.id === "standard-277-480") return "Common commercial 277V panel";
+  if (scheme.id === "standard-120-240") return "Common residential panel";
+  return scheme.voltageSystem;
+}
+
 export default function PanelColorsScreen() {
   const [circuitInput, setCircuitInput] = useState("");
   const [customSchemes, setCustomSchemes] = useState<PanelColorScheme[]>([]);
   const [selectedSchemeId, setSelectedSchemeId] = useState(
     BUILT_IN_PANEL_SCHEMES[0].id,
   );
-  const [selector, setSelector] = useState<Selector>(null);
+  const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [isCustomEditorOpen, setIsCustomEditorOpen] = useState(false);
   const [draft, setDraft] = useState<CustomDraft>(EMPTY_DRAFT);
   const [copied, setCopied] = useState(false);
@@ -78,12 +86,9 @@ export default function PanelColorsScreen() {
     allSchemes.find(({ id }) => id === selectedSchemeId) ?? allSchemes[0];
 
   const circuit = circuitInput ? Number(circuitInput) : null;
-  const phase = circuit ? getPhaseForCircuit(circuit) : null;
-  const phaseColor = phase ? selectedScheme.colors[phase] : null;
-  const nearby =
-    circuit && phase
-      ? getNearbyCircuits(circuit, selectedScheme)
-      : [];
+  const phase = circuit ? getPhaseForCircuit(circuit, selectedScheme) : null;
+  const phaseColor = phase ? getColorForPhase(selectedScheme, phase) : null;
+  const nearby = circuit ? getNearbyCircuits(circuit, selectedScheme) : [];
 
   useEffect(() => {
     loadPanelColorPreferences().then((preferences) => {
@@ -104,16 +109,13 @@ export default function PanelColorsScreen() {
   function selectScheme(scheme: PanelColorScheme) {
     pulse();
     persist(scheme.id);
-    setSelector(null);
+    setOpenSheet(null);
+    setCopied(false);
   }
 
-  function chooseCustomSystem() {
+  function openCustomEditor() {
     pulse();
-    setSelector(null);
-    if (customSchemes.length > 0) {
-      persist(customSchemes[0].id);
-      return;
-    }
+    setOpenSheet(null);
     setDraft(EMPTY_DRAFT);
     setIsCustomEditorOpen(true);
   }
@@ -126,7 +128,6 @@ export default function PanelColorsScreen() {
       setCircuitInput("");
       return;
     }
-
     if (key === "⌫") {
       setCircuitInput((value) => value.slice(0, -1));
       return;
@@ -143,7 +144,7 @@ export default function PanelColorsScreen() {
     if (!circuit || !phase || !phaseColor) return;
 
     await Clipboard.setStringAsync(
-      `Circuit ${circuit} • Phase ${phase} • ${phaseColor.name}`,
+      `Circuit ${circuit} • ${getPhaseDisplayName(phase)} • ${phaseColor.name}`,
     );
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
@@ -204,24 +205,23 @@ export default function PanelColorsScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.selectorRow}>
-          <SelectorButton
-            label="VOLTAGE"
-            onPress={() => setSelector("system")}
-            value={selectedScheme.voltageSystem}
-          />
-          <SelectorButton
-            label="COLOR SCHEME"
-            onPress={() => setSelector("scheme")}
-            value={selectedScheme.name}
-          />
-        </View>
+        <PanelChoiceBar
+          onAdvanced={() => {
+            pulse();
+            setOpenSheet("advanced");
+          }}
+          onPalette={() => {
+            pulse();
+            setOpenSheet("palette");
+          }}
+          scheme={selectedScheme}
+        />
 
         <Pressable
           accessibilityHint={circuit ? "Copies the circuit color result" : undefined}
           accessibilityLabel={
             circuit && phase && phaseColor
-              ? `Circuit ${circuit}, Phase ${phase}, ${phaseColor.name}`
+              ? `Circuit ${circuit}, ${getPhaseDisplayName(phase)}, ${phaseColor.name}`
               : "Enter a circuit number using the keypad"
           }
           accessibilityRole={circuit ? "button" : undefined}
@@ -240,7 +240,9 @@ export default function PanelColorsScreen() {
 
           {circuit && phase && phaseColor ? (
             <>
-              <Text style={styles.phaseLabel}>PHASE {phase}</Text>
+              <Text style={styles.phaseLabel}>
+                {getPhaseDisplayName(phase).toUpperCase()}
+              </Text>
               <View
                 style={[
                   styles.colorHero,
@@ -258,7 +260,7 @@ export default function PanelColorsScreen() {
                 </Text>
               </View>
               <Text style={styles.resultMeta}>
-                {selectedScheme.voltageSystem} • {phase} Phase • {phaseColor.name}
+                Use the {phaseColor.name.toLowerCase()} conductor • {getPhaseDisplayName(phase)}
               </Text>
               <Text style={styles.copyHint}>
                 {copied ? "✓ COPIED" : "TAP RESULT TO COPY"}
@@ -268,7 +270,7 @@ export default function PanelColorsScreen() {
             <View style={styles.emptyResult}>
               <View style={styles.emptySwatch} />
               <Text style={styles.emptyTitle}>Enter a circuit</Text>
-              <Text style={styles.emptyDescription}>The phase and color appear instantly.</Text>
+              <Text style={styles.emptyDescription}>The wire color appears instantly.</Text>
             </View>
           )}
         </Pressable>
@@ -281,7 +283,7 @@ export default function PanelColorsScreen() {
                 const isSelected = item.circuit === circuit;
                 return (
                   <Pressable
-                    accessibilityLabel={`Circuit ${item.circuit}, Phase ${item.phase}, ${item.color.name}`}
+                    accessibilityLabel={`Circuit ${item.circuit}, ${getPhaseDisplayName(item.phase)}, ${item.color.name}`}
                     accessibilityRole="button"
                     key={item.circuit}
                     onPress={() => {
@@ -298,12 +300,7 @@ export default function PanelColorsScreen() {
                     <Text style={[styles.nearbyCircuit, isSelected && styles.nearbyCircuitSelected]}>
                       {item.circuit}
                     </Text>
-                    <View
-                      style={[
-                        styles.nearbyDot,
-                        { backgroundColor: item.color.hex },
-                      ]}
-                    />
+                    <View style={[styles.nearbyDot, { backgroundColor: item.color.hex }]} />
                     <Text numberOfLines={1} style={styles.nearbyColor}>
                       {item.color.name.toUpperCase()}
                     </Text>
@@ -349,23 +346,26 @@ export default function PanelColorsScreen() {
         </View>
 
         <Text style={styles.notice}>
-          ⚠ Color conventions can vary by company, facility, jurisdiction, and job specification. Verify the project standard before installing conductors.
+          ⚠ Match these colors to the panel schedule or job standard before use.
         </Text>
       </ScrollView>
 
-      <SelectionModal
+      <PaletteModal
         customSchemes={customSchemes}
-        onAddCustom={() => {
-          setSelector(null);
-          setDraft(EMPTY_DRAFT);
-          setIsCustomEditorOpen(true);
-        }}
-        onChooseCustomSystem={chooseCustomSystem}
-        onClose={() => setSelector(null)}
+        isOpen={openSheet === "palette"}
+        onAddCustom={openCustomEditor}
+        onClose={() => setOpenSheet(null)}
+        onSelect={selectScheme}
+        selectedSchemeId={selectedScheme.id}
+      />
+
+      <AdvancedModal
+        isOpen={openSheet === "advanced"}
+        onAddCustom={openCustomEditor}
+        onClose={() => setOpenSheet(null)}
         onSelect={selectScheme}
         schemes={allSchemes}
-        selectedSchemeId={selectedScheme.id}
-        type={selector}
+        selectedScheme={selectedScheme}
       />
 
       <CustomSchemeModal
@@ -379,127 +379,214 @@ export default function PanelColorsScreen() {
   );
 }
 
-function SelectorButton({
-  label,
-  onPress,
-  value,
+function PanelChoiceBar({
+  onAdvanced,
+  onPalette,
+  scheme,
 }: {
-  label: string;
+  onAdvanced: () => void;
+  onPalette: () => void;
+  scheme: PanelColorScheme;
+}) {
+  return (
+    <View style={styles.panelChoiceRow}>
+      <Pressable
+        accessibilityLabel={`Panel colors: ${scheme.name}`}
+        accessibilityRole="button"
+        onPress={onPalette}
+        style={({ pressed }) => [styles.paletteButton, pressed && styles.pressed]}
+      >
+        <View style={styles.selectorCopy}>
+          <Text style={styles.selectorLabel}>WHAT COLORS DO YOU SEE?</Text>
+          <View style={styles.activePaletteRow}>
+            <PhaseSwatches scheme={scheme} />
+            <Text numberOfLines={1} style={styles.activePaletteName}>{scheme.name}</Text>
+          </View>
+        </View>
+        <Text style={styles.selectorChevron}>⌄</Text>
+      </Pressable>
+
+      <Pressable
+        accessibilityLabel="Advanced panel settings"
+        accessibilityRole="button"
+        onPress={onAdvanced}
+        style={({ pressed }) => [styles.advancedButton, pressed && styles.pressed]}
+      >
+        <Text style={styles.advancedIcon}>⚙</Text>
+        <Text style={styles.advancedButtonText}>Advanced</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function PhaseSwatches({ scheme }: { scheme: PanelColorScheme }) {
+  return (
+    <View style={styles.paletteSwatches}>
+      {scheme.phaseOrder.map((phase) => {
+        const color = getColorForPhase(scheme, phase);
+        return (
+          <View
+            key={phase}
+            style={[styles.paletteSwatch, { backgroundColor: color.hex }]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+function PaletteModal({
+  customSchemes,
+  isOpen,
+  onAddCustom,
+  onClose,
+  onSelect,
+  selectedSchemeId,
+}: {
+  customSchemes: PanelColorScheme[];
+  isOpen: boolean;
+  onAddCustom: () => void;
+  onClose: () => void;
+  onSelect: (scheme: PanelColorScheme) => void;
+  selectedSchemeId: string;
+}) {
+  return (
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
+      <View style={styles.modalBackdrop}>
+        <Pressable accessibilityLabel="Close panel colors" onPress={onClose} style={styles.modalDismiss} />
+        <View style={styles.selectionSheet}>
+          <SheetHeader eyebrow="QUICK SETUP" onClose={onClose} title="What colors do you see?" />
+
+          <View style={styles.paletteOptionList}>
+            {BUILT_IN_PANEL_SCHEMES.filter(({ isQuickChoice }) => isQuickChoice).map((scheme) => (
+              <PaletteOption
+                isSelected={scheme.id === selectedSchemeId}
+                key={scheme.id}
+                onPress={() => onSelect(scheme)}
+                scheme={scheme}
+              />
+            ))}
+          </View>
+
+          {customSchemes.length > 0 && (
+            <>
+              <Text style={styles.savedLabel}>SAVED JOB COLORS</Text>
+              <View style={styles.optionList}>
+                {customSchemes.map((scheme) => (
+                  <PaletteOption
+                    isSelected={scheme.id === selectedSchemeId}
+                    key={scheme.id}
+                    onPress={() => onSelect(scheme)}
+                    scheme={scheme}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAddCustom}
+            style={({ pressed }) => [styles.differentColorsButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.differentColorsIcon}>＋</Text>
+            <View style={styles.optionCopy}>
+              <Text style={styles.optionTitle}>Different colors</Text>
+              <Text style={styles.optionDescription}>Save the colors used on this job</Text>
+            </View>
+          </Pressable>
+
+          <Text style={styles.sheetNotice}>Confirm the choice against the panel schedule or job standard.</Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function PaletteOption({
+  isSelected,
+  onPress,
+  scheme,
+}: {
+  isSelected: boolean;
   onPress: () => void;
-  value: string;
+  scheme: PanelColorScheme;
 }) {
   return (
     <Pressable
-      accessibilityLabel={`${label}: ${value}`}
+      accessibilityLabel={`${scheme.name}, ${getPaletteCaption(scheme)}`}
       accessibilityRole="button"
-      onPress={() => {
-        pulse();
-        onPress();
-      }}
-      style={({ pressed }) => [styles.selectorButton, pressed && styles.pressed]}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.paletteOption,
+        isSelected && styles.optionSelected,
+        pressed && styles.pressed,
+      ]}
     >
-      <View style={styles.selectorCopy}>
-        <Text style={styles.selectorLabel}>{label}</Text>
-        <Text numberOfLines={1} style={styles.selectorValue}>{value}</Text>
+      <PhaseSwatches scheme={scheme} />
+      <View style={styles.optionCopy}>
+        <Text style={styles.paletteOptionTitle}>{scheme.name}</Text>
+        <Text style={styles.optionDescription}>{getPaletteCaption(scheme)}</Text>
       </View>
-      <Text style={styles.selectorChevron}>⌄</Text>
+      {isSelected && <Text style={styles.optionCheck}>✓</Text>}
     </Pressable>
   );
 }
 
-function SelectionModal({
-  customSchemes,
+function AdvancedModal({
+  isOpen,
   onAddCustom,
-  onChooseCustomSystem,
   onClose,
   onSelect,
   schemes,
-  selectedSchemeId,
-  type,
+  selectedScheme,
 }: {
-  customSchemes: PanelColorScheme[];
+  isOpen: boolean;
   onAddCustom: () => void;
-  onChooseCustomSystem: () => void;
   onClose: () => void;
   onSelect: (scheme: PanelColorScheme) => void;
   schemes: PanelColorScheme[];
-  selectedSchemeId: string;
-  type: Selector;
+  selectedScheme: PanelColorScheme;
 }) {
-  if (!type) return null;
-
-  const options =
-    type === "system" ? BUILT_IN_PANEL_SCHEMES : schemes;
-
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible>
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <View style={styles.modalBackdrop}>
-        <Pressable accessibilityLabel="Close selector" onPress={onClose} style={styles.modalDismiss} />
-        <View style={styles.selectionSheet}>
-          <View style={styles.sheetHeader}>
-            <View>
-              <Text style={styles.sheetEyebrow}>{type === "system" ? "PANEL SYSTEM" : "JOB PRESET"}</Text>
-              <Text style={styles.sheetTitle}>{type === "system" ? "Select voltage" : "Select color scheme"}</Text>
+        <Pressable accessibilityLabel="Close advanced settings" onPress={onClose} style={styles.modalDismiss} />
+        <View style={[styles.selectionSheet, styles.advancedSheet]}>
+          <SheetHeader eyebrow="ADVANCED" onClose={onClose} title="Panel details" />
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.detailsCard}>
+              <DetailRow label="SYSTEM" value={selectedScheme.voltageSystem} />
+              <DetailRow label="LAYOUT" value={selectedScheme.configurationLabel} />
+              <DetailRow label="PATTERN" value={selectedScheme.phaseOrder.join(" → ")} />
+              <DetailRow label="NEUTRAL" value={selectedScheme.colors.neutral.name} />
+              <DetailRow label="GROUND" value={selectedScheme.colors.ground.name} />
             </View>
-            <Pressable accessibilityLabel="Close" onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>×</Text>
-            </Pressable>
-          </View>
 
-          <View style={styles.optionList}>
-            {options.map((scheme) => (
-              <Pressable
-                accessibilityRole="button"
-                key={scheme.id}
-                onPress={() => onSelect(scheme)}
-                style={({ pressed }) => [
-                  styles.option,
-                  scheme.id === selectedSchemeId && styles.optionSelected,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.optionSwatches}>
-                  {(["A", "B", "C"] as Phase[]).map((phase) => (
-                    <View
-                      key={phase}
-                      style={[styles.optionSwatch, { backgroundColor: scheme.colors[phase].hex }]}
-                    />
-                  ))}
-                </View>
-                <View style={styles.optionCopy}>
-                  <Text style={styles.optionTitle}>
-                    {type === "system" ? scheme.voltageSystem : scheme.name}
-                  </Text>
-                  <Text style={styles.optionDescription}>
-                    {type === "system"
-                      ? "Standard colors"
-                      : `${scheme.voltageSystem} • ${scheme.colors.A.name}, ${scheme.colors.B.name}, ${scheme.colors.C.name}`}
-                  </Text>
-                </View>
-                {scheme.id === selectedSchemeId && <Text style={styles.optionCheck}>✓</Text>}
-              </Pressable>
-            ))}
+            <Text style={styles.savedLabel}>TECHNICAL PRESETS</Text>
+            <View style={styles.optionList}>
+              {schemes.map((scheme) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={scheme.id}
+                  onPress={() => onSelect(scheme)}
+                  style={({ pressed }) => [
+                    styles.option,
+                    scheme.id === selectedScheme.id && styles.optionSelected,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <PhaseSwatches scheme={scheme} />
+                  <View style={styles.optionCopy}>
+                    <Text style={styles.optionTitle}>{scheme.voltageSystem}</Text>
+                    <Text style={styles.optionDescription}>{scheme.configurationLabel}</Text>
+                  </View>
+                  {scheme.id === selectedScheme.id && <Text style={styles.optionCheck}>✓</Text>}
+                </Pressable>
+              ))}
+            </View>
 
-            {type === "system" && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onChooseCustomSystem}
-                style={({ pressed }) => [styles.option, pressed && styles.pressed]}
-              >
-                <View style={styles.customOptionIcon}><Text style={styles.customOptionIconText}>＋</Text></View>
-                <View style={styles.optionCopy}>
-                  <Text style={styles.optionTitle}>Custom</Text>
-                  <Text style={styles.optionDescription}>
-                    {customSchemes.length > 0
-                      ? `${customSchemes.length} saved job ${customSchemes.length === 1 ? "preset" : "presets"}`
-                      : "Create a job-specific color standard"}
-                  </Text>
-                </View>
-              </Pressable>
-            )}
-          </View>
-
-          {type === "scheme" && (
             <Pressable
               accessibilityRole="button"
               onPress={onAddCustom}
@@ -507,10 +594,41 @@ function SelectionModal({
             >
               <Text style={styles.addPresetButtonText}>＋ Save a job preset</Text>
             </Pressable>
-          )}
+          </ScrollView>
         </View>
       </View>
     </Modal>
+  );
+}
+
+function SheetHeader({
+  eyebrow,
+  onClose,
+  title,
+}: {
+  eyebrow: string;
+  onClose: () => void;
+  title: string;
+}) {
+  return (
+    <View style={styles.sheetHeader}>
+      <View>
+        <Text style={styles.sheetEyebrow}>{eyebrow}</Text>
+        <Text style={styles.sheetTitle}>{title}</Text>
+      </View>
+      <Pressable accessibilityLabel="Close" onPress={onClose} style={styles.closeButton}>
+        <Text style={styles.closeButtonText}>×</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
   );
 }
 
@@ -542,7 +660,7 @@ function CustomSchemeModal({
           </Pressable>
           <View style={styles.editorHeaderCopy}>
             <Text style={styles.headerEyebrow}>CUSTOM</Text>
-            <Text style={styles.editorTitle}>Job preset</Text>
+            <Text style={styles.editorTitle}>Job colors</Text>
           </View>
         </View>
 
@@ -552,22 +670,12 @@ function CustomSchemeModal({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.editorIntro}>
-            <Text style={styles.editorIntroTitle}>Save the standard once.</Text>
-            <Text style={styles.editorIntroText}>Use familiar color names such as Purple, Brown, Orange, or Blue. The checker will remember this preset.</Text>
+            <Text style={styles.editorIntroTitle}>Save the colors once.</Text>
+            <Text style={styles.editorIntroText}>Use familiar color names such as Purple, Brown, Orange, or Blue. The checker will remember this job.</Text>
           </View>
 
-          <DraftField
-            label="PRESET NAME"
-            onChangeText={(value) => field("name", value)}
-            placeholder="Plant Standard"
-            value={draft.name}
-          />
-          <DraftField
-            label="VOLTAGE / SYSTEM LABEL"
-            onChangeText={(value) => field("voltageSystem", value)}
-            placeholder="480V Plant"
-            value={draft.voltageSystem}
-          />
+          <DraftField label="JOB / PRESET NAME" onChangeText={(value) => field("name", value)} placeholder="Plant Standard" value={draft.name} />
+          <DraftField label="SYSTEM LABEL" onChangeText={(value) => field("voltageSystem", value)} placeholder="480V Plant" value={draft.voltageSystem} />
 
           <Text style={styles.colorSectionLabel}>CONDUCTOR COLORS</Text>
           <View style={styles.colorFields}>
@@ -582,13 +690,9 @@ function CustomSchemeModal({
             accessibilityRole="button"
             disabled={!canSave}
             onPress={onSave}
-            style={({ pressed }) => [
-              styles.saveButton,
-              !canSave && styles.saveButtonDisabled,
-              pressed && canSave && styles.pressed,
-            ]}
+            style={({ pressed }) => [styles.saveButton, !canSave && styles.saveButtonDisabled, pressed && canSave && styles.pressed]}
           >
-            <Text style={styles.saveButtonText}>Save and use preset</Text>
+            <Text style={styles.saveButtonText}>Save and use colors</Text>
           </Pressable>
         </ScrollView>
       </SafeAreaView>

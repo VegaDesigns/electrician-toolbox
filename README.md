@@ -9,10 +9,11 @@ and a parked conduit-bending route in one scalable toolbox home.
 - Fast circuit-number entry with a compact jobsite keypad
 - Phase and conductor color shown as the primary result
 - Five nearby circuits for quick panel work
-- Standard 120/208V and 277/480V color conventions
-- Saved job-specific color presets with remembered selection
+- Beginner-first visual choices for Black/Red/Blue, Brown/Orange/Yellow,
+  and Black/Red panels
+- Advanced technical details and saved job-specific presets
 - One-tap result copy and an always-visible verification notice
-- Isolated adjacent-pair phase logic ready for configurable layouts later
+- Standard branch-panel row logic for three-phase and split-phase panels
 
 ## Workpad beta features
 

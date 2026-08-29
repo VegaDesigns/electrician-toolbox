@@ -53,15 +53,18 @@ export async function savePanelColorPreferences(
 }
 
 export function createCustomPanelScheme(input: {
-  colors: Record<Phase | "ground" | "neutral", string>;
+  colors: Record<"A" | "B" | "C" | "ground" | "neutral", string>;
   name: string;
   voltageSystem: string;
 }): PanelColorScheme {
   return {
     id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     isBuiltIn: false,
+    isQuickChoice: false,
     name: input.name.trim(),
     voltageSystem: input.voltageSystem.trim() || "Custom",
+    configurationLabel: "3Ø custom • Standard branch panel",
+    phaseOrder: ["A", "B", "C"],
     colors: {
       A: makeConductorColor(input.colors.A),
       B: makeConductorColor(input.colors.B),
@@ -76,9 +79,7 @@ function isPanelColorScheme(value: unknown): value is PanelColorScheme {
   if (!value || typeof value !== "object") return false;
   const scheme = value as PanelColorScheme;
   const keys: (Phase | "ground" | "neutral")[] = [
-    "A",
-    "B",
-    "C",
+    ...(Array.isArray(scheme.phaseOrder) ? scheme.phaseOrder : []),
     "neutral",
     "ground",
   ];
@@ -88,6 +89,10 @@ function isPanelColorScheme(value: unknown): value is PanelColorScheme {
     typeof scheme.name === "string" &&
     typeof scheme.voltageSystem === "string" &&
     scheme.isBuiltIn === false &&
+    scheme.isQuickChoice === false &&
+    typeof scheme.configurationLabel === "string" &&
+    Array.isArray(scheme.phaseOrder) &&
+    scheme.phaseOrder.length > 0 &&
     !!scheme.colors &&
     keys.every((key) => {
       const color = scheme.colors[key];

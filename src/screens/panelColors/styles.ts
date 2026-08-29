@@ -69,6 +69,77 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
 
+  panelChoiceRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  paletteButton: {
+    alignItems: "center",
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: "row",
+    minHeight: 58,
+    paddingHorizontal: 12,
+    ...Effects.controlRaised,
+  },
+
+  activePaletteRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 4,
+  },
+
+  activePaletteName: {
+    color: Colors.text,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  paletteSwatches: {
+    flexDirection: "row",
+    paddingLeft: 4,
+  },
+
+  paletteSwatch: {
+    borderColor: "rgba(255,255,255,0.28)",
+    borderRadius: 10,
+    borderWidth: 1,
+    height: 25,
+    marginLeft: -4,
+    width: 19,
+  },
+
+  advancedButton: {
+    alignItems: "center",
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.borderStrong,
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 58,
+    paddingHorizontal: 11,
+    ...Effects.controlRaised,
+  },
+
+  advancedIcon: {
+    color: "#AFC0CF",
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  advancedButtonText: {
+    color: Colors.textMuted,
+    fontSize: 9,
+    fontWeight: "900",
+    marginTop: 2,
+  },
+
   selectorRow: {
     flexDirection: "row",
     gap: 8,
@@ -389,6 +460,10 @@ export const styles = StyleSheet.create({
     ...Effects.surfaceRaised,
   },
 
+  advancedSheet: {
+    maxHeight: "84%",
+  },
+
   sheetHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -430,6 +505,101 @@ export const styles = StyleSheet.create({
 
   optionList: {
     gap: 8,
+  },
+
+  paletteOptionList: {
+    gap: 9,
+  },
+
+  paletteOption: {
+    alignItems: "center",
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 17,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 13,
+    minHeight: 72,
+    padding: 13,
+    ...Effects.controlRaised,
+  },
+
+  paletteOptionTitle: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+
+  savedLabel: {
+    color: Colors.textSubtle,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    marginBottom: 7,
+    marginTop: 14,
+  },
+
+  differentColorsButton: {
+    alignItems: "center",
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.borderStrong,
+    borderRadius: 15,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 11,
+    marginTop: 10,
+    minHeight: 58,
+    padding: 11,
+  },
+
+  differentColorsIcon: {
+    color: "#89A6C1",
+    fontSize: 25,
+    fontWeight: "900",
+  },
+
+  sheetNotice: {
+    color: Colors.textSubtle,
+    fontSize: 9,
+    lineHeight: 13,
+    marginTop: 11,
+    textAlign: "center",
+  },
+
+  detailsCard: {
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 17,
+    borderWidth: 1,
+    overflow: "hidden",
+    ...Effects.recessed,
+  },
+
+  detailRow: {
+    alignItems: "center",
+    borderBottomColor: Colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    gap: 12,
+    minHeight: 43,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+
+  detailLabel: {
+    color: Colors.textSubtle,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    width: 58,
+  },
+
+  detailValue: {
+    color: Colors.text,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "right",
   },
 
   option: {

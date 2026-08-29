@@ -1,4 +1,4 @@
-export type Phase = "A" | "B" | "C";
+export type Phase = "A" | "B" | "C" | "L1" | "L2";
 
 export type ConductorColor = {
   hex: string;
@@ -7,10 +7,16 @@ export type ConductorColor = {
 };
 
 export type PanelColorScheme = {
-  colors: Record<Phase | "ground" | "neutral", ConductorColor>;
+  colors: Partial<Record<Phase, ConductorColor>> & {
+    ground: ConductorColor;
+    neutral: ConductorColor;
+  };
+  configurationLabel: string;
   id: string;
   isBuiltIn: boolean;
+  isQuickChoice: boolean;
   name: string;
+  phaseOrder: Phase[];
   voltageSystem: string;
 };
 
@@ -45,8 +51,11 @@ export const BUILT_IN_PANEL_SCHEMES: PanelColorScheme[] = [
   {
     id: "standard-120-208",
     isBuiltIn: true,
-    name: "Standard",
-    voltageSystem: "120/208V",
+    isQuickChoice: true,
+    name: "Black • Red • Blue",
+    voltageSystem: "208Y/120V",
+    configurationLabel: "3Ø wye • Standard branch panel",
+    phaseOrder: ["A", "B", "C"],
     colors: {
       A: makeConductorColor("Black"),
       B: makeConductorColor("Red"),
@@ -58,8 +67,11 @@ export const BUILT_IN_PANEL_SCHEMES: PanelColorScheme[] = [
   {
     id: "standard-277-480",
     isBuiltIn: true,
-    name: "Standard",
-    voltageSystem: "277/480V",
+    isQuickChoice: true,
+    name: "Brown • Orange • Yellow",
+    voltageSystem: "480Y/277V",
+    configurationLabel: "3Ø wye • Standard branch panel",
+    phaseOrder: ["A", "B", "C"],
     colors: {
       A: makeConductorColor("Brown"),
       B: makeConductorColor("Orange"),
@@ -68,21 +80,56 @@ export const BUILT_IN_PANEL_SCHEMES: PanelColorScheme[] = [
       ground: makeConductorColor("Green / Bare"),
     },
   },
+  {
+    id: "standard-120-240",
+    isBuiltIn: true,
+    isQuickChoice: true,
+    name: "Black • Red",
+    voltageSystem: "120/240V",
+    configurationLabel: "1Ø split-phase • Standard branch panel",
+    phaseOrder: ["L1", "L2"],
+    colors: {
+      L1: makeConductorColor("Black"),
+      L2: makeConductorColor("Red"),
+      neutral: makeConductorColor("White"),
+      ground: makeConductorColor("Green / Bare"),
+    },
+  },
 ];
 
-const PHASES: Phase[] = ["A", "B", "C"];
-
 /**
- * This adjacent-pair layout intentionally matches the field example supplied
- * for the feature: 78/79 = A, 80/81 = B, and 82/83 = C. Keeping this in one
- * function lets us add selectable panel layouts without changing the screen.
+ * Common branch panels number odd circuits down the left and even circuits
+ * down the right. Both positions in a row land on the same bus, then rows
+ * advance through A-B-C (three phase) or L1-L2 (split phase).
  */
-export function getPhaseForCircuit(circuit: number): Phase {
+export function getPhaseForCircuit(
+  circuit: number,
+  scheme: PanelColorScheme = BUILT_IN_PANEL_SCHEMES[0],
+): Phase {
   if (!Number.isInteger(circuit) || circuit < 1) {
     throw new RangeError("Circuit must be a positive whole number.");
   }
+  if (scheme.phaseOrder.length < 1) {
+    throw new RangeError("Panel scheme must contain at least one phase or leg.");
+  }
 
-  return PHASES[Math.floor(circuit / 2) % PHASES.length];
+  const rowIndex = Math.floor((circuit - 1) / 2);
+  return scheme.phaseOrder[rowIndex % scheme.phaseOrder.length];
+}
+
+export function getColorForPhase(
+  scheme: PanelColorScheme,
+  phase: Phase,
+): ConductorColor {
+  const color = scheme.colors[phase];
+  if (!color) {
+    throw new RangeError(`No conductor color is configured for ${phase}.`);
+  }
+  return color;
+}
+
+export function getPhaseDisplayName(phase: Phase): string {
+  return phase === "L1" || phase === "L2" ? `Leg ${phase}` : `Phase ${phase}`;
 }
 
 export type NearbyCircuit = {
@@ -101,8 +148,12 @@ export function getNearbyCircuits(
   const nearby: NearbyCircuit[] = [];
 
   for (let current = start; current <= end; current += 1) {
-    const phase = getPhaseForCircuit(current);
-    nearby.push({ circuit: current, phase, color: scheme.colors[phase] });
+    const phase = getPhaseForCircuit(current, scheme);
+    nearby.push({
+      circuit: current,
+      phase,
+      color: getColorForPhase(scheme, phase),
+    });
   }
 
   return nearby;
