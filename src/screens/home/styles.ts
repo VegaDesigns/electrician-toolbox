@@ -93,6 +93,10 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.borderStrong,
   },
 
+  toolCardPhase: {
+    borderBottomColor: "#713932",
+  },
+
   toolTopRow: {
     alignItems: "center",
     flexDirection: "row",
@@ -113,6 +117,10 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.surface3,
   },
 
+  toolIconPhase: {
+    backgroundColor: "#302229",
+  },
+
   toolIconText: {
     color: Colors.primary,
     fontSize: 27,
@@ -122,6 +130,10 @@ export const styles = StyleSheet.create({
 
   toolIconTextBlue: {
     color: "#89A6C1",
+  },
+
+  toolIconTextPhase: {
+    color: "#D94A43",
   },
 
   openArrow: {
@@ -214,6 +226,41 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.6,
     position: "absolute",
     right: 0,
+  },
+
+  phasePreview: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 7,
+    marginTop: 21,
+  },
+
+  phaseSwatch: {
+    borderColor: "rgba(255,255,255,0.26)",
+    borderRadius: 9,
+    borderWidth: 1,
+    height: 18,
+    width: 18,
+  },
+
+  phaseBlack: {
+    backgroundColor: "#14171A",
+  },
+
+  phaseRed: {
+    backgroundColor: "#D94A43",
+  },
+
+  phaseBlue: {
+    backgroundColor: "#3277D5",
+  },
+
+  phasePreviewText: {
+    color: Colors.textSubtle,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+    marginLeft: 4,
   },
 
   pressed: {

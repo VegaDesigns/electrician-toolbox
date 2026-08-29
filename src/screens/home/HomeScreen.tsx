@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./styles";
 
 type ToolCardProps = {
-  accent: "amber" | "blue";
+  accent: "amber" | "blue" | "phase";
   description: string;
   eyebrow: string;
   icon: string;
@@ -34,6 +34,7 @@ function ToolCard({
       style={({ pressed }) => [
         styles.toolCard,
         accent === "amber" ? styles.toolCardAmber : styles.toolCardBlue,
+        accent === "phase" && styles.toolCardPhase,
         pressed && styles.pressed,
       ]}
     >
@@ -42,12 +43,14 @@ function ToolCard({
           style={[
             styles.toolIcon,
             accent === "blue" && styles.toolIconBlue,
+            accent === "phase" && styles.toolIconPhase,
           ]}
         >
           <Text
             style={[
               styles.toolIconText,
               accent === "blue" && styles.toolIconTextBlue,
+              accent === "phase" && styles.toolIconTextPhase,
             ]}
           >
             {icon}
@@ -66,12 +69,19 @@ function ToolCard({
           <Text style={styles.workpadPreviewValue}>ft · in · frac</Text>
           <Text style={styles.workpadPreviewLabel}>FIELD MATH</Text>
         </View>
-      ) : (
+      ) : accent === "blue" ? (
         <View accessibilityElementsHidden style={styles.pipePreview}>
           <View style={[styles.pipeSegment, styles.pipeSegmentStart]} />
           <View style={[styles.pipeSegment, styles.pipeSegmentRise]} />
           <View style={[styles.pipeSegment, styles.pipeSegmentEnd]} />
           <Text style={styles.pipeDefault}>UNDER CONSTRUCTION</Text>
+        </View>
+      ) : (
+        <View accessibilityElementsHidden style={styles.phasePreview}>
+          <View style={[styles.phaseSwatch, styles.phaseBlack]} />
+          <View style={[styles.phaseSwatch, styles.phaseRed]} />
+          <View style={[styles.phaseSwatch, styles.phaseBlue]} />
+          <Text style={styles.phasePreviewText}>CIRCUIT → COLOR</Text>
         </View>
       )}
     </Pressable>
@@ -110,6 +120,15 @@ export default function HomeScreen() {
           />
 
           <ToolCard
+            accent="phase"
+            description="Enter a circuit and see its phase and conductor color instantly."
+            eyebrow="PANEL CHECK"
+            icon="●"
+            onPress={() => router.push("/panel-colors")}
+            title="Circuit Colors"
+          />
+
+          <ToolCard
             accent="blue"
             description="A field-first bending suite is on the workbench."
             eyebrow="COMING SOON"
@@ -122,7 +141,7 @@ export default function HomeScreen() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Works offline</Text>
           <View style={styles.footerDot} />
-          <Text style={styles.footerText}>2 tools</Text>
+          <Text style={styles.footerText}>3 tools</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

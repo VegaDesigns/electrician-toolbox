@@ -1,8 +1,18 @@
 # Electrician Toolbox
 
 An offline-first field toolkit built with React Native and Expo. The app now
-combines the Workpad measurement calculator with a dedicated conduit bending
-suite in one scalable toolbox home.
+combines the Workpad measurement calculator, a panel circuit color checker,
+and a parked conduit-bending route in one scalable toolbox home.
+
+## Panel circuit color checker
+
+- Fast circuit-number entry with a compact jobsite keypad
+- Phase and conductor color shown as the primary result
+- Five nearby circuits for quick panel work
+- Standard 120/208V and 277/480V color conventions
+- Saved job-specific color presets with remembered selection
+- One-tap result copy and an always-visible verification notice
+- Isolated adjacent-pair phase logic ready for configurable layouts later
 
 ## Workpad beta features
 
