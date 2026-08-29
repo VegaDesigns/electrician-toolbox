@@ -71,7 +71,7 @@ function ToolCard({
           <View style={[styles.pipeSegment, styles.pipeSegmentStart]} />
           <View style={[styles.pipeSegment, styles.pipeSegmentRise]} />
           <View style={[styles.pipeSegment, styles.pipeSegmentEnd]} />
-          <Text style={styles.pipeDefault}>3/4″ EMT DEFAULT</Text>
+          <Text style={styles.pipeDefault}>UNDER CONSTRUCTION</Text>
         </View>
       )}
     </Pressable>
@@ -111,8 +111,8 @@ export default function HomeScreen() {
 
           <ToolCard
             accent="blue"
-            description="Plan accurate offsets, stub-ups, saddles, and more."
-            eyebrow="BUILD"
+            description="A field-first bending suite is on the workbench."
+            eyebrow="COMING SOON"
             icon="↱"
             onPress={() => router.push("/bending")}
             title="Conduit Bending"

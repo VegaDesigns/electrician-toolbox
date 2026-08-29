@@ -31,18 +31,9 @@ Smart Entry accepts formats such as:
 
 ## Conduit bending suite
 
-- Two-bend offsets with standard angle multipliers, shrink, and optional marks
-- Rolling offsets using combined rise and roll
-- 90-degree stub-ups with saved bender deducts for each EMT size
-- Three-point saddle layouts with adjusted center and outside marks
-- Four-point saddle layouts with optional end-to-mark measurements
-- 1/2-inch, 3/4-inch, and 1-inch EMT preferences
-- Fraction and decimal inputs with tape-ready results rounded to 1/16 inch
-- Offline storage for conduit size and bender deduct preferences
-
-The offset math follows the common Greenlee multiplier and shrink table. Field
-results should still be checked against the exact bender, shoe, and conduit in
-use before making production bends.
+The toolbox keeps a dedicated route and home card for conduit bending while the
+field workflow is redesigned. Its current screen is an intentional coming-soon
+experience; no unfinished bending calculations ship in this version.
 
 ## Requirements
 
