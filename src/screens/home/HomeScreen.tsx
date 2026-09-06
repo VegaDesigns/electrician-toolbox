@@ -121,6 +121,22 @@ export default function HomeScreen() {
             subtitle="Conduit capacity and sizing"
             title="Fill Guide"
           />
+
+          <ToolTile
+            accent="blue"
+            icon="∥"
+            onPress={() => router.push("/wire-guide")}
+            subtitle="Ampacity and conductor limits"
+            title="Wire Guide"
+          />
+
+          <ToolTile
+            accent="amber"
+            icon="“”"
+            onPress={() => router.push("/trade-talk")}
+            subtitle="Electrical terms and jobsite slang"
+            title="Trade Talk"
+          />
         </View>
 
         <View style={styles.footer}>
