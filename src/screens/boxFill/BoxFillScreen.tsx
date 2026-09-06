@@ -13,6 +13,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { FillModeSwitch } from "../../components/fillGuide/FillModeSwitch";
+import { FillQuantityControl } from "../../components/fillGuide/FillQuantityControl";
 import {
   BOX_WIRE_SIZES,
   calculateBoxFill,
@@ -37,6 +38,10 @@ type Picker =
   | { kind: "wire-size"; rowId: number }
   | null;
 
+type BoxBuilderPicker = "size" | "depth" | "shape" | "add-on" | null;
+type BoxAddOn = "none" | "mud-ring" | "extension";
+type BoxShape = "square" | "octagon" | "device";
+
 function pulse() {
   Haptics.selectionAsync().catch(() => {});
 }
@@ -49,10 +54,44 @@ function roleLabel(role: BoxWireRole) {
   return role === "ground" ? "Equipment ground" : "Insulated conductor";
 }
 
+function boxFaceLabel(family: Exclude<BoxFamily, "marked">) {
+  if (family === "four-eleven") return "4-11/16″";
+  if (family === "three-two-device") return "3″ × 2″";
+  return "4″";
+}
+
+function boxShapeLabel(family: Exclude<BoxFamily, "marked">) {
+  if (family === "four-octagon") return "Octagon";
+  if (family === "three-two-device") return "Device box";
+  return "Square";
+}
+
+function boxShape(family: BoxFamily): BoxShape {
+  if (family === "four-octagon") return "octagon";
+  if (family === "three-two-device") return "device";
+  return "square";
+}
+
+function standardBoxDescription(
+  family: Exclude<BoxFamily, "marked">,
+  depth: string,
+) {
+  return `${boxFaceLabel(family)} × ${depth}″ deep · ${boxShapeLabel(family)}`;
+}
+
+function addOnLabel(addOn: BoxAddOn) {
+  if (addOn === "mud-ring") return "Mud ring / raised cover";
+  if (addOn === "extension") return "Extension ring";
+  return "No add-on";
+}
+
 export default function BoxFillScreen() {
   const [boxFamily, setBoxFamily] = useState<BoxFamily>("four-square");
   const [depth, setDepth] = useState("2-1/8");
   const [markedVolume, setMarkedVolume] = useState("");
+  const [boxBuilderPicker, setBoxBuilderPicker] = useState<BoxBuilderPicker>(null);
+  const [addOn, setAddOn] = useState<BoxAddOn>("none");
+  const [addOnVolume, setAddOnVolume] = useState("");
   const [wires, setWires] = useState<WireRow[]>([
     { id: 1, quantity: 3, role: "insulated", size: "12" },
   ]);
@@ -62,14 +101,20 @@ export default function BoxFillScreen() {
   const [hasInternalClamp, setHasInternalClamp] = useState(false);
   const [picker, setPicker] = useState<Picker>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showBoxHelp, setShowBoxHelp] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [resultLayout, setResultLayout] = useState({ height: 0, y: 0 });
   const scrollRef = useRef<ScrollView>(null);
 
   const standardOptions = boxFamily === "marked" ? [] : STANDARD_BOXES[boxFamily];
   const selectedStandardBox = standardOptions.find((option) => option.depth === depth)
     ?? standardOptions.at(-1);
+  const baseVolume = selectedStandardBox?.volume ?? 0;
+  const extraVolume = addOn === "none" ? 0 : Number(addOnVolume) || 0;
   const availableVolume = boxFamily === "marked"
     ? Number(markedVolume) || 0
-    : selectedStandardBox?.volume ?? 0;
+    : baseVolume + extraVolume;
   const entries = wires.map(({ quantity, role, size }) => ({ quantity, role, size }));
   const result = useMemo(
     () => calculateBoxFill({
@@ -87,8 +132,18 @@ export default function BoxFillScreen() {
     ? null
     : getNextStandardBox(result.requiredVolume, boxFamily)
       ?? getNextStandardBox(result.requiredVolume);
-  const isReady = availableVolume > 0;
+  const needsAddOnVolume = boxFamily !== "marked" && addOn !== "none" && extraVolume <= 0;
+  const isReady = availableVolume > 0 && !needsAddOnVolume;
   const usedPercent = isReady ? (result.requiredVolume / availableVolume) * 100 : 0;
+  const resultIsVisible = resultLayout.height > 0
+    && resultLayout.y < scrollY + viewportHeight - 12
+    && resultLayout.y + resultLayout.height > scrollY + 12;
+  const amountShort = Math.max(0, result.requiredVolume - availableVolume);
+  const liveResultText = !isReady
+    ? needsAddOnVolume ? "ENTER ADD-ON VOLUME" : "ENTER BOX VOLUME"
+    : result.fits
+      ? `FITS • ${result.remainingVolume.toFixed(1)} in³ remaining`
+      : `TOO FULL • Need ${amountShort.toFixed(1)} in³ more`;
 
   function chooseFamily(nextFamily: BoxFamily) {
     pulse();
@@ -96,18 +151,39 @@ export default function BoxFillScreen() {
     setBoxFamily(nextFamily);
     if (nextFamily === "four-square") setDepth("2-1/8");
     if (nextFamily === "four-eleven") setDepth("2-1/8");
+    if (nextFamily === "four-octagon") setDepth("2-1/8");
+    if (nextFamily === "three-two-device") setDepth("2-1/4");
+    if (nextFamily === "marked") {
+      setAddOn("none");
+      setAddOnVolume("");
+    }
+    setBoxBuilderPicker(null);
   }
 
   function chooseDepth(nextDepth: string) {
     pulse();
     setDepth(nextDepth);
+    setBoxBuilderPicker(null);
   }
 
-  function changeQuantity(id: number, change: number) {
+  function chooseShape(nextShape: BoxShape) {
+    if (nextShape === "octagon") chooseFamily("four-octagon");
+    else if (nextShape === "device") chooseFamily("three-two-device");
+    else if (boxFamily !== "four-square" && boxFamily !== "four-eleven") chooseFamily("four-square");
+    else setBoxBuilderPicker(null);
+  }
+
+  function chooseAddOn(nextAddOn: BoxAddOn) {
     pulse();
+    setAddOn(nextAddOn);
+    if (nextAddOn === "none") setAddOnVolume("");
+    setBoxBuilderPicker(null);
+  }
+
+  function setQuantity(id: number, quantity: number) {
     setWires((current) => current.map((wire) =>
       wire.id === id
-        ? { ...wire, quantity: Math.max(1, Math.min(999, wire.quantity + change)) }
+        ? { ...wire, quantity: Math.max(1, Math.min(999, quantity)) }
         : wire,
     ));
   }
@@ -157,11 +233,16 @@ export default function BoxFillScreen() {
     setDeviceCount((current) => Math.max(0, Math.min(20, current + change)));
   }
 
-  const boxTitle = boxFamily === "four-square"
-    ? "4″ square"
-    : boxFamily === "four-eleven"
-      ? "4-11/16″ square"
-      : "Marked box";
+  const boxTitle = boxFamily === "marked"
+    ? "Marked box"
+    : standardBoxDescription(boxFamily, selectedStandardBox?.depth ?? depth);
+  const boxSummary = boxFamily === "marked"
+    ? "Stamped volume"
+    : `${boxTitle}${extraVolume > 0
+      ? ` + ${extraVolume.toFixed(1)} in³ add-on`
+      : needsAddOnVolume
+        ? " + add-on volume needed"
+        : ""} • ${availableVolume.toFixed(1)} in³`;
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
@@ -190,7 +271,10 @@ export default function BoxFillScreen() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
+        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
+        onScroll={(event) => setScrollY(event.nativeEvent.contentOffset.y)}
         ref={scrollRef}
+        scrollEventThrottle={32}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.introRow}>
@@ -201,110 +285,180 @@ export default function BoxFillScreen() {
           </View>
         </View>
 
-        <View style={styles.boxChoices}>
+        <Text style={styles.depthLabel}>HOW DO YOU WANT TO CHOOSE THE BOX?</Text>
+        <View style={styles.boxModeRow}>
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ selected: boxFamily === "four-square" }}
-            onPress={() => chooseFamily("four-square")}
+            accessibilityState={{ selected: boxFamily !== "marked" }}
+            onPress={() => chooseFamily(boxFamily === "marked" ? "four-square" : boxFamily)}
             style={({ pressed }) => [
-              styles.boxChoice,
-              boxFamily === "four-square" && styles.boxChoiceSelected,
+              styles.boxModeChoice,
+              boxFamily !== "marked" && styles.boxModeChoiceSelected,
               pressed && styles.pressed,
             ]}
           >
-            <View style={styles.boxSketch}><View style={styles.knockout} /></View>
-            <Text style={styles.boxChoiceTitle}>4″ Square</Text>
-            <Text style={styles.boxChoiceHint}>Most common</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: boxFamily === "four-eleven" }}
-            onPress={() => chooseFamily("four-eleven")}
-            style={({ pressed }) => [
-              styles.boxChoice,
-              boxFamily === "four-eleven" && styles.boxChoiceSelected,
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={[styles.boxSketch, styles.boxSketchLarge]}><View style={styles.knockout} /></View>
-            <Text style={styles.boxChoiceTitle}>4-11/16″</Text>
-            <Text style={styles.boxChoiceHint}>More room</Text>
+            <Text style={[
+              styles.boxModeText,
+              boxFamily !== "marked" && styles.boxModeTextSelected,
+            ]}>Common box</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ selected: boxFamily === "marked" }}
             onPress={() => chooseFamily("marked")}
             style={({ pressed }) => [
-              styles.boxChoice,
-              boxFamily === "marked" && styles.boxChoiceSelected,
+              styles.boxModeChoice,
+              boxFamily === "marked" && styles.boxModeChoiceSelected,
               pressed && styles.pressed,
             ]}
           >
-            <View style={styles.stampIcon}><Text style={styles.stampIconText}>in³</Text></View>
-            <Text style={styles.boxChoiceTitle}>Stamped</Text>
-            <Text style={styles.boxChoiceHint}>Other boxes</Text>
+            <Text style={[
+              styles.boxModeText,
+              boxFamily === "marked" && styles.boxModeTextSelected,
+            ]}>Use stamped volume</Text>
           </Pressable>
         </View>
 
         {boxFamily === "marked" ? (
-          <View style={styles.markedCard}>
-            <View style={styles.markedCopy}>
-              <Text style={styles.markedLabel}>VOLUME STAMPED INSIDE BOX</Text>
-              <TextInput
-                accessibilityLabel="Box volume in cubic inches"
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  if (/^\d*\.?\d{0,2}$/.test(value)) setMarkedVolume(value);
-                }}
-                placeholder="30.3"
-                placeholderTextColor={styles.markedPlaceholder.color}
-                returnKeyType="done"
-                style={styles.markedInput}
-                value={markedVolume}
-              />
-              <Text style={styles.markedUnit}>cubic inches</Text>
+          <>
+            <View style={styles.markedCard}>
+              <View style={styles.markedCopy}>
+                <Text style={styles.markedLabel}>VOLUME STAMPED INSIDE BOX</Text>
+                <TextInput
+                  accessibilityLabel="Box volume in cubic inches"
+                  keyboardType="decimal-pad"
+                  onChangeText={(value) => {
+                    if (/^\d*\.?\d{0,2}$/.test(value)) setMarkedVolume(value);
+                  }}
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                  placeholder="30.3"
+                  placeholderTextColor={styles.markedPlaceholder.color}
+                  returnKeyType="done"
+                  style={styles.markedInput}
+                  value={markedVolume}
+                />
+                <Text style={styles.markedUnit}>Look inside for a number ending in in³.</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => Keyboard.dismiss()}
+                style={({ pressed }) => [styles.doneKeyboardButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.doneKeyboardButtonText}>Done</Text>
+              </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => Keyboard.dismiss()}
-              style={({ pressed }) => [styles.doneKeyboardButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.doneKeyboardButtonText}>Done</Text>
-            </Pressable>
-          </View>
+          </>
         ) : (
           <>
-            <Text style={styles.depthLabel}>BOX DEPTH</Text>
-            <View style={styles.depthRow}>
-              {standardOptions.map((option) => (
+            <Text style={styles.depthLabel}>BUILD YOUR BOX</Text>
+            <View style={styles.builderPanel}>
+              <View style={styles.boxBuilderRow}>
                 <Pressable
+                  accessibilityLabel={`Box size ${boxFaceLabel(boxFamily)}`}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: depth === option.depth }}
-                  key={option.depth}
-                  onPress={() => chooseDepth(option.depth)}
-                  style={({ pressed }) => [
-                    styles.depthChoice,
-                    depth === option.depth && styles.depthChoiceSelected,
-                    pressed && styles.pressed,
-                  ]}
+                  onPress={() => {
+                    pulse();
+                    setBoxBuilderPicker("size");
+                  }}
+                  style={({ pressed }) => [styles.builderControl, pressed && styles.pressed]}
                 >
-                  <Text style={[
-                    styles.depthValue,
-                    depth === option.depth && styles.depthValueSelected,
-                  ]}>{option.depth}″</Text>
-                  <Text style={[
-                    styles.depthVolume,
-                    depth === option.depth && styles.depthVolumeSelected,
-                  ]}>{option.volume.toFixed(1)} in³</Text>
+                  <Text style={styles.builderLabel}>SIZE</Text>
+                  <Text style={styles.builderValue}>{boxFaceLabel(boxFamily)} <Text style={styles.builderChevron}>⌄</Text></Text>
                 </Pressable>
-              ))}
+                <Text style={styles.builderTimes}>×</Text>
+                <Pressable
+                  accessibilityLabel={`Box depth ${selectedStandardBox?.depth} inches`}
+                  accessibilityRole="button"
+                  onPress={() => {
+                    pulse();
+                    setBoxBuilderPicker("depth");
+                  }}
+                  style={({ pressed }) => [styles.builderControl, pressed && styles.pressed]}
+                >
+                  <Text style={styles.builderLabel}>DEPTH</Text>
+                  <Text style={styles.builderValue}>{selectedStandardBox?.depth}″ <Text style={styles.builderChevron}>⌄</Text></Text>
+                </Pressable>
+                <Pressable
+                  accessibilityLabel={`Box shape ${boxShapeLabel(boxFamily)}`}
+                  accessibilityRole="button"
+                  onPress={() => {
+                    pulse();
+                    setBoxBuilderPicker("shape");
+                  }}
+                  style={({ pressed }) => [styles.builderControl, styles.builderShapeControl, pressed && styles.pressed]}
+                >
+                  <Text style={styles.builderLabel}>SHAPE</Text>
+                  <Text style={styles.builderValue}>{boxShapeLabel(boxFamily)} <Text style={styles.builderChevron}>⌄</Text></Text>
+                </Pressable>
+              </View>
+
+              <Pressable
+                accessibilityLabel={`Box add-on ${addOnLabel(addOn)}`}
+                accessibilityRole="button"
+                onPress={() => {
+                  pulse();
+                  setBoxBuilderPicker("add-on");
+                }}
+                style={({ pressed }) => [styles.addOnControl, pressed && styles.pressed]}
+              >
+                <View>
+                  <Text style={styles.builderLabel}>ADD-ON</Text>
+                  <Text style={styles.addOnValue}>{addOnLabel(addOn)}</Text>
+                </View>
+                <Text style={styles.chevron}>⌄</Text>
+              </Pressable>
+
+              {addOn !== "none" ? (
+                <View style={styles.addOnVolumeCard}>
+                  <View style={styles.markedCopy}>
+                    <Text style={styles.markedLabel}>VOLUME MARKED ON ADD-ON</Text>
+                    <TextInput
+                      accessibilityLabel="Add-on volume in cubic inches"
+                      keyboardType="decimal-pad"
+                      onChangeText={(value) => {
+                        if (/^\d*\.?\d{0,2}$/.test(value)) setAddOnVolume(value);
+                      }}
+                      onSubmitEditing={() => Keyboard.dismiss()}
+                      placeholder="0.0"
+                      placeholderTextColor={styles.markedPlaceholder.color}
+                      returnKeyType="done"
+                      style={styles.addOnVolumeInput}
+                      value={addOnVolume}
+                    />
+                    <Text style={styles.markedUnit}>Use the capacity marked by the manufacturer.</Text>
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => Keyboard.dismiss()}
+                    style={({ pressed }) => [styles.doneKeyboardButton, pressed && styles.pressed]}
+                  >
+                    <Text style={styles.doneKeyboardButtonText}>Done</Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           </>
         )}
 
-        <Text style={styles.otherBoxHelp}>
-          Gangable, plastic, masonry, octagon, and odd boxes: use the cubic-inch capacity marked by the manufacturer.
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showBoxHelp }}
+          onPress={() => {
+            pulse();
+            setShowBoxHelp((current) => !current);
+          }}
+          style={({ pressed }) => [styles.boxHelpButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.boxHelpButtonText}>How do I identify this?</Text>
+          <Text style={styles.chevron}>{showBoxHelp ? "⌃" : "⌄"}</Text>
+        </Pressable>
+        {showBoxHelp ? (
+          <View style={styles.boxHelpCard}>
+            <Text style={styles.boxHelpText}>
+              Match the face size, depth, and shape you see. “3″ × 2″” means a device or switch box—not a 3″ square box. For plastic, masonry, gangable, or unusual boxes, use the cubic-inch capacity stamped by the manufacturer.
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.divider} />
 
@@ -320,28 +474,11 @@ export default function BoxFillScreen() {
           {wires.map((wire) => (
             <View key={wire.id} style={styles.wireCard}>
               <View style={styles.wireTopRow}>
-                <View style={styles.quantityControl}>
-                  <Pressable
-                    accessibilityLabel={`Remove one ${displayWireSize(wire.size)} wire`}
-                    accessibilityRole="button"
-                    onPress={() => changeQuantity(wire.id, -1)}
-                    style={({ pressed }) => [styles.quantityButton, pressed && styles.pressed]}
-                  >
-                    <Text style={styles.quantityButtonText}>−</Text>
-                  </Pressable>
-                  <View style={styles.quantityValue}>
-                    <Text style={styles.quantityNumber}>{wire.quantity}</Text>
-                    <Text style={styles.quantityLabel}>QTY</Text>
-                  </View>
-                  <Pressable
-                    accessibilityLabel={`Add one ${displayWireSize(wire.size)} wire`}
-                    accessibilityRole="button"
-                    onPress={() => changeQuantity(wire.id, 1)}
-                    style={({ pressed }) => [styles.quantityButton, pressed && styles.pressed]}
-                  >
-                    <Text style={styles.quantityButtonText}>＋</Text>
-                  </Pressable>
-                </View>
+                <FillQuantityControl
+                  accessibilityLabel={`${displayWireSize(wire.size)} wire quantity`}
+                  onChange={(quantity) => setQuantity(wire.id, quantity)}
+                  value={wire.quantity}
+                />
 
                 <Pressable
                   accessibilityLabel={`Wire size ${displayWireSize(wire.size)}`}
@@ -407,8 +544,8 @@ export default function BoxFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>3</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Anything else?</Text>
-            <Text style={styles.sectionHint}>Devices and built-in cable clamps take space too.</Text>
+            <Text style={styles.sectionTitle}>Devices and clamps</Text>
+            <Text style={styles.sectionHint}>Tell us what is installed. The app calculates the space.</Text>
           </View>
         </View>
 
@@ -416,7 +553,7 @@ export default function BoxFillScreen() {
           <View style={styles.extraRow}>
             <View style={styles.extraCopy}>
               <Text style={styles.extraTitle}>Switches or receptacles</Text>
-              <Text style={styles.extraHint}>Count each device strap</Text>
+              <Text style={styles.extraHint}>How many device straps are mounted?</Text>
             </View>
             <View style={styles.smallStepper}>
               <Pressable
@@ -446,11 +583,17 @@ export default function BoxFillScreen() {
               style={({ pressed }) => [styles.deviceSizeRow, pressed && styles.pressed]}
             >
               <View>
-                <Text style={styles.controlLabel}>LARGEST WIRE ATTACHED TO DEVICE</Text>
+                <Text style={styles.controlLabel}>LARGEST WIRE CONNECTED TO A DEVICE</Text>
                 <Text style={styles.deviceSizeValue}>{displayWireSize(deviceWireSize)}</Text>
               </View>
               <Text style={styles.chevron}>⌄</Text>
             </Pressable>
+          ) : null}
+
+          {deviceCount > 0 ? (
+            <Text style={styles.deviceHelp}>
+              No device volume is needed. Each strap counts as two allowances based on this wire size.
+            </Text>
           ) : null}
 
           <View style={styles.extraDivider} />
@@ -478,7 +621,7 @@ export default function BoxFillScreen() {
           styles.resultCard,
           isReady && !result.fits && styles.resultCardFail,
           !isReady && styles.resultCardWaiting,
-        ]}>
+        ]} onLayout={(event) => setResultLayout(event.nativeEvent.layout)}>
           <View style={styles.resultTopRow}>
             <View>
               <Text style={styles.resultEyebrow}>RESULT</Text>
@@ -487,7 +630,9 @@ export default function BoxFillScreen() {
                 isReady && !result.fits && styles.resultStatusFail,
                 !isReady && styles.resultStatusWaiting,
               ]}>
-                {!isReady ? "ENTER VOLUME" : result.fits ? "FITS" : "TOO FULL"}
+                {!isReady
+                  ? needsAddOnVolume ? "ENTER ADD-ON" : "ENTER VOLUME"
+                  : result.fits ? "FITS" : "TOO FULL"}
               </Text>
             </View>
             <View style={styles.volumeBadge}>
@@ -517,7 +662,7 @@ export default function BoxFillScreen() {
               <Text style={styles.detailLabel}>{result.fits ? "SPACE LEFT" : "NEXT STEP"}</Text>
               <Text style={styles.detailValue}>
                 {!isReady
-                  ? "Enter stamp"
+                  ? needsAddOnVolume ? "Enter add-on" : "Enter stamp"
                   : result.fits
                     ? `${result.remainingVolume.toFixed(1)} in³`
                     : nextBox
@@ -526,11 +671,11 @@ export default function BoxFillScreen() {
               </Text>
               <Text style={styles.detailCaption}>
                 {!isReady
-                  ? "Look inside the box"
+                  ? needsAddOnVolume ? "Use its marked volume" : "Look inside the box"
                   : result.fits
                     ? "Remaining capacity"
                     : nextBox
-                      ? `${nextBox.family === "four-square" ? "4″ square" : "4-11/16″ square"} · ${nextBox.depth}″ deep`
+                      ? standardBoxDescription(nextBox.family, nextBox.depth)
                       : "Choose a larger box"}
               </Text>
             </View>
@@ -559,14 +704,14 @@ export default function BoxFillScreen() {
         </View>
 
         <View style={styles.codeNote}>
-          <Text style={styles.codeNoteTitle}>NEC 2020 / 2023 · 314.16</Text>
+          <Text style={styles.codeNoteTitle}>FIELD REFERENCE</Text>
           <Text style={styles.codeNoteText}>
-            Solid and stranded conductors use the same allowance here. #4 and larger conductors require pull-box sizing under 314.28. Verify the box marking and local requirements.
+            Solid and stranded conductors use the same volume allowance here. Verify the box’s manufacturer marking, local rules, project specifications, and job requirements before installation. Larger conductors and pull-box sizing require a different calculation.
           </Text>
         </View>
       </ScrollView>
 
-      <Pressable
+      {!resultIsVisible ? <Pressable
         accessibilityHint="Jumps to the full box fill result"
         accessibilityRole="button"
         onPress={() => {
@@ -581,21 +726,154 @@ export default function BoxFillScreen() {
           pressed && styles.pressed,
         ]}
       >
-        <View style={[
-          styles.liveResultDot,
-          isReady && !result.fits && styles.liveResultDotFail,
-          !isReady && styles.liveResultDotWaiting,
-        ]} />
         <View style={styles.liveResultCopy}>
-          <Text style={styles.liveResultStatus}>
-            {!isReady ? "ENTER BOX VOLUME" : result.fits ? "FITS" : "TOO FULL"}
-          </Text>
-          <Text style={styles.liveResultNumbers}>
-            {result.requiredVolume.toFixed(1)} in³ needed · {isReady ? `${availableVolume.toFixed(1)} in³ available` : "stamp required"}
-          </Text>
+          <Text style={styles.liveResultStatus}>{liveResultText}</Text>
+          <Text numberOfLines={1} style={styles.liveResultBox}>{boxSummary}</Text>
         </View>
-        <Text style={styles.liveResultArrow}>↑</Text>
-      </Pressable>
+        <Text style={styles.liveResultArrow}>View details ↑</Text>
+      </Pressable> : null}
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setBoxBuilderPicker(null)}
+        transparent
+        visible={boxBuilderPicker !== null}
+      >
+        <SafeAreaProvider>
+          <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
+            <Pressable style={styles.modalScrim} onPress={() => setBoxBuilderPicker(null)} />
+            <View style={styles.sheet}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetHeader}>
+                <View>
+                  <Text style={styles.sheetEyebrow}>BUILD YOUR BOX</Text>
+                  <Text style={styles.sheetTitle}>
+                    {boxBuilderPicker === "size"
+                      ? "Choose face size"
+                      : boxBuilderPicker === "depth"
+                        ? "Choose depth"
+                        : boxBuilderPicker === "shape"
+                          ? "Choose shape"
+                          : "Add anything?"}
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setBoxBuilderPicker(null)}
+                  style={styles.doneButton}
+                ><Text style={styles.doneButtonText}>Done</Text></Pressable>
+              </View>
+
+              <View style={styles.builderOptions}>
+                {boxBuilderPicker === "size" ? (
+                  <>
+                    {(boxShape(boxFamily) === "square"
+                      ? [
+                          { family: "four-square" as const, hint: "Most common", label: "4″" },
+                          { family: "four-eleven" as const, hint: "More capacity", label: "4-11/16″" },
+                        ]
+                      : boxShape(boxFamily) === "octagon"
+                        ? [{ family: "four-octagon" as const, hint: "Common octagon", label: "4″" }]
+                        : [{ family: "three-two-device" as const, hint: "Switch or device box", label: "3″ × 2″" }]
+                    ).map((option) => (
+                      <Pressable
+                        accessibilityRole="button"
+                        key={option.family}
+                        onPress={() => chooseFamily(option.family)}
+                        style={({ pressed }) => [
+                          styles.builderOption,
+                          boxFamily === option.family && styles.builderOptionSelected,
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <View style={styles.builderOptionCopy}>
+                          <Text style={styles.builderOptionTitle}>{option.label}</Text>
+                          <Text style={styles.builderOptionHint}>{option.hint}</Text>
+                        </View>
+                        {boxFamily === option.family ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
+                      </Pressable>
+                    ))}
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => chooseFamily("marked")}
+                      style={({ pressed }) => [styles.builderOption, pressed && styles.pressed]}
+                    >
+                      <View style={styles.builderOptionCopy}>
+                        <Text style={styles.builderOptionTitle}>Other box</Text>
+                        <Text style={styles.builderOptionHint}>Use its stamped cubic-inch capacity</Text>
+                      </View>
+                      <Text style={styles.chevron}>→</Text>
+                    </Pressable>
+                  </>
+                ) : boxBuilderPicker === "depth" ? (
+                  standardOptions.map((option) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={option.depth}
+                      onPress={() => chooseDepth(option.depth)}
+                      style={({ pressed }) => [
+                        styles.builderOption,
+                        depth === option.depth && styles.builderOptionSelected,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <View style={styles.builderOptionCopy}>
+                        <Text style={styles.builderOptionTitle}>{option.depth}″ deep</Text>
+                        <Text style={styles.builderOptionHint}>{option.volume.toFixed(1)} in³ box capacity</Text>
+                      </View>
+                      {depth === option.depth ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
+                    </Pressable>
+                  ))
+                ) : boxBuilderPicker === "shape" ? (
+                  ([
+                    { hint: "4″ or 4-11/16″", label: "Square", shape: "square" },
+                    { hint: "4″ fixture or junction box", label: "Octagon", shape: "octagon" },
+                    { hint: "3″ × 2″ switch box", label: "Device box", shape: "device" },
+                  ] as { hint: string; label: string; shape: BoxShape }[]).map((option) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={option.shape}
+                      onPress={() => chooseShape(option.shape)}
+                      style={({ pressed }) => [
+                        styles.builderOption,
+                        boxShape(boxFamily) === option.shape && styles.builderOptionSelected,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <View style={styles.builderOptionCopy}>
+                        <Text style={styles.builderOptionTitle}>{option.label}</Text>
+                        <Text style={styles.builderOptionHint}>{option.hint}</Text>
+                      </View>
+                      {boxShape(boxFamily) === option.shape ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
+                    </Pressable>
+                  ))
+                ) : (
+                  (["none", "mud-ring", "extension"] as BoxAddOn[]).map((option) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={option}
+                      onPress={() => chooseAddOn(option)}
+                      style={({ pressed }) => [
+                        styles.builderOption,
+                        addOn === option && styles.builderOptionSelected,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <View style={styles.builderOptionCopy}>
+                        <Text style={styles.builderOptionTitle}>{addOnLabel(option)}</Text>
+                        <Text style={styles.builderOptionHint}>
+                          {option === "none" ? "Box only" : "Enter the volume marked on the add-on"}
+                        </Text>
+                      </View>
+                      {addOn === option ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
+                    </Pressable>
+                  ))
+                )}
+              </View>
+            </View>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>
 
       <Modal
         animationType="slide"

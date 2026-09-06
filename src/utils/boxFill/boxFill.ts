@@ -1,4 +1,9 @@
-export type BoxFamily = "four-square" | "four-eleven" | "marked";
+export type BoxFamily =
+  | "four-square"
+  | "four-eleven"
+  | "four-octagon"
+  | "three-two-device"
+  | "marked";
 
 export type BoxWireSize = "18" | "16" | "14" | "12" | "10" | "8" | "6";
 
@@ -38,6 +43,13 @@ export const STANDARD_BOXES: Record<Exclude<BoxFamily, "marked">, StandardBoxOpt
     { depth: "1-1/4", family: "four-eleven", volume: 25.5 },
     { depth: "1-1/2", family: "four-eleven", volume: 29.5 },
     { depth: "2-1/8", family: "four-eleven", volume: 42 },
+  ],
+  "four-octagon": [
+    { depth: "1-1/2", family: "four-octagon", volume: 15.5 },
+    { depth: "2-1/8", family: "four-octagon", volume: 21.5 },
+  ],
+  "three-two-device": [
+    { depth: "2-1/4", family: "three-two-device", volume: 10.5 },
   ],
 };
 

@@ -63,3 +63,16 @@ test("finds the next box in a preferred family", () => {
     volume: 30.3,
   });
 });
+
+test("includes constrained octagon and device-box presets", () => {
+  assert.deepEqual(getNextStandardBox(20, "four-octagon"), {
+    depth: "2-1/8",
+    family: "four-octagon",
+    volume: 21.5,
+  });
+  assert.deepEqual(getNextStandardBox(10, "three-two-device"), {
+    depth: "2-1/4",
+    family: "three-two-device",
+    volume: 10.5,
+  });
+});

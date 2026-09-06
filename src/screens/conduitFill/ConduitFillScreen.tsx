@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { FillModeSwitch } from "../../components/fillGuide/FillModeSwitch";
+import { FillQuantityControl } from "../../components/fillGuide/FillQuantityControl";
 import {
   calculateConduitFill,
   CONDUIT_LABELS,
@@ -79,12 +80,11 @@ export default function ConduitFillScreen() {
     setConduitSize(nextSize);
   }
 
-  function changeQuantity(id: number, change: number) {
-    pulse();
+  function setQuantity(id: number, quantity: number) {
     setWires((current) =>
       current.map((wire) =>
         wire.id === id
-          ? { ...wire, quantity: Math.max(1, Math.min(999, wire.quantity + change)) }
+          ? { ...wire, quantity: Math.max(1, Math.min(999, quantity)) }
           : wire,
       ),
     );
@@ -290,28 +290,11 @@ export default function ConduitFillScreen() {
         <View style={styles.wireList}>
           {wires.map((wire) => (
             <View key={wire.id} style={styles.wireRow}>
-              <View style={styles.quantityControl}>
-                <Pressable
-                  accessibilityLabel={`Remove one ${displayWireSize(wire.size)} wire`}
-                  accessibilityRole="button"
-                  onPress={() => changeQuantity(wire.id, -1)}
-                  style={({ pressed }) => [styles.quantityButton, pressed && styles.pressed]}
-                >
-                  <Text style={styles.quantityButtonText}>−</Text>
-                </Pressable>
-                <View style={styles.quantityValue}>
-                  <Text style={styles.quantityNumber}>{wire.quantity}</Text>
-                  <Text style={styles.quantityLabel}>QTY</Text>
-                </View>
-                <Pressable
-                  accessibilityLabel={`Add one ${displayWireSize(wire.size)} wire`}
-                  accessibilityRole="button"
-                  onPress={() => changeQuantity(wire.id, 1)}
-                  style={({ pressed }) => [styles.quantityButton, pressed && styles.pressed]}
-                >
-                  <Text style={styles.quantityButtonText}>＋</Text>
-                </Pressable>
-              </View>
+              <FillQuantityControl
+                accessibilityLabel={`${displayWireSize(wire.size)} wire quantity`}
+                onChange={(quantity) => setQuantity(wire.id, quantity)}
+                value={wire.quantity}
+              />
 
               <Pressable
                 accessibilityHint="Opens the wire size list"
@@ -407,10 +390,10 @@ export default function ConduitFillScreen() {
         </View>
 
         <View style={styles.codeNote}>
-          <Text style={styles.codeNoteTitle}>NEC 2020 / 2023 · Chapter 9</Text>
+          <Text style={styles.codeNoteTitle}>FIELD REFERENCE</Text>
           <Text style={styles.codeNoteText}>
-            Physical fill only. Equipment grounds count. Ampacity adjustment,
-            job specifications, and local requirements may also apply.
+            Physical fill only. Verify conductor construction, raceway dimensions,
+            adjustment requirements, local rules, and job specifications before installation.
           </Text>
         </View>
       </ScrollView>
