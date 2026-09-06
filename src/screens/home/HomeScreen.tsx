@@ -113,6 +113,14 @@ export default function HomeScreen() {
             subtitle="Field-first conduit bending"
             title="Bending"
           />
+
+          <ToolTile
+            accent="amber"
+            icon="◉"
+            onPress={() => router.push("/conduit-fill")}
+            subtitle="Conduit capacity and sizing"
+            title="Fill Guide"
+          />
         </View>
 
         <View style={styles.footer}>

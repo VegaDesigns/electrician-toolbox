@@ -14,6 +14,7 @@ export default function RootLayout() {
           <Stack.Screen name="workpad" />
           <Stack.Screen name="bending" />
           <Stack.Screen name="panel-colors" />
+          <Stack.Screen name="conduit-fill" />
         </Stack>
         <StatusBar style="light" />
       </SafeAreaProvider>
