@@ -53,25 +53,38 @@ export async function savePanelColorPreferences(
 }
 
 export function createCustomPanelScheme(input: {
-  colors: Record<"A" | "B" | "C" | "ground" | "neutral", string>;
+  colors: Record<"ground" | "neutral" | "phase1" | "phase2" | "phase3", string>;
+  id?: string;
   name: string;
+  panelType: "single-phase" | "three-phase";
   voltageSystem: string;
 }): PanelColorScheme {
+  const isSinglePhase = input.panelType === "single-phase";
+
   return {
-    id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: input.id ?? `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     isBuiltIn: false,
     isQuickChoice: false,
     name: input.name.trim(),
-    voltageSystem: input.voltageSystem.trim() || "Custom",
-    configurationLabel: "3Ø custom • Standard branch panel",
-    phaseOrder: ["A", "B", "C"],
-    colors: {
-      A: makeConductorColor(input.colors.A),
-      B: makeConductorColor(input.colors.B),
-      C: makeConductorColor(input.colors.C),
-      neutral: makeConductorColor(input.colors.neutral),
-      ground: makeConductorColor(input.colors.ground),
-    },
+    voltageSystem: input.voltageSystem,
+    configurationLabel: isSinglePhase
+      ? "1Ø • Standard branch panel"
+      : `${input.voltageSystem.includes("Y/") ? "3Ø wye" : input.voltageSystem.includes("Δ") ? "3Ø delta" : "3Ø"} • Standard branch panel`,
+    phaseOrder: isSinglePhase ? ["L1", "L2"] : ["A", "B", "C"],
+    colors: isSinglePhase
+      ? {
+          L1: makeConductorColor(input.colors.phase1),
+          L2: makeConductorColor(input.colors.phase2),
+          neutral: makeConductorColor(input.colors.neutral),
+          ground: makeConductorColor(input.colors.ground),
+        }
+      : {
+          A: makeConductorColor(input.colors.phase1),
+          B: makeConductorColor(input.colors.phase2),
+          C: makeConductorColor(input.colors.phase3),
+          neutral: makeConductorColor(input.colors.neutral),
+          ground: makeConductorColor(input.colors.ground),
+        },
   };
 }
 

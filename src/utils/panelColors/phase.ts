@@ -28,6 +28,7 @@ export const COLOR_HEX_BY_NAME: Record<string, string> = {
   gray: "#8D969F",
   green: "#29945B",
   orange: "#E06D1B",
+  pink: "#D96E9E",
   purple: "#8B5BD6",
   red: "#D94A43",
   white: "#F0F1F2",

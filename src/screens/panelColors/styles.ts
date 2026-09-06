@@ -298,17 +298,46 @@ export const styles = StyleSheet.create({
     ...Effects.surfaceRaised,
   },
 
+  nearbyHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 7,
+    minHeight: 20,
+  },
+
   sectionLabel: {
     color: Colors.textSubtle,
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 0.9,
-    marginBottom: 7,
+  },
+
+  returnButton: {
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primaryMuted,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+
+  returnButtonText: {
+    color: Colors.primary,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
+  nearbyViewport: {
+    overflow: "hidden",
+    width: "100%",
   },
 
   nearbyRow: {
     flexDirection: "row",
     gap: 5,
+    paddingRight: 1,
   },
 
   nearbyItem: {
@@ -317,8 +346,8 @@ export const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 11,
     borderWidth: 1,
-    flex: 1,
-    minWidth: 0,
+    flexShrink: 0,
+    minHeight: 65,
     paddingHorizontal: 2,
     paddingVertical: 6,
   },
@@ -371,6 +400,23 @@ export const styles = StyleSheet.create({
 
   keypad: {
     gap: 6,
+  },
+
+  keypadStatusRow: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 17,
+  },
+
+  keypadStatus: {
+    color: Colors.textSubtle,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+
+  keypadStatusActive: {
+    color: Colors.primary,
   },
 
   keypadRow: {
@@ -539,6 +585,24 @@ export const styles = StyleSheet.create({
     marginTop: 14,
   },
 
+  savedHeader: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  manageLink: {
+    paddingHorizontal: 5,
+    paddingVertical: 7,
+  },
+
+  manageLinkText: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+  },
+
   differentColorsButton: {
     alignItems: "center",
     backgroundColor: Colors.surface3,
@@ -687,6 +751,22 @@ export const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
+  managePresetButton: {
+    alignItems: "center",
+    borderColor: Colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: "center",
+    marginTop: 8,
+    minHeight: 46,
+  },
+
+  managePresetButtonText: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
   editorSafe: {
     backgroundColor: Colors.bg,
     flex: 1,
@@ -764,6 +844,31 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
 
+  fieldLabelRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 25,
+  },
+
+  fieldDoneButton: {
+    alignItems: "center",
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primaryMuted,
+    borderRadius: 11,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 25,
+    paddingHorizontal: 9,
+  },
+
+  fieldDoneText: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+  },
+
   fieldLabel: {
     color: Colors.textSubtle,
     fontSize: 9,
@@ -800,6 +905,180 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
 
+  choiceSection: {
+    gap: 6,
+  },
+
+  choiceGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 7,
+  },
+
+  choiceChip: {
+    alignItems: "center",
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 7,
+    minHeight: 43,
+    paddingHorizontal: 12,
+  },
+
+  choiceChipSelected: {
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primary,
+  },
+
+  choiceChipText: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  choiceChipTextSelected: {
+    color: Colors.text,
+  },
+
+  choiceCheck: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  colorChoiceSection: {
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.border,
+    borderRadius: 15,
+    borderWidth: 1,
+    gap: 8,
+    overflow: "hidden",
+    padding: 11,
+  },
+
+  colorChoiceHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  colorChoiceValue: {
+    color: Colors.text,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  colorChipRow: {
+    gap: 7,
+    paddingRight: 2,
+  },
+
+  colorChip: {
+    alignItems: "center",
+    backgroundColor: Colors.key,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 6,
+    minHeight: 39,
+    paddingHorizontal: 9,
+  },
+
+  colorChipSelected: {
+    backgroundColor: Colors.primarySoft,
+    borderColor: Colors.primary,
+  },
+
+  colorChipDot: {
+    borderColor: "rgba(255,255,255,0.30)",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 15,
+    width: 15,
+  },
+
+  colorChipText: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+
+  colorChipTextSelected: {
+    color: Colors.text,
+  },
+
+  colorChipCheck: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  presetSummary: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.borderStrong,
+    borderRadius: 17,
+    borderWidth: 1,
+    padding: 14,
+    ...Effects.surfaceRaised,
+  },
+
+  presetSummaryLabel: {
+    color: Colors.primary,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+
+  presetSummaryName: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+
+  presetSummaryMeta: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+
+  presetSummaryColors: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 11,
+  },
+
+  presetSummaryColor: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+  },
+
+  summaryDot: {
+    borderColor: "rgba(255,255,255,0.28)",
+    borderRadius: 6,
+    borderWidth: 1,
+    height: 11,
+    width: 11,
+  },
+
+  presetSummaryColorText: {
+    color: Colors.text,
+    fontSize: 9,
+    fontWeight: "800",
+  },
+
+  presetSummarySupport: {
+    color: Colors.textSubtle,
+    fontSize: 9,
+    marginTop: 9,
+  },
+
   saveButton: {
     alignItems: "center",
     backgroundColor: Colors.primary,
@@ -821,6 +1100,156 @@ export const styles = StyleSheet.create({
   saveButtonText: {
     color: Colors.inverseText,
     fontSize: 15,
+    fontWeight: "900",
+  },
+
+  manageContainer: {
+    alignSelf: "center",
+    gap: 10,
+    maxWidth: 520,
+    padding: 16,
+    width: "100%",
+  },
+
+  manageIntro: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 2,
+  },
+
+  managePresetCard: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    borderRadius: 17,
+    borderWidth: 1,
+    gap: 11,
+    padding: 13,
+    ...Effects.surfaceRaised,
+  },
+
+  managePresetInfo: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 11,
+  },
+
+  manageActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  editPresetButton: {
+    alignItems: "center",
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.borderStrong,
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 42,
+  },
+
+  editPresetButtonText: {
+    color: "#B7CADB",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  deletePresetButton: {
+    alignItems: "center",
+    backgroundColor: Colors.errorSoft,
+    borderColor: "#713932",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 42,
+  },
+
+  deletePresetButtonText: {
+    color: "#E47669",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  confirmBackdrop: {
+    alignItems: "center",
+    backgroundColor: "rgba(4, 7, 10, 0.84)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 22,
+  },
+
+  confirmCard: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.borderStrong,
+    borderRadius: 20,
+    borderWidth: 1,
+    maxWidth: 390,
+    padding: 18,
+    width: "100%",
+    ...Effects.surfaceRaised,
+  },
+
+  confirmEyebrow: {
+    color: "#E47669",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+
+  confirmTitle: {
+    color: Colors.text,
+    fontSize: 21,
+    fontWeight: "900",
+    marginTop: 5,
+  },
+
+  confirmText: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 7,
+  },
+
+  confirmActions: {
+    flexDirection: "row",
+    gap: 9,
+    marginTop: 17,
+  },
+
+  confirmCancelButton: {
+    alignItems: "center",
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.border,
+    borderRadius: 13,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 46,
+  },
+
+  confirmCancelText: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  confirmDeleteButton: {
+    alignItems: "center",
+    backgroundColor: Colors.keyDanger,
+    borderColor: "#D26457",
+    borderRadius: 13,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 46,
+  },
+
+  confirmDeleteText: {
+    color: "#FFFFFF",
+    fontSize: 13,
     fontWeight: "900",
   },
 });
