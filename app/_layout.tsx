@@ -15,6 +15,7 @@ export default function RootLayout() {
           <Stack.Screen name="bending" />
           <Stack.Screen name="panel-colors" />
           <Stack.Screen name="conduit-fill" />
+          <Stack.Screen name="box-fill" />
         </Stack>
         <StatusBar style="light" />
       </SafeAreaProvider>

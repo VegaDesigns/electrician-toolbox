@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
+import { FillModeSwitch } from "../../components/fillGuide/FillModeSwitch";
 import {
   calculateConduitFill,
   CONDUIT_LABELS,
@@ -135,6 +136,10 @@ export default function ConduitFillScreen() {
           <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
           <Text style={styles.headerTitle}>Conduit Fill</Text>
         </View>
+      </View>
+
+      <View style={styles.modeSwitchWrap}>
+        <FillModeSwitch mode="conduit" />
       </View>
 
       <ScrollView

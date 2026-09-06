@@ -32,6 +32,13 @@ export const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   headerTitle: { color: Colors.text, fontSize: 21, fontWeight: "900" },
+  modeSwitchWrap: {
+    alignSelf: "center",
+    maxWidth: 560,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    width: "100%",
+  },
   container: {
     alignSelf: "center",
     maxWidth: 560,
