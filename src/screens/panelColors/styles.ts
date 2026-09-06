@@ -901,6 +901,26 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
 
+  colorSectionHelp: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: -6,
+  },
+
+  colorValidationError: {
+    backgroundColor: Colors.errorSoft,
+    borderColor: "#713932",
+    borderRadius: 12,
+    borderWidth: 1,
+    color: "#F08A7E",
+    fontSize: 11,
+    fontWeight: "800",
+    lineHeight: 16,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+  },
+
   colorFields: {
     gap: 10,
   },
@@ -992,6 +1012,10 @@ export const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
 
+  colorChipUnavailable: {
+    opacity: 0.28,
+  },
+
   colorChipDot: {
     borderColor: "rgba(255,255,255,0.30)",
     borderRadius: 8,
@@ -1008,6 +1032,10 @@ export const styles = StyleSheet.create({
 
   colorChipTextSelected: {
     color: Colors.text,
+  },
+
+  colorChipTextUnavailable: {
+    textDecorationLine: "line-through",
   },
 
   colorChipCheck: {

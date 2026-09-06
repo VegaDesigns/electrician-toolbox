@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   BUILT_IN_PANEL_SCHEMES,
@@ -577,14 +577,23 @@ export default function PanelColorsScreen() {
       <ManagePresetsModal
         isOpen={isManagePresetsOpen}
         onClose={() => setIsManagePresetsOpen(false)}
-        onDelete={setDeleteCandidate}
+        onDelete={(scheme) => {
+          setIsManagePresetsOpen(false);
+          setDeleteCandidate(scheme);
+        }}
         onEdit={editCustomScheme}
         schemes={customSchemes}
       />
 
       <DeletePresetModal
-        onCancel={() => setDeleteCandidate(null)}
-        onConfirm={() => deleteCandidate && deleteCustomScheme(deleteCandidate)}
+        onCancel={() => {
+          setDeleteCandidate(null);
+          setIsManagePresetsOpen(true);
+        }}
+        onConfirm={() => {
+          if (deleteCandidate) deleteCustomScheme(deleteCandidate);
+          setIsManagePresetsOpen(true);
+        }}
         scheme={deleteCandidate}
       />
     </SafeAreaView>
@@ -882,8 +891,6 @@ function CustomSchemeModal({
   onClose: () => void;
   onSave: () => void;
 }) {
-  const canSave = !!draft.name.trim();
-
   function field<K extends keyof CustomDraft>(key: K, value: CustomDraft[K]) {
     onChange({ ...draft, [key]: value });
   }
@@ -902,9 +909,13 @@ function CustomSchemeModal({
   const selectedPhaseColors = draft.panelType === "single-phase"
     ? [draft.phase1, draft.phase2]
     : [draft.phase1, draft.phase2, draft.phase3];
+  const normalizedPhaseColors = selectedPhaseColors.map((color) => color.trim().toLowerCase());
+  const hasDuplicatePhaseColors = new Set(normalizedPhaseColors).size !== normalizedPhaseColors.length;
+  const canSave = !!draft.name.trim() && !hasDuplicatePhaseColors;
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={isOpen}>
+    <Modal animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen" visible={isOpen}>
+      <SafeAreaProvider style={styles.editorSafe}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
           <Pressable accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
@@ -953,15 +964,24 @@ function CustomSchemeModal({
           />
 
           <Text style={styles.colorSectionLabel}>CONDUCTOR COLORS</Text>
+          <Text style={styles.colorSectionHelp}>
+            Use the visible phase identifiers for this job. Each phase or leg needs a different selection.
+          </Text>
           <View style={styles.colorFields}>
-            <ColorChoiceRow label={phaseLabels[0]} onSelect={(value) => field("phase1", value)} options={PHASE_COLOR_OPTIONS} value={draft.phase1} />
-            <ColorChoiceRow label={phaseLabels[1]} onSelect={(value) => field("phase2", value)} options={PHASE_COLOR_OPTIONS} value={draft.phase2} />
+            <ColorChoiceRow label={phaseLabels[0]} onSelect={(value) => field("phase1", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={selectedPhaseColors.slice(1)} value={draft.phase1} />
+            <ColorChoiceRow label={phaseLabels[1]} onSelect={(value) => field("phase2", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={[draft.phase1, ...(draft.panelType === "three-phase" ? [draft.phase3] : [])]} value={draft.phase2} />
             {draft.panelType === "three-phase" && (
-              <ColorChoiceRow label={phaseLabels[2]} onSelect={(value) => field("phase3", value)} options={PHASE_COLOR_OPTIONS} value={draft.phase3} />
+              <ColorChoiceRow label={phaseLabels[2]} onSelect={(value) => field("phase3", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={[draft.phase1, draft.phase2]} value={draft.phase3} />
             )}
             <ColorChoiceRow label="NEUTRAL" onSelect={(value) => field("neutral", value)} options={NEUTRAL_COLOR_OPTIONS} value={draft.neutral} />
             <ColorChoiceRow label="GROUND" onSelect={(value) => field("ground", value)} options={GROUND_COLOR_OPTIONS} value={draft.ground} />
           </View>
+
+          {hasDuplicatePhaseColors && (
+            <Text accessibilityRole="alert" style={styles.colorValidationError}>
+              Choose a different identifier for each phase or leg before saving.
+            </Text>
+          )}
 
           <View style={styles.presetSummary}>
             <Text style={styles.presetSummaryLabel}>PRESET SUMMARY</Text>
@@ -988,6 +1008,7 @@ function CustomSchemeModal({
           </Pressable>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -1022,10 +1043,11 @@ function ChoiceSection({ label, onSelect, options, value }: {
   );
 }
 
-function ColorChoiceRow({ label, onSelect, options, value }: {
+function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], value }: {
   label: string;
   onSelect: (value: string) => void;
   options: string[];
+  unavailableOptions?: string[];
   value: string;
 }) {
   return (
@@ -1038,16 +1060,19 @@ function ColorChoiceRow({ label, onSelect, options, value }: {
         {options.map((option) => {
           const color = makeConductorColor(option);
           const isSelected = option === value;
+          const isUnavailable = !isSelected && unavailableOptions.includes(option);
           return (
             <Pressable
               accessibilityLabel={`${label}: ${option}`}
               accessibilityRole="button"
+              accessibilityState={{ disabled: isUnavailable, selected: isSelected }}
+              disabled={isUnavailable}
               key={option}
               onPress={() => onSelect(option)}
-              style={({ pressed }) => [styles.colorChip, isSelected && styles.colorChipSelected, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.colorChip, isSelected && styles.colorChipSelected, isUnavailable && styles.colorChipUnavailable, pressed && styles.pressed]}
             >
               <View style={[styles.colorChipDot, { backgroundColor: color.hex }]} />
-              <Text style={[styles.colorChipText, isSelected && styles.colorChipTextSelected]}>{option}</Text>
+              <Text style={[styles.colorChipText, isSelected && styles.colorChipTextSelected, isUnavailable && styles.colorChipTextUnavailable]}>{option}</Text>
               {isSelected && <Text style={styles.colorChipCheck}>✓</Text>}
             </Pressable>
           );
@@ -1065,7 +1090,8 @@ function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
   schemes: PanelColorScheme[];
 }) {
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={isOpen}>
+    <Modal animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen" visible={isOpen}>
+      <SafeAreaProvider style={styles.editorSafe}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
           <Pressable accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
@@ -1099,6 +1125,7 @@ function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
           ))}
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
