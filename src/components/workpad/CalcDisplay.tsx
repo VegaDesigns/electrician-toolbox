@@ -16,31 +16,36 @@ export type ResultOption = {
 };
 
 type Props = {
-  expression: string;
-  primary: string;
-  resultOptions: ResultOption[];
-  selectedResultKey: ResultFormatKey;
-  onSelectResultOption: (key: ResultFormatKey) => void;
-  onCopy: () => void;
   copyLabel: string;
-  onOpenSmartInput: () => void;
   error: string | null;
+  expression: string;
   hasResult: boolean;
+  interpretation: string;
+  onCopy: () => void;
+  onDismissInterpretation: () => void;
+  onOpenSmartInput: () => void;
+  onToggleUnit: () => void;
+  primary: string;
+  roundingNotice: string;
+  showUnitToggle: boolean;
+  unitToggleLabel: "ft/in" | "in";
 };
 
 export default function CalcDisplay({
-  expression,
-  primary,
-  resultOptions,
-  selectedResultKey,
-  onSelectResultOption,
-  onCopy,
   copyLabel,
-  onOpenSmartInput,
   error,
+  expression,
   hasResult,
+  interpretation,
+  onCopy,
+  onDismissInterpretation,
+  onOpenSmartInput,
+  onToggleUnit,
+  primary,
+  roundingNotice,
+  showUnitToggle,
+  unitToggleLabel,
 }: Props) {
-  const [areDetailsOpen, setAreDetailsOpen] = React.useState(false);
   const cleanExpression = expression.trim();
 
   const mainDisplay = hasResult
@@ -55,137 +60,91 @@ export default function CalcDisplay({
       ? "Tap to type a measurement"
       : "";
 
-  const shouldShowResultOptions = hasResult && resultOptions.length > 1;
-
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.display}>
+      {hasResult && showUnitToggle ? (
+        <Pressable
+          accessibilityLabel={`Show result in ${unitToggleLabel === "in" ? "inches" : "feet and inches"}`}
+          accessibilityRole="button"
+          onPress={onToggleUnit}
+          style={({ pressed }) => [
+            styles.unitToggle,
+            pressed && styles.actionPressed,
+          ]}
+        >
+          <Text style={styles.unitToggleText}>{unitToggleLabel}</Text>
+        </Pressable>
+      ) : null}
+
       <Pressable
         accessibilityHint="Opens a text field for entries such as one foot six inches"
         accessibilityLabel="Calculator display. Tap to type a measurement"
         accessibilityRole="button"
         onPress={onOpenSmartInput}
-        style={({ pressed }) => [
-          styles.display,
-          pressed && styles.displayPressed,
-        ]}
+        style={({ pressed }) => [styles.valueArea, pressed && styles.displayPressed]}
       >
         <Text
-          style={[styles.topLine, !hasResult && !cleanExpression && styles.topLineHint]}
-          numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.5}
+          numberOfLines={1}
+          style={[styles.topLine, !hasResult && !cleanExpression && styles.topLineHint]}
         >
           {topLine}
         </Text>
 
-        {hasResult ? (
-          <FormattedMainValue value={mainDisplay} />
-        ) : (
+        {hasResult ? <FormattedMainValue value={mainDisplay} /> : (
           <Text
-            style={styles.mainValue}
-            numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.35}
+            numberOfLines={1}
+            style={styles.mainValue}
           >
             {mainDisplay}
           </Text>
         )}
       </Pressable>
 
-      {shouldShowResultOptions && (
-        <Pressable
-          accessibilityLabel="Other result formats and copy"
-          accessibilityRole="button"
-          accessibilityState={{ expanded: areDetailsOpen }}
-          onPress={() => setAreDetailsOpen((open) => !open)}
-          style={({ pressed }) => [
-            styles.detailsToggle,
-            pressed && styles.detailPillPressed,
-          ]}
-        >
-          <Text style={styles.detailsToggleText}>Other formats</Text>
-          <Text style={styles.detailsToggleChevron}>{areDetailsOpen ? "⌃" : "⌄"}</Text>
-        </Pressable>
-      )}
-
-      {shouldShowResultOptions && areDetailsOpen && (
-        <View style={styles.expandedDetails}>
-          <View style={styles.detailsRow}>
-            {resultOptions.map((option) => {
-              const isSelected = option.key === selectedResultKey;
-
-              return (
-                <Pressable
-                  accessibilityLabel={`${option.label}: ${option.value}`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  key={option.key}
-                  onPress={() => onSelectResultOption(option.key)}
-                  style={({ pressed }) => [
-                    styles.detailPill,
-                    isSelected && styles.detailPillSelected,
-                    pressed && styles.detailPillPressed,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.detailLabel,
-                      isSelected && styles.detailLabelSelected,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {option.label}
-                  </Text>
-
-                  <Text
-                    style={[
-                      styles.detailText,
-                      isSelected && styles.detailTextSelected,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {option.value}
-                  </Text>
-                </Pressable>
-              );
-            })}
+      <View style={styles.feedbackSlot}>
+        {error ? (
+          <Text accessibilityRole="alert" numberOfLines={1} style={styles.error}>
+            {error}
+          </Text>
+        ) : interpretation ? (
+          <View style={styles.interpretationRow}>
+            <Text numberOfLines={1} style={styles.interpretationText}>
+              ✦ Interpreted as {interpretation}
+            </Text>
+            <Pressable
+              accessibilityLabel="Dismiss interpretation"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onDismissInterpretation}
+              style={styles.interpretationDismiss}
+            >
+              <Text style={styles.interpretationDismissText}>×</Text>
+            </Pressable>
           </View>
+        ) : roundingNotice ? (
+          <Text numberOfLines={1} style={styles.roundingNotice}>
+            {roundingNotice}
+          </Text>
+        ) : null}
+      </View>
 
+      <View style={styles.actionSlot}>
+        <View />
+
+        {hasResult ? (
           <Pressable
             accessibilityLabel={copyLabel}
             accessibilityRole="button"
             onPress={onCopy}
-            style={({ pressed }) => [
-              styles.copyButton,
-              pressed && styles.copyButtonPressed,
-            ]}
+            style={({ pressed }) => [styles.copyButton, pressed && styles.actionPressed]}
           >
             <Text style={styles.copyButtonText}>{copyLabel}</Text>
           </Pressable>
-        </View>
-      )}
-
-      {hasResult && !shouldShowResultOptions && (
-        <Pressable
-          accessibilityLabel={copyLabel}
-          accessibilityRole="button"
-          onPress={onCopy}
-          style={({ pressed }) => [
-            styles.copyButton,
-            pressed && styles.copyButtonPressed,
-          ]}
-        >
-          <Text style={styles.copyButtonText}>{copyLabel}</Text>
-        </Pressable>
-      )}
-
-      {!!error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.error} numberOfLines={2}>
-            {error}
-          </Text>
-        </View>
-      )}
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -245,20 +204,22 @@ function parseFractionDisplay(value: string): {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    gap: 7,
-  },
-
   display: {
-    minHeight: 175,
-    justifyContent: "flex-end",
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    minHeight: 190,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
     borderRadius: 22,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.borderStrong,
     ...Effects.surfaceRaised,
+  },
+
+  valueArea: {
+    flex: 1,
+    justifyContent: "flex-end",
+    minHeight: 105,
+    paddingHorizontal: 2,
   },
 
   displayPressed: {
@@ -267,10 +228,11 @@ const styles = StyleSheet.create({
 
   topLine: {
     color: Colors.textSubtle,
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: "600",
     textAlign: "right",
-    minHeight: 26,
+    minHeight: 25,
+    paddingLeft: 70,
   },
 
   topLineHint: {
@@ -300,136 +262,102 @@ const styles = StyleSheet.create({
     fontWeight: "300",
   },
 
-  detailsRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    flexWrap: "wrap",
-    gap: 6,
+  feedbackSlot: {
+    height: 23,
+    justifyContent: "center",
   },
 
-  detailsToggle: {
-    minHeight: 30,
-    flexDirection: "row",
+  interpretationRow: {
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    borderRadius: 13,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Effects.controlRaised,
+    flexDirection: "row",
   },
 
-  detailsToggleText: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "800",
-  },
-
-  detailsToggleChevron: {
-    color: Colors.textMuted,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  expandedDetails: {
-    padding: 9,
-    borderRadius: 15,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Effects.recessed,
-  },
-
-  detailPill: {
-    maxWidth: "49%",
-    minWidth: "48%",
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Effects.controlRaised,
-  },
-
-  detailPillSelected: {
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
-  },
-
-  detailPillPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.85,
-    ...Effects.pressed,
-  },
-
-  detailLabel: {
-    color: Colors.textSubtle,
-    fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-
-  detailLabelSelected: {
+  interpretationText: {
     color: Colors.primary,
-  },
-
-  detailText: {
-    color: Colors.textMuted,
-    fontSize: 13,
+    flex: 1,
+    fontSize: 10,
     fontWeight: "800",
   },
 
-  detailTextSelected: {
-    color: Colors.text,
+  interpretationDismiss: {
+    alignItems: "center",
+    height: 22,
+    justifyContent: "center",
+    width: 24,
   },
 
-  errorBox: {
-    alignSelf: "flex-end",
-    marginTop: 8,
-    maxWidth: "92%",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 12,
-    backgroundColor: Colors.errorSoft,
-    borderWidth: 1,
-    borderColor: Colors.error,
+  interpretationDismissText: {
+    color: Colors.primary,
+    fontSize: 19,
+    fontWeight: "700",
+    lineHeight: 20,
   },
 
   error: {
     color: Colors.error,
+    fontSize: 10,
+    fontWeight: "900",
     textAlign: "right",
+  },
+
+  roundingNotice: {
+    color: Colors.textMuted,
+    fontSize: 10,
+    fontWeight: "800",
+  },
+
+  actionSlot: {
+    alignItems: "center",
+    flexDirection: "row",
+    height: 34,
+    justifyContent: "space-between",
+  },
+
+  unitToggle: {
+    alignItems: "center",
+    backgroundColor: Colors.surface2,
+    borderColor: Colors.primaryMuted,
+    borderRadius: 10,
+    borderWidth: 1,
+    height: 30,
+    justifyContent: "center",
+    left: 16,
+    minWidth: 52,
+    paddingHorizontal: 10,
+    position: "absolute",
+    top: 14,
+    zIndex: 2,
+    ...Effects.controlRaised,
+  },
+
+  unitToggleText: {
+    color: Colors.primary,
     fontSize: 12,
     fontWeight: "900",
   },
 
   copyButton: {
-    alignSelf: "flex-end",
-    minHeight: 44,
-    minWidth: 108,
-    marginTop: 8,
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.primaryMuted,
     backgroundColor: Colors.primarySoft,
-    paddingHorizontal: 14,
+    borderColor: Colors.primaryMuted,
+    borderRadius: 10,
+    borderWidth: 1,
+    height: 32,
+    justifyContent: "center",
+    minWidth: 86,
+    paddingHorizontal: 11,
     ...Effects.controlRaised,
-  },
-
-  copyButtonPressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }],
-    ...Effects.pressed,
   },
 
   copyButtonText: {
     color: Colors.primary,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "900",
+  },
+
+  actionPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.98 }],
+    ...Effects.pressed,
   },
 });

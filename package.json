@@ -12,7 +12,7 @@
     "web": "expo start --web",
     "lint": "eslint app src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/utils/calc/engine.test.ts src/utils/calc/parser.test.ts src/utils/calc/measure.test.ts src/utils/panelColors/phase.test.ts src/utils/conduitFill/conduitFill.test.ts",
+    "test": "tsx --test src/utils/calc/engine.test.ts src/utils/calc/parser.test.ts src/utils/calc/measure.test.ts src/utils/calc/outputIntent.test.ts src/utils/panelColors/phase.test.ts src/utils/conduitFill/conduitFill.test.ts src/utils/boxFill/boxFill.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
     "doctor": "expo-doctor",
     "export:web": "expo export --platform web"

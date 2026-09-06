@@ -12,6 +12,7 @@ import CalcDisplay, {
 import CalcKeypad from "../../components/workpad/CalcKeypad";
 import HistoryDrawer from "../../components/workpad/HistoryDrawer";
 import SmartInputSheet from "../../components/workpad/SmartInputSheet";
+import WorkpadSettingsSheet from "../../components/workpad/WorkpadSettingsSheet";
 
 import {
   createInitialCalcState,
@@ -24,11 +25,17 @@ import {
 import {
   formatFeetInches,
   ftToIn,
+  getRoundingDirection,
   inToFt,
   roundInches,
   type Precision,
 } from "../../utils/calc/measure";
 import { parseSmartExpression } from "../../utils/calc/parser";
+import {
+  inferPreferredResultFormat,
+  shouldOfferUnitToggle,
+  shouldShowInterpretation,
+} from "../../utils/calc/outputIntent";
 
 import {
   clearCalcHistory,
@@ -43,12 +50,23 @@ import {
   DEFAULT_WORKPAD_PREFERENCES,
   loadWorkpadPreferences,
   saveWorkpadPreferences,
-  type RoundMode,
 } from "../../utils/storage/preferences";
 
 import { styles } from "./styles";
 
 type FractionPick = { label: string; value: number };
+
+function HistoryIcon() {
+  return (
+    <View aria-hidden style={styles.historyIcon}>
+      <View style={styles.historyClockFace}>
+        <View style={styles.historyClockHour} />
+        <View style={styles.historyClockMinute} />
+        <View style={styles.historyClockCenter} />
+      </View>
+    </View>
+  );
+}
 
 function formatCleanDecimal(n: number, maxDecimals = 6): string {
   if (!Number.isFinite(n)) return "0";
@@ -64,6 +82,11 @@ function formatCleanDecimal(n: number, maxDecimals = 6): string {
 
 function formatPlainNumber(n: number): string {
   return formatCleanDecimal(n, 8);
+}
+
+function formatDecimalResult(n: number, maxDecimals: number): string {
+  const formatted = formatCleanDecimal(n, maxDecimals);
+  return formatted.includes(".") ? formatted : `${formatted}.0`;
 }
 
 function gcd(a: number, b: number): number {
@@ -84,6 +107,9 @@ function formatInchesOnlyFraction(
   precisionValue: Precision,
 ): string {
   if (!Number.isFinite(totalInches)) return '0"';
+  if (precisionValue === "none") {
+    return `${formatCleanDecimal(totalInches, 6)}"`;
+  }
 
   const sign = totalInches < 0 ? "-" : "";
   const absInches = Math.abs(totalInches);
@@ -120,15 +146,12 @@ export default function WorkpadScreen() {
   const [isFracOpen, setIsFracOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
-  const [areSettingsOpen, setAreSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
   const [cleanedExpression, setCleanedExpression] = useState("");
   const [copyLabel, setCopyLabel] = useState("Copy answer");
   const [precision, setPrecision] = useState<Precision>(
     DEFAULT_WORKPAD_PREFERENCES.precision,
-  );
-  const [roundMode, setRoundMode] = useState<RoundMode>(
-    DEFAULT_WORKPAD_PREFERENCES.roundMode,
   );
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [selectedResultKey, setSelectedResultKey] =
@@ -160,32 +183,32 @@ export default function WorkpadScreen() {
       ];
     }
 
-    const roundedInches = roundInches(result.inches, precision, roundMode);
+    const roundedInches = roundInches(result.inches, precision);
     const decFt = inToFt(result.inches);
 
     return [
       {
         key: "ft-in",
-        label: "Ft/In",
+        label: "Feet & inches",
         value: formatFeetInches(roundedInches, precision),
       },
       {
+        key: "rounded-in",
+        label: "Inches",
+        value: formatInchesOnlyFraction(roundedInches, precision),
+      },
+      {
         key: "exact-in",
-        label: "Exact in",
-        value: `${formatCleanDecimal(result.inches, 6)}"`,
+        label: "Exact inches",
+        value: `${formatDecimalResult(result.inches, 6)}"`,
       },
       {
         key: "decimal-ft",
-        label: "Total ft",
-        value: `${formatCleanDecimal(decFt, 4)} ft`,
-      },
-      {
-        key: "rounded-in",
-        label: "Rounded in",
-        value: formatInchesOnlyFraction(roundedInches, precision),
+        label: "Decimal feet",
+        value: `${formatDecimalResult(decFt, 4)} ft`,
       },
     ];
-  }, [result, precision, roundMode]);
+  }, [result, precision]);
 
   const primary = useMemo(() => {
     if (!result) return "0";
@@ -200,9 +223,9 @@ export default function WorkpadScreen() {
       return formatPlainNumber(result.value);
     }
 
-    const rounded = roundInches(result.inches, precision, roundMode);
+    const rounded = roundInches(result.inches, precision);
     return formatFeetInches(rounded, precision);
-  }, [result, resultOptions, selectedResultKey, precision, roundMode]);
+  }, [result, resultOptions, selectedResultKey, precision]);
 
   useEffect(() => {
     loadCalcHistory()
@@ -220,7 +243,6 @@ export default function WorkpadScreen() {
     loadWorkpadPreferences()
       .then((preferences) => {
         setPrecision(preferences.precision);
-        setRoundMode(preferences.roundMode);
       })
       .finally(() => setPreferencesLoaded(true));
   }, []);
@@ -228,8 +250,8 @@ export default function WorkpadScreen() {
   useEffect(() => {
     if (!preferencesLoaded) return;
 
-    saveWorkpadPreferences({ precision, roundMode }).catch(() => {});
-  }, [precision, preferencesLoaded, roundMode]);
+    saveWorkpadPreferences({ precision }).catch(() => {});
+  }, [precision, preferencesLoaded]);
 
   useEffect(() => {
     if (!hasResult || !result || state.lastExpression.trim().length === 0) {
@@ -258,7 +280,7 @@ export default function WorkpadScreen() {
       result.kind === "number"
         ? formatPlainNumber(result.value)
         : formatFeetInches(
-            roundInches(result.inches, precision, roundMode),
+            roundInches(result.inches, precision),
             precision,
           );
 
@@ -281,7 +303,6 @@ export default function WorkpadScreen() {
     result,
     state.lastExpression,
     precision,
-    roundMode,
   ]);
 
   function applyFraction(
@@ -372,7 +393,7 @@ export default function WorkpadScreen() {
         error: null,
       });
 
-      setSelectedResultKey("ft-in");
+      setSelectedResultKey(key === "IN" ? "rounded-in" : "ft-in");
       Haptics.selectionAsync().catch(() => {});
       return;
     }
@@ -391,7 +412,9 @@ export default function WorkpadScreen() {
 
       if (key === "=" && next.error === null) {
         if (next.lastResult?.kind === "measure") {
-          setSelectedResultKey("ft-in");
+          setSelectedResultKey(
+            inferPreferredResultFormat(next.lastExpression, "measure"),
+          );
         }
 
         if (next.lastResult?.kind === "number") {
@@ -428,6 +451,14 @@ export default function WorkpadScreen() {
 
   function onSelectResultOption(key: ResultFormatKey) {
     setSelectedResultKey(key);
+    setCopyLabel("Copy answer");
+    Haptics.selectionAsync().catch(() => {});
+  }
+
+  function onToggleResultUnit() {
+    const showingFeet =
+      selectedResultKey === "ft-in" || selectedResultKey === "decimal-ft";
+    setSelectedResultKey(showingFeet ? "rounded-in" : "ft-in");
     setCopyLabel("Copy answer");
     Haptics.selectionAsync().catch(() => {});
   }
@@ -505,7 +536,9 @@ export default function WorkpadScreen() {
         error: null,
       });
 
-      setSelectedResultKey("ft-in");
+      setSelectedResultKey(
+        inferPreferredResultFormat(item.expression, "measure"),
+      );
     } else {
       setState({
         tokens: [],
@@ -540,9 +573,7 @@ export default function WorkpadScreen() {
       error: null,
     });
     setCleanedExpression(parsed.cleaned);
-    setSelectedResultKey(
-      parsed.result.kind === "measure" ? "ft-in" : "standard",
-    );
+    setSelectedResultKey(inferPreferredResultFormat(value, parsed.result.kind));
     setIsSmartInputOpen(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
@@ -555,17 +586,38 @@ export default function WorkpadScreen() {
     Haptics.selectionAsync().catch(() => {});
   }
 
-  function updateRoundMode(next: RoundMode) {
-    setRoundMode(next);
-    Haptics.selectionAsync().catch(() => {});
-  }
-
   const interpretation =
     hasResult &&
-    cleanedExpression.trim().length > 0 &&
-    cleanedExpression.trim() !== state.lastExpression.trim()
+    result &&
+    shouldShowInterpretation(
+      state.lastExpression,
+      cleanedExpression,
+      result.kind,
+    )
       ? cleanedExpression.trim()
       : "";
+  const showUnitToggle = shouldOfferUnitToggle(result);
+  const roundingNotice = useMemo(() => {
+    if (
+      !hasResult ||
+      result?.kind !== "measure" ||
+      precision === "none" ||
+      (selectedResultKey !== "ft-in" && selectedResultKey !== "rounded-in")
+    ) {
+      return "";
+    }
+
+    const rounded = roundInches(result.inches, precision);
+    const direction = getRoundingDirection(result.inches, rounded);
+    if (!direction) return "";
+
+    const original =
+      selectedResultKey === "ft-in"
+        ? formatFeetInches(result.inches, "none")
+        : `${formatCleanDecimal(result.inches, 6)}"`;
+
+    return `${direction === "up" ? "↑" : "↓"} Rounded ${direction} from ${original}`;
+  }, [hasResult, precision, result, selectedResultKey]);
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
@@ -596,7 +648,23 @@ export default function WorkpadScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.historyButtonText}>History</Text>
+          <HistoryIcon />
+        </Pressable>
+
+        <Pressable
+          accessibilityHint="Changes measurement precision and rounding"
+          accessibilityLabel="Open Workpad settings"
+          accessibilityRole="button"
+          onPress={() => {
+            Haptics.selectionAsync().catch(() => {});
+            setIsSettingsOpen(true);
+          }}
+          style={({ pressed }) => [
+            styles.settingsButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.settingsButtonText}>⚙︎</Text>
         </Pressable>
       </View>
 
@@ -610,114 +678,25 @@ export default function WorkpadScreen() {
         showsVerticalScrollIndicator={false}
       >
         <CalcDisplay
-          expression={expression}
-          primary={primary}
-          resultOptions={resultOptions}
-          selectedResultKey={selectedResultKey}
-          onSelectResultOption={onSelectResultOption}
-          onCopy={onCopyPrimary}
           copyLabel={copyLabel}
-          onOpenSmartInput={() => setIsSmartInputOpen(true)}
           error={state.error}
+          expression={expression}
           hasResult={hasResult}
+          interpretation={interpretation}
+          onCopy={onCopyPrimary}
+          onDismissInterpretation={() => setCleanedExpression("")}
+          onOpenSmartInput={() => setIsSmartInputOpen(true)}
+          onToggleUnit={onToggleResultUnit}
+          primary={primary}
+          roundingNotice={roundingNotice}
+          showUnitToggle={showUnitToggle}
+          unitToggleLabel={
+            selectedResultKey === "ft-in" ||
+            selectedResultKey === "decimal-ft"
+              ? "in"
+              : "ft/in"
+          }
         />
-
-        {!!interpretation && (
-          <View accessibilityRole="alert" style={styles.interpretationBanner}>
-            <Text style={styles.interpretationSparkle}>✦</Text>
-            <Text numberOfLines={2} style={styles.interpretationText}>
-              Interpreted as {interpretation}
-            </Text>
-            <Pressable
-              accessibilityLabel="Dismiss interpretation"
-              accessibilityRole="button"
-              hitSlop={10}
-              onPress={() => setCleanedExpression("")}
-              style={({ pressed }) => [
-                styles.interpretationDismiss,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.interpretationDismissText}>×</Text>
-            </Pressable>
-          </View>
-        )}
-
-        <Pressable
-          accessibilityHint="Shows precision and rounding choices"
-          accessibilityLabel={`Settings: one ${precision}th inch, ${roundMode === "nearest" ? "normal rounding" : "round up"}`}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: areSettingsOpen }}
-          onPress={() => setAreSettingsOpen((open) => !open)}
-          style={({ pressed }) => [
-            styles.settingsSummary,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.settingsSummaryText}>
-            1/{precision}  •  {roundMode === "nearest" ? "Normal" : "Round up"}
-          </Text>
-          <Text style={styles.settingsChevron}>{areSettingsOpen ? "⌃" : "⌄"}</Text>
-        </Pressable>
-
-        {areSettingsOpen && (
-          <View style={styles.settingsPanel}>
-            <View style={styles.settingGroup}>
-              <Text style={styles.settingLabel}>Precision</Text>
-              <View accessibilityRole="radiogroup" style={styles.segmented}>
-                {([16, 8, 4, 2] as Precision[]).map((value) => (
-                  <Pressable
-                    accessibilityLabel={`Round to one ${value === 2 ? "half" : `${value}th`} inch`}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: precision === value }}
-                    key={value}
-                    onPress={() => updatePrecision(value)}
-                    style={[
-                      styles.segment,
-                      precision === value && styles.segmentSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        precision === value && styles.segmentTextSelected,
-                      ]}
-                    >
-                      1/{value}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.settingGroup}>
-              <Text style={styles.settingLabel}>Rounding</Text>
-              <View accessibilityRole="radiogroup" style={styles.segmented}>
-                {(["nearest", "up"] as RoundMode[]).map((mode) => (
-                  <Pressable
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: roundMode === mode }}
-                    key={mode}
-                    onPress={() => updateRoundMode(mode)}
-                    style={[
-                      styles.segment,
-                      roundMode === mode && styles.segmentSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        roundMode === mode && styles.segmentTextSelected,
-                      ]}
-                    >
-                      {mode === "nearest" ? "Normal" : "Up"}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
 
         <CalcKeypad
           compact={isCompact}
@@ -745,6 +724,16 @@ export default function WorkpadScreen() {
           onSubmit={onSubmitSmartInput}
         />
       )}
+
+      <WorkpadSettingsSheet
+        onChangePrecision={updatePrecision}
+        onClose={() => setIsSettingsOpen(false)}
+        onSelectResultFormat={onSelectResultOption}
+        precision={precision}
+        resultOptions={resultOptions}
+        selectedResultKey={selectedResultKey}
+        visible={isSettingsOpen}
+      />
     </SafeAreaView>
   );
 }

@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     minHeight: 390,
-    maxHeight: 480,
+    maxHeight: 580,
     gap: 8,
   },
 

@@ -1,5 +1,5 @@
 // src/utils/calc/measure.ts
-export type Precision = 2 | 4 | 8 | 16;
+export type Precision = "none" | 2 | 4 | 8 | 16 | 32;
 
 export function gcd(a: number, b: number): number {
   let x = Math.abs(a);
@@ -35,19 +35,27 @@ export function inToFt(inches: number): number {
   return inches / 12;
 }
 
-/** Round inches to chosen fraction precision, nearest or always-up. */
+/** Round inches to the nearest chosen fractional precision. */
 export function roundInches(
   inches: number,
   precision: Precision,
-  mode: "nearest" | "up" = "nearest",
 ): number {
   if (!Number.isFinite(inches)) return NaN;
+  if (precision === "none") return inches;
 
   const scaled = inches * precision;
-  const rounded =
-    mode === "up" ? Math.ceil(scaled - 1e-12) : Math.round(scaled);
+  const rounded = Math.round(scaled);
 
   return rounded / precision;
+}
+
+export function getRoundingDirection(
+  original: number,
+  rounded: number,
+): "up" | "down" | null {
+  if (!Number.isFinite(original) || !Number.isFinite(rounded)) return null;
+  if (Math.abs(original - rounded) < 1e-9) return null;
+  return rounded > original ? "up" : "down";
 }
 
 /**
@@ -65,6 +73,10 @@ export function formatFeetInches(
   precision: Precision,
 ): string {
   if (!Number.isFinite(totalInches)) return "--";
+
+  if (precision === "none") {
+    return formatUnroundedFeetInches(totalInches);
+  }
 
   const sign = totalInches < 0 ? "-" : "";
   const absIn = Math.abs(totalInches);
@@ -112,4 +124,23 @@ export function formatFeetInches(
   // Feet plus inches.
   // Example: 13" -> 1' 1"
   return `${sign}${feet}' ${inchesText}"`;
+}
+
+function formatUnroundedFeetInches(totalInches: number): string {
+  const sign = totalInches < 0 ? "-" : "";
+  const absoluteInches = Math.abs(totalInches);
+  const feet = Math.floor(absoluteInches / 12);
+  const inches = absoluteInches - feet * 12;
+  const inchesText = formatCleanDecimal(inches, 6);
+
+  if (feet === 0 && inches === 0) return '0"';
+  if (feet === 0) return `${sign}${inchesText}"`;
+  if (inches === 0) return `${sign}${feet}'`;
+  return `${sign}${feet}' ${inchesText}"`;
+}
+
+function formatCleanDecimal(value: number, maxDecimals: number): string {
+  const factor = 10 ** maxDecimals;
+  const rounded = Math.round((value + Number.EPSILON) * factor) / factor;
+  return rounded.toFixed(maxDecimals).replace(/\.?0+$/, "");
 }
