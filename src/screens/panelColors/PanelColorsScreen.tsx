@@ -11,8 +11,9 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   BUILT_IN_PANEL_SCHEMES,
@@ -36,6 +37,7 @@ type PanelType = "single-phase" | "three-phase";
 type CustomDraft = {
   ground: string;
   name: string;
+  panelLabel: string;
   neutral: string;
   panelType: PanelType;
   phase1: string;
@@ -47,6 +49,7 @@ type CustomDraft = {
 const EMPTY_DRAFT: CustomDraft = {
   ground: "Green",
   name: "",
+  panelLabel: "",
   neutral: "Gray",
   panelType: "three-phase",
   phase1: "Brown",
@@ -66,14 +69,13 @@ const PHASE_COLOR_OPTIONS = [
   "Pink",
 ];
 const NEUTRAL_COLOR_OPTIONS = ["White", "Gray"];
-const GROUND_COLOR_OPTIONS = ["Green", "Bare", "Green / Yellow"];
+const GROUND_COLOR_OPTIONS = ["Green", "Bare", "Green / Bare", "Green / Yellow"];
 const VOLTAGE_OPTIONS: Record<PanelType, string[]> = {
   "three-phase": ["208Y/120V", "480Y/277V", "240V Δ", "480V Δ"],
   "single-phase": ["120/240V", "120/208V", "277/480V"],
 };
 const NEARBY_RADIUS = 25;
 const NEARBY_GAP = 5;
-const CIRCUIT_ENTRY_SETTLE_MS = 2000;
 
 const KEYPAD_ROWS = [
   ["1", "2", "3"],
@@ -94,7 +96,11 @@ function getPaletteCaption(scheme: PanelColorScheme) {
 }
 
 export default function PanelColorsScreen() {
+  const { height, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const keyHeight = Math.max(44, Math.min(68, (height - insets.top - insets.bottom - 480) / 5));
   const [circuitInput, setCircuitInput] = useState("");
+  const [submittedCircuit, setSubmittedCircuit] = useState<number | null>(null);
   const [anchorCircuit, setAnchorCircuit] = useState<number | null>(null);
   const [customSchemes, setCustomSchemes] = useState<PanelColorScheme[]>([]);
   const [selectedSchemeId, setSelectedSchemeId] = useState(
@@ -107,11 +113,18 @@ export default function PanelColorsScreen() {
   const [deleteCandidate, setDeleteCandidate] = useState<PanelColorScheme | null>(null);
   const [draft, setDraft] = useState<CustomDraft>(EMPTY_DRAFT);
   const [copied, setCopied] = useState(false);
-  const [isCircuitEntryActive, setIsCircuitEntryActive] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [storageBusy, setStorageBusy] = useState(false);
+  const storageBusyRef = useRef(false);
+  const [storageError, setStorageError] = useState("");
+  const [storageInfo, setStorageInfo] = useState("");
+  const retryActionRef = useRef<(() => void) | null>(null);
+  const [deletedPreset, setDeletedPreset] = useState<PanelColorScheme | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nearbyWidth, setNearbyWidth] = useState(0);
   const nearbyScrollRef = useRef<ScrollView>(null);
   const circuitEntryActiveRef = useRef(false);
-  const circuitEntryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const allSchemes = useMemo(
     () => [...BUILT_IN_PANEL_SCHEMES, ...customSchemes],
@@ -120,7 +133,7 @@ export default function PanelColorsScreen() {
   const selectedScheme =
     allSchemes.find(({ id }) => id === selectedSchemeId) ?? allSchemes[0];
 
-  const circuit = circuitInput ? Number(circuitInput) : null;
+  const circuit = submittedCircuit;
   const phase = circuit ? getPhaseForCircuit(circuit, selectedScheme) : null;
   const phaseColor = phase ? getColorForPhase(selectedScheme, phase) : null;
   const nearby = anchorCircuit
@@ -128,53 +141,70 @@ export default function PanelColorsScreen() {
     : [];
   const isBrowsingNearby = !!circuit && !!anchorCircuit && circuit !== anchorCircuit;
 
-  useEffect(() => {
+  function reloadPreferences() {
+    setStorageBusy(true);
+    setStorageError("");
     loadPanelColorPreferences().then((preferences) => {
       setCustomSchemes(preferences.customSchemes);
       setSelectedSchemeId(preferences.selectedSchemeId);
-    });
-  }, []);
-
-  function clearCircuitEntryTimer() {
-    if (circuitEntryTimerRef.current) {
-      clearTimeout(circuitEntryTimerRef.current);
-      circuitEntryTimerRef.current = null;
-    }
+      setPreferencesLoaded(true);
+    }).catch(() => setStorageError("Saved panel setups couldn't be loaded. Retry to keep your existing presets safe."))
+      .finally(() => setStorageBusy(false));
   }
 
+  useEffect(() => {
+    let active = true;
+    loadPanelColorPreferences().then((preferences) => {
+      if (!active) return;
+      setCustomSchemes(preferences.customSchemes);
+      setSelectedSchemeId(preferences.selectedSchemeId);
+      setPreferencesLoaded(true);
+    }).catch(() => {
+      if (active) setStorageError("Saved panel setups couldn't be loaded. Retry to keep your existing presets safe.");
+    });
+    return () => { active = false; };
+  }, []);
+
   function settleCircuitEntry() {
-    clearCircuitEntryTimer();
     circuitEntryActiveRef.current = false;
-    setIsCircuitEntryActive(false);
   }
 
   function keepCircuitEntryActive() {
-    clearCircuitEntryTimer();
     circuitEntryActiveRef.current = true;
-    setIsCircuitEntryActive(true);
-    circuitEntryTimerRef.current = setTimeout(() => {
-      circuitEntryActiveRef.current = false;
-      setIsCircuitEntryActive(false);
-      circuitEntryTimerRef.current = null;
-    }, CIRCUIT_ENTRY_SETTLE_MS);
   }
 
-  useEffect(() => () => clearCircuitEntryTimer(), []);
+  useEffect(() => () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+  }, []);
 
-  function persist(nextSchemeId: string, nextCustomSchemes = customSchemes) {
-    setSelectedSchemeId(nextSchemeId);
-    setCustomSchemes(nextCustomSchemes);
-    savePanelColorPreferences({
-      customSchemes: nextCustomSchemes,
-      selectedSchemeId: nextSchemeId,
-    }).catch(() => {});
+  async function persist(nextSchemeId: string, nextCustomSchemes = customSchemes) {
+    if (!preferencesLoaded || storageBusyRef.current) return false;
+    storageBusyRef.current = true;
+    setStorageBusy(true);
+    setStorageError("");
+    setStorageInfo("");
+    try {
+      await savePanelColorPreferences({ customSchemes: nextCustomSchemes, selectedSchemeId: nextSchemeId });
+      setSelectedSchemeId(nextSchemeId);
+      setCustomSchemes(nextCustomSchemes);
+      retryActionRef.current = null;
+      return true;
+    } catch {
+      setStorageError("Couldn't save on this device. Your previous setup is unchanged.");
+      return false;
+    } finally {
+      storageBusyRef.current = false;
+      setStorageBusy(false);
+    }
   }
 
-  function selectScheme(scheme: PanelColorScheme) {
+  async function selectScheme(scheme: PanelColorScheme) {
     pulse();
-    persist(scheme.id);
     setOpenSheet(null);
+    retryActionRef.current = () => { void selectScheme(scheme); };
+    if (!await persist(scheme.id)) return;
     setCopied(false);
+    setCopyFailed(false);
   }
 
   function openCustomEditor() {
@@ -182,7 +212,18 @@ export default function PanelColorsScreen() {
     setOpenSheet(null);
     setIsManagePresetsOpen(false);
     setEditingSchemeId(null);
-    setDraft(EMPTY_DRAFT);
+    const single = selectedScheme.phaseOrder.includes("L1");
+    setDraft({
+      name: "", panelLabel: "",
+      panelType: single ? "single-phase" : "three-phase",
+      voltageSystem: selectedScheme.voltageSystem,
+      phase1: getColorForPhase(selectedScheme, single ? "L1" : "A").name,
+      phase2: getColorForPhase(selectedScheme, single ? "L2" : "B").name,
+      phase3: single ? "Blue" : getColorForPhase(selectedScheme, "C").name,
+      neutral: selectedScheme.colors.neutral.name,
+      ground: selectedScheme.colors.ground.name,
+    });
+    setStorageInfo("");
     setIsCustomEditorOpen(true);
   }
 
@@ -193,6 +234,7 @@ export default function PanelColorsScreen() {
     setDraft({
       ground: scheme.colors.ground.name,
       name: scheme.name,
+      panelLabel: scheme.panelLabel ?? "",
       neutral: scheme.colors.neutral.name,
       panelType: isSinglePhase ? "single-phase" : "three-phase",
       phase1: getColorForPhase(scheme, isSinglePhase ? "L1" : "A").name,
@@ -207,33 +249,43 @@ export default function PanelColorsScreen() {
   function handleKey(key: string) {
     pulse();
     setCopied(false);
+    setCopyFailed(false);
 
     if (key === "Clear") {
       settleCircuitEntry();
       setCircuitInput("");
+      setSubmittedCircuit(null);
       setAnchorCircuit(null);
       return;
     }
+    if (key === "Enter") {
+      submitCircuit();
+      return;
+    }
     if (key === "⌫") {
-      setCircuitInput((value) => {
-        const nextValue = value.slice(0, -1);
-        setAnchorCircuit(nextValue ? Number(nextValue) : null);
-        if (nextValue) keepCircuitEntryActive();
-        else settleCircuitEntry();
-        return nextValue;
-      });
+      setCircuitInput(circuitInput.slice(0, -1));
+      setSubmittedCircuit(null);
+      setAnchorCircuit(null);
+      keepCircuitEntryActive();
       return;
     }
 
-    setCircuitInput((value) => {
-      const shouldAppend = circuitEntryActiveRef.current;
-      if (shouldAppend && value.length >= 4) return value;
-      if (!shouldAppend && key === "0") return value;
-      const nextValue = shouldAppend ? `${value}${key}` : key;
-      setAnchorCircuit(Number(nextValue));
-      keepCircuitEntryActive();
-      return nextValue;
-    });
+    const value = circuitEntryActiveRef.current ? circuitInput : "";
+    if (value.length >= 4 || (!value && key === "0")) return;
+    setCircuitInput(`${value}${key}`);
+    setSubmittedCircuit(null);
+    setAnchorCircuit(null);
+    keepCircuitEntryActive();
+  }
+
+  function submitCircuit() {
+    const nextCircuit = Number(circuitInput);
+    if (!circuitInput || !Number.isInteger(nextCircuit) || nextCircuit < 1) return;
+    setSubmittedCircuit(nextCircuit);
+    setAnchorCircuit(nextCircuit);
+    settleCircuitEntry();
+    setCopied(false);
+    pulse();
   }
 
   const scrollToAnchor = useCallback((animated: boolean) => {
@@ -249,12 +301,13 @@ export default function PanelColorsScreen() {
     pulse();
     settleCircuitEntry();
     setCircuitInput(String(anchorCircuit));
+    setSubmittedCircuit(anchorCircuit);
     setCopied(false);
     scrollToAnchor(true);
   }
 
   function handleNearbyLayout(event: LayoutChangeEvent) {
-    setNearbyWidth(event.nativeEvent.layout.width);
+    setNearbyWidth(Math.max(0, event.nativeEvent.layout.width - 18));
   }
 
   useEffect(() => {
@@ -265,24 +318,25 @@ export default function PanelColorsScreen() {
   async function copyResult() {
     if (!circuit || !phase || !phaseColor) return;
 
-    if (isBrowsingNearby) {
-      returnToAnchor();
-      return;
+    try {
+      await Clipboard.setStringAsync(
+        `${selectedScheme.name}${selectedScheme.panelLabel ? ` • ${selectedScheme.panelLabel}` : ""} • ${selectedScheme.voltageSystem} • Circuit ${circuit} • ${getPhaseDisplayName(phase)} • Expected color: ${phaseColor.name}`,
+      );
+      setCopied(true);
+      setCopyFailed(false);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1800);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch {
+      setCopyFailed(true);
     }
-
-    await Clipboard.setStringAsync(
-      `Circuit ${circuit} • ${getPhaseDisplayName(phase)} • ${phaseColor.name}`,
-    );
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-      () => {},
-    );
-    setCopied(true);
   }
 
-  function saveCustomScheme() {
+  async function saveCustomScheme() {
     const scheme = createCustomPanelScheme({
       id: editingSchemeId ?? undefined,
       name: draft.name,
+      panelLabel: draft.panelLabel,
       panelType: draft.panelType,
       voltageSystem: draft.voltageSystem,
       colors: {
@@ -297,31 +351,54 @@ export default function PanelColorsScreen() {
       ? customSchemes.map((item) => item.id === editingSchemeId ? scheme : item)
       : [...customSchemes, scheme];
 
-    persist(scheme.id, nextCustomSchemes);
+    retryActionRef.current = () => { void saveCustomScheme(); };
+    if (!await persist(scheme.id, nextCustomSchemes)) return;
+    setStorageInfo("Preset saved on this device.");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
     );
     setIsCustomEditorOpen(false);
     setEditingSchemeId(null);
-    setDraft(EMPTY_DRAFT);
   }
 
-  function deleteCustomScheme(scheme: PanelColorScheme) {
+  async function deleteCustomScheme(scheme: PanelColorScheme) {
     const nextCustomSchemes = customSchemes.filter(({ id }) => id !== scheme.id);
     const nextSchemeId = selectedSchemeId === scheme.id
       ? BUILT_IN_PANEL_SCHEMES[0].id
       : selectedSchemeId;
 
-    persist(nextSchemeId, nextCustomSchemes);
+    retryActionRef.current = () => { void deleteCustomScheme(scheme); };
+    if (!await persist(nextSchemeId, nextCustomSchemes)) return;
+    setDeletedPreset(scheme);
+    setStorageInfo("Preset removed.");
     setDeleteCandidate(null);
+    setIsManagePresetsOpen(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   }
+
+  async function undoDelete() {
+    if (!deletedPreset) return;
+    const restored = customSchemes.some((scheme) => scheme.id === deletedPreset.id)
+      ? customSchemes : [...customSchemes, deletedPreset];
+    retryActionRef.current = () => { void undoDelete(); };
+    if (!await persist(selectedSchemeId, restored)) return;
+    setDeletedPreset(null);
+    setStorageInfo("Preset restored on this device.");
+  }
+
+  const storageStatus = (
+    <StorageStatus busy={storageBusy} error={storageError} info={storageInfo}
+      loading={!preferencesLoaded && !storageError}
+      onRetry={() => preferencesLoaded ? retryActionRef.current?.() : reloadPreferences()}
+      onUndo={deletedPreset && !deleteCandidate && !isCustomEditorOpen ? () => { void undoDelete(); } : undefined} />
+  );
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.header}>
         <Pressable
           accessibilityLabel="Return to toolbox home"
+          disabled={storageBusy}
           accessibilityRole="button"
           onPress={() => {
             pulse();
@@ -329,12 +406,11 @@ export default function PanelColorsScreen() {
           }}
           style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}
         >
-          <Text style={styles.homeButtonText}>← Home</Text>
+          <Text style={styles.homeButtonText}>←</Text>
         </Pressable>
 
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>PANELS</Text>
-          <Text style={styles.headerTitle}>Circuit Colors</Text>
+          <Text style={styles.headerTitle}>Panel Colors</Text>
         </View>
       </View>
 
@@ -344,6 +420,9 @@ export default function PanelColorsScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {storageStatus}
+        <View pointerEvents={!preferencesLoaded || storageBusy ? "none" : "auto"} style={styles.contentStack}
+          accessibilityElementsHidden={!preferencesLoaded} importantForAccessibility={!preferencesLoaded ? "no-hide-descendants" : "auto"}>
         <PanelChoiceBar
           onAdvanced={() => {
             pulse();
@@ -356,25 +435,23 @@ export default function PanelColorsScreen() {
           scheme={selectedScheme}
         />
 
+        <View style={[styles.resultCard, fontScale > 1.2 && { height: 180 * fontScale }]}>
         <Pressable
           accessibilityHint={
             isBrowsingNearby
               ? `Returns to circuit ${anchorCircuit}`
-              : circuit
-                ? "Copies the circuit color result"
-                : undefined
+              : undefined
           }
           accessibilityLabel={
             circuit && phase && phaseColor
               ? `Circuit ${circuit}, ${getPhaseDisplayName(phase)}, ${phaseColor.name}`
               : "Enter a circuit number using the keypad"
           }
-          accessibilityRole={circuit ? "button" : undefined}
-          disabled={!circuit}
-          onPress={copyResult}
+          accessibilityRole={isBrowsingNearby ? "button" : undefined}
+          disabled={!isBrowsingNearby}
+          onPress={returnToAnchor}
           style={({ pressed }) => [
-            styles.resultCard,
-            phaseColor && { borderColor: phaseColor.hex },
+            styles.resultBody,
             pressed && styles.pressed,
           ]}
         >
@@ -385,9 +462,6 @@ export default function PanelColorsScreen() {
 
           {circuit && phase && phaseColor ? (
             <>
-              <Text style={styles.phaseLabel}>
-                {getPhaseDisplayName(phase).toUpperCase()}
-              </Text>
               <View
                 style={[
                   styles.colorHero,
@@ -404,46 +478,42 @@ export default function PanelColorsScreen() {
                   {phaseColor.name.toUpperCase()}
                 </Text>
               </View>
-              <Text style={styles.resultMeta}>
-                Use the {phaseColor.name.toLowerCase()} conductor • {getPhaseDisplayName(phase)}
-              </Text>
-              <Text style={styles.copyHint}>
-                {isBrowsingNearby
-                  ? `↩ TAP TO RETURN TO CIRCUIT ${anchorCircuit}`
-                  : copied
-                    ? "✓ COPIED"
-                    : "TAP RESULT TO COPY"}
-              </Text>
+              <Text style={styles.phaseLabel}>{getPhaseDisplayName(phase)}</Text>
             </>
+          ) : circuitInput ? (
+            <View style={styles.emptyResult}>
+              <Text style={styles.emptyDescription}>Ready when you are</Text>
+            </View>
           ) : (
             <View style={styles.emptyResult}>
-              <View style={styles.emptySwatch} />
-              <Text style={styles.emptyTitle}>Enter a circuit</Text>
-              <Text style={styles.emptyDescription}>The wire color appears instantly.</Text>
+              <Text style={styles.emptyDescription}>Your phase and color appear here</Text>
             </View>
           )}
         </Pressable>
+        <View style={styles.resultActions}>
+          {isBrowsingNearby ? <Pressable accessibilityRole="button" accessibilityLabel={`Back to circuit ${anchorCircuit}`}
+            onPress={returnToAnchor} style={styles.resultAction}>
+            <Text style={styles.copyActionText}>Back to {anchorCircuit}</Text>
+          </Pressable> : <View />}
+          <Pressable accessibilityRole="button" accessibilityLabel={copyFailed ? "Retry copying circuit result" : "Copy circuit result"}
+            disabled={!circuit} onPress={copyResult} style={[styles.copyAction, !circuit && styles.actionDisabled]}>
+            <Text style={styles.copyActionText}>{copyFailed ? "Retry copy" : copied ? "✓ Copied" : "Copy"}</Text>
+          </Pressable>
+        </View>
+        </View>
 
-        <View style={styles.nearbySection}>
+        <View onLayout={handleNearbyLayout} style={[styles.nearbySection, fontScale > 1.2 && { height: 106 * fontScale }]}>
           <View style={styles.nearbyHeader}>
             <Text style={styles.sectionLabel}>NEARBY</Text>
-            {isBrowsingNearby && (
-              <Pressable
-                accessibilityLabel={`Back to circuit ${anchorCircuit}`}
-                accessibilityRole="button"
-                onPress={returnToAnchor}
-                style={({ pressed }) => [styles.returnButton, pressed && styles.pressed]}
-              >
-                <Text style={styles.returnButtonText}>↩ BACK TO {anchorCircuit}</Text>
-              </Pressable>
-            )}
+            <Text style={styles.swipeHint}>{nearby.length ? "Swipe to browse ↔" : ""}</Text>
           </View>
           {nearby.length > 0 ? (
-            <View onLayout={handleNearbyLayout} style={styles.nearbyViewport}>
+            <View style={styles.nearbyViewport}>
               <ScrollView
                 contentContainerStyle={styles.nearbyRow}
                 decelerationRate="fast"
                 horizontal
+                onContentSizeChange={() => scrollToAnchor(false)}
                 onScrollBeginDrag={settleCircuitEntry}
                 ref={nearbyScrollRef}
                 showsHorizontalScrollIndicator={false}
@@ -462,6 +532,8 @@ export default function PanelColorsScreen() {
                         pulse();
                         settleCircuitEntry();
                         setCircuitInput(String(item.circuit));
+                        setSubmittedCircuit(item.circuit);
+                        if (!anchorCircuit) setAnchorCircuit(item.circuit);
                         setCopied(false);
                       }}
                       style={({ pressed }) => [
@@ -480,25 +552,25 @@ export default function PanelColorsScreen() {
                       <Text numberOfLines={1} style={styles.nearbyColor}>
                         {item.color.name.toUpperCase()}
                       </Text>
-                      <Text style={styles.nearbyPhase}>{item.phase}</Text>
                     </Pressable>
                   );
                 })}
               </ScrollView>
             </View>
           ) : (
-            <Text style={styles.nearbyPlaceholder}>Nearby circuits will line up here.</Text>
+            <View style={styles.nearbyRow} accessibilityLabel="Nearby circuits appear after Enter">
+              {[0, 1, 2, 3, 4].map((slot) => <View key={slot} style={[styles.nearbyItem, styles.placeholderTile]}>
+                <Text style={styles.placeholderNumber}>—</Text>
+                <View style={styles.placeholderDot} />
+              </View>)}
+            </View>
           )}
         </View>
 
         <View accessibilityLabel="Circuit number keypad" style={styles.keypad}>
           <View style={styles.keypadStatusRow}>
-            <Text style={[styles.keypadStatus, isCircuitEntryActive && styles.keypadStatusActive]}>
-              {isCircuitEntryActive
-                ? "ENTERING CIRCUIT…"
-                : circuit
-                  ? "TYPE TO START A NEW CIRCUIT"
-                  : "ENTER A CIRCUIT NUMBER"}
+            <Text style={styles.keypadStatus}>
+              {circuit ? "Type to start a new circuit" : "Type a circuit, then Enter"}
             </Text>
           </View>
           {KEYPAD_ROWS.map((row) => (
@@ -511,6 +583,7 @@ export default function PanelColorsScreen() {
                   onPress={() => handleKey(key)}
                   style={({ pressed }) => [
                     styles.key,
+                    { minHeight: keyHeight },
                     key === "Clear" && styles.keyClear,
                     key === "⌫" && styles.keyUtility,
                     pressed && styles.keyPressed,
@@ -529,11 +602,26 @@ export default function PanelColorsScreen() {
               ))}
             </View>
           ))}
+          <Pressable
+            accessibilityLabel="Enter circuit number"
+            accessibilityRole="button"
+            disabled={!circuitInput || !!circuit || storageBusy}
+            onPress={() => handleKey("Enter")}
+            style={({ pressed }) => [
+              styles.keyEnter,
+              { minHeight: keyHeight },
+              (!circuitInput || !!circuit || storageBusy) && styles.keyDisabled,
+              pressed && styles.keyPressed,
+            ]}
+          >
+            <Text style={styles.keyEnterText}>Enter</Text>
+          </Pressable>
         </View>
 
         <Text style={styles.notice}>
-          ⚠ Match these colors to the panel schedule or job standard before use.
+          Match the panel schedule or job standard. This guide does not verify wiring or whether a circuit is energized.
         </Text>
+        </View>
       </ScrollView>
 
       <PaletteModal
@@ -563,11 +651,21 @@ export default function PanelColorsScreen() {
       />
 
       <CustomSchemeModal
+        busy={storageBusy}
+        status={storageStatus}
         draft={draft}
         isEditing={!!editingSchemeId}
         isOpen={isCustomEditorOpen}
-        onChange={setDraft}
+        onChange={(next) => {
+          if (storageBusyRef.current) return;
+          setDraft(next);
+          setStorageError("");
+          retryActionRef.current = null;
+        }}
         onClose={() => {
+          if (storageBusyRef.current) return;
+          setStorageError("");
+          retryActionRef.current = null;
           setIsCustomEditorOpen(false);
           setEditingSchemeId(null);
         }}
@@ -575,8 +673,12 @@ export default function PanelColorsScreen() {
       />
 
       <ManagePresetsModal
+        busy={storageBusy}
+        status={storageStatus}
         isOpen={isManagePresetsOpen}
-        onClose={() => setIsManagePresetsOpen(false)}
+        onClose={() => {
+          if (!storageBusyRef.current) setIsManagePresetsOpen(false);
+        }}
         onDelete={(scheme) => {
           setIsManagePresetsOpen(false);
           setDeleteCandidate(scheme);
@@ -585,18 +687,61 @@ export default function PanelColorsScreen() {
         schemes={customSchemes}
       />
 
-      <DeletePresetModal
+      {deleteCandidate && <DeletePresetModal
+        busy={storageBusy}
+        status={storageBusy || storageError ? storageStatus : null}
         onCancel={() => {
+          if (storageBusyRef.current) return;
+          setStorageError("");
+          retryActionRef.current = null;
           setDeleteCandidate(null);
           setIsManagePresetsOpen(true);
         }}
         onConfirm={() => {
           if (deleteCandidate) deleteCustomScheme(deleteCandidate);
-          setIsManagePresetsOpen(true);
         }}
         scheme={deleteCandidate}
-      />
+      />}
     </SafeAreaView>
+  );
+}
+
+function StorageStatus({ busy, loading, error, info, onRetry, onUndo }: {
+  busy: boolean; loading: boolean; error: string; info: string;
+  onRetry: () => void; onUndo?: () => void;
+}) {
+  if (!busy && !loading && !error && !info && !onUndo) return null;
+  return (
+    <View style={styles.storageNotice}>
+      <Text accessibilityLiveRegion="polite" accessibilityRole={error ? "alert" : undefined}
+        style={[styles.storageText, !!error && styles.storageError]}>
+        {busy ? "Saving your setup…" : loading ? "Loading saved setups…" : error || info || "Preset removed."}
+      </Text>
+      {error && !busy ? <Pressable accessibilityRole="button" onPress={onRetry} style={styles.resultAction}>
+        <Text style={styles.copyActionText}>Retry</Text>
+      </Pressable> : null}
+      {onUndo && !error ? <Pressable accessibilityRole="button" disabled={busy} onPress={onUndo} style={styles.resultAction}>
+        <Text style={styles.copyActionText}>Undo</Text>
+      </Pressable> : null}
+    </View>
+  );
+}
+
+function SupportedLayout({ scheme }: { scheme: PanelColorScheme }) {
+  return (
+    <View style={styles.layoutGuide}>
+      <Text style={styles.optionTitle}>Supported numbering</Text>
+      <Text style={styles.optionDescription}>Two circuits per row, starting at circuit 1.</Text>
+      <View style={styles.layoutRows}>
+        {scheme.phaseOrder.map((phase, index) => (
+          <View key={phase} style={styles.layoutRow}>
+            <Text style={styles.layoutNumbers}>{index * 2 + 1}     {index * 2 + 2}</Text>
+            <Text style={styles.optionDescription}>{getPhaseDisplayName(phase)} • {getColorForPhase(scheme, phase).name}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={styles.optionDescription}>Rows repeat this pattern. The voltage label does not change numbering. Other layouts, tandem labels and high-leg arrangements are not verified here.</Text>
+    </View>
   );
 }
 
@@ -623,6 +768,9 @@ function PanelChoiceBar({
             <PhaseSwatches scheme={scheme} />
             <Text numberOfLines={1} style={styles.activePaletteName}>{scheme.name}</Text>
           </View>
+          <Text numberOfLines={1} style={styles.paletteContext}>
+            {scheme.panelLabel ? `${scheme.panelLabel} • ` : ""}{scheme.voltageSystem}
+          </Text>
         </View>
         <Text style={styles.selectorChevron}>⌄</Text>
       </Pressable>
@@ -675,11 +823,11 @@ function PaletteModal({
 }) {
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
-      <View style={styles.modalBackdrop}>
+      <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
         <Pressable accessibilityLabel="Close panel colors" onPress={onClose} style={styles.modalDismiss} />
         <View style={styles.selectionSheet}>
           <SheetHeader eyebrow="QUICK SETUP" onClose={onClose} title="What colors do you see?" />
-
+          <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.paletteOptionList}>
             {BUILT_IN_PANEL_SCHEMES.filter(({ isQuickChoice }) => isQuickChoice).map((scheme) => (
               <PaletteOption
@@ -723,14 +871,15 @@ function PaletteModal({
           >
             <Text style={styles.differentColorsIcon}>＋</Text>
             <View style={styles.optionCopy}>
-              <Text style={styles.optionTitle}>Different colors</Text>
+              <Text style={styles.optionTitle}>Save a job preset</Text>
               <Text style={styles.optionDescription}>Save the colors used on this job</Text>
             </View>
           </Pressable>
-
+          <Text style={styles.deviceNote}>Saved on this device. Not synced or backed up to an account.</Text>
+          </ScrollView>
           <Text style={styles.sheetNotice}>Confirm the choice against the panel schedule or job standard.</Text>
         </View>
-      </View>
+      </SafeAreaView></SafeAreaProvider>
     </Modal>
   );
 }
@@ -784,7 +933,7 @@ function AdvancedModal({
 }) {
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
-      <View style={styles.modalBackdrop}>
+      <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
         <Pressable accessibilityLabel="Close advanced settings" onPress={onClose} style={styles.modalDismiss} />
         <View style={[styles.selectionSheet, styles.advancedSheet]}>
           <SheetHeader eyebrow="ADVANCED" onClose={onClose} title="Panel details" />
@@ -797,6 +946,7 @@ function AdvancedModal({
               <DetailRow label="NEUTRAL" value={selectedScheme.colors.neutral.name} />
               <DetailRow label="GROUND" value={selectedScheme.colors.ground.name} />
             </View>
+            <SupportedLayout scheme={selectedScheme} />
 
             <Text style={styles.savedLabel}>TECHNICAL PRESETS</Text>
             <View style={styles.optionList}>
@@ -840,7 +990,7 @@ function AdvancedModal({
             )}
           </ScrollView>
         </View>
-      </View>
+      </SafeAreaView></SafeAreaProvider>
     </Modal>
   );
 }
@@ -860,8 +1010,8 @@ function SheetHeader({
         <Text style={styles.sheetEyebrow}>{eyebrow}</Text>
         <Text style={styles.sheetTitle}>{title}</Text>
       </View>
-      <Pressable accessibilityLabel="Close" onPress={onClose} style={styles.closeButton}>
-        <Text style={styles.closeButtonText}>×</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Close panel settings" onPress={onClose} style={styles.closeButton}>
+        <Text style={styles.closeButtonText}>Done</Text>
       </Pressable>
     </View>
   );
@@ -877,6 +1027,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 function CustomSchemeModal({
+  busy, status,
   draft,
   isEditing,
   isOpen,
@@ -884,6 +1035,8 @@ function CustomSchemeModal({
   onClose,
   onSave,
 }: {
+  busy: boolean;
+  status: React.ReactNode;
   draft: CustomDraft;
   isEditing: boolean;
   isOpen: boolean;
@@ -911,14 +1064,14 @@ function CustomSchemeModal({
     : [draft.phase1, draft.phase2, draft.phase3];
   const normalizedPhaseColors = selectedPhaseColors.map((color) => color.trim().toLowerCase());
   const hasDuplicatePhaseColors = new Set(normalizedPhaseColors).size !== normalizedPhaseColors.length;
-  const canSave = !!draft.name.trim() && !hasDuplicatePhaseColors;
+  const canSave = !!draft.name.trim() && !hasDuplicatePhaseColors && !busy;
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen" visible={isOpen}>
       <SafeAreaProvider style={styles.editorSafe}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
-          <Pressable accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
+          <Pressable disabled={busy} accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </Pressable>
           <View style={styles.editorHeaderCopy}>
@@ -933,6 +1086,8 @@ function CustomSchemeModal({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {status}
+          <View pointerEvents={busy ? "none" : "auto"} style={styles.editorFields}>
           <View style={styles.editorIntro}>
             <Text style={styles.editorIntroTitle}>Match the panel in front of you.</Text>
             <Text style={styles.editorIntroText}>Choose from known conductor colors, then confirm everything against the panel schedule or job standard.</Text>
@@ -945,6 +1100,8 @@ function CustomSchemeModal({
             showDone
             value={draft.name}
           />
+          <DraftField label="PANEL ID (OPTIONAL)" onChangeText={(value) => field("panelLabel", value)}
+            placeholder="Panel L2 • Second floor" showDone value={draft.panelLabel} />
 
           <ChoiceSection
             label="PANEL TYPE"
@@ -986,6 +1143,7 @@ function CustomSchemeModal({
           <View style={styles.presetSummary}>
             <Text style={styles.presetSummaryLabel}>PRESET SUMMARY</Text>
             <Text style={styles.presetSummaryName}>{draft.name.trim() || "Unnamed preset"}</Text>
+            {draft.panelLabel.trim() ? <Text style={styles.presetSummaryMeta}>{draft.panelLabel.trim()}</Text> : null}
             <Text style={styles.presetSummaryMeta}>{draft.voltageSystem} • {draft.panelType === "three-phase" ? "Three-phase" : "Single-phase"}</Text>
             <View style={styles.presetSummaryColors}>
               {selectedPhaseColors.map((color, index) => (
@@ -996,7 +1154,9 @@ function CustomSchemeModal({
               ))}
             </View>
             <Text style={styles.presetSummarySupport}>Neutral {draft.neutral} • Ground {draft.ground}</Text>
+            <Text style={styles.presetSummarySupport}>Standard paired rows: 1/2, 3/4, 5/6. Voltage is a label, not a different numbering layout.</Text>
           </View>
+          <Text style={styles.deviceNote}>For standard paired-row panels only. Other numbering, tandem labels, and high-leg arrangements are not verified by this tool. Saved on this device only.</Text>
 
           <Pressable
             accessibilityRole="button"
@@ -1004,8 +1164,9 @@ function CustomSchemeModal({
             onPress={onSave}
             style={({ pressed }) => [styles.saveButton, !canSave && styles.saveButtonDisabled, pressed && canSave && styles.pressed]}
           >
-            <Text style={styles.saveButtonText}>{isEditing ? "Save changes" : "Save and use preset"}</Text>
+            <Text style={styles.saveButtonText}>{busy ? "Saving…" : isEditing ? "Save changes" : "Save and use preset"}</Text>
           </Pressable>
+          </View>
         </ScrollView>
       </SafeAreaView>
       </SafeAreaProvider>
@@ -1082,7 +1243,9 @@ function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], val
   );
 }
 
-function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
+function ManagePresetsModal({ busy, status, isOpen, onClose, onDelete, onEdit, schemes }: {
+  busy: boolean;
+  status: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
   onDelete: (scheme: PanelColorScheme) => void;
@@ -1094,7 +1257,7 @@ function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
       <SafeAreaProvider style={styles.editorSafe}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
-          <Pressable accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
+          <Pressable disabled={busy} accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
             <Text style={styles.cancelButtonText}>Done</Text>
           </Pressable>
           <View style={styles.editorHeaderCopy}>
@@ -1103,21 +1266,24 @@ function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
           </View>
         </View>
         <ScrollView contentContainerStyle={styles.manageContainer} showsVerticalScrollIndicator={false}>
-          <Text style={styles.manageIntro}>Edit a job setup or remove one you no longer need.</Text>
+          {status}
+          <Text style={styles.manageIntro}>Saved on this device only. Edit a panel setup or remove one you no longer need.</Text>
+          {schemes.length === 0 ? <Text style={styles.manageIntro}>No saved presets. Your common color options are always available.</Text> : null}
           {schemes.map((scheme) => (
             <View key={scheme.id} style={styles.managePresetCard}>
               <View style={styles.managePresetInfo}>
                 <PhaseSwatches scheme={scheme} />
                 <View style={styles.optionCopy}>
                   <Text style={styles.optionTitle}>{scheme.name}</Text>
+                  {scheme.panelLabel ? <Text style={styles.optionDescription}>{scheme.panelLabel}</Text> : null}
                   <Text style={styles.optionDescription}>{scheme.voltageSystem} • {scheme.configurationLabel}</Text>
                 </View>
               </View>
               <View style={styles.manageActions}>
-                <Pressable accessibilityLabel={`Edit ${scheme.name}`} accessibilityRole="button" onPress={() => onEdit(scheme)} style={({ pressed }) => [styles.editPresetButton, pressed && styles.pressed]}>
+                <Pressable disabled={busy} accessibilityLabel={`Edit ${scheme.name}`} accessibilityRole="button" onPress={() => onEdit(scheme)} style={({ pressed }) => [styles.editPresetButton, pressed && styles.pressed]}>
                   <Text style={styles.editPresetButtonText}>Edit</Text>
                 </Pressable>
-                <Pressable accessibilityLabel={`Delete ${scheme.name}`} accessibilityRole="button" onPress={() => onDelete(scheme)} style={({ pressed }) => [styles.deletePresetButton, pressed && styles.pressed]}>
+                <Pressable disabled={busy} accessibilityLabel={`Delete ${scheme.name}`} accessibilityRole="button" onPress={() => onDelete(scheme)} style={({ pressed }) => [styles.deletePresetButton, pressed && styles.pressed]}>
                   <Text style={styles.deletePresetButtonText}>Delete</Text>
                 </Pressable>
               </View>
@@ -1130,7 +1296,9 @@ function ManagePresetsModal({ isOpen, onClose, onDelete, onEdit, schemes }: {
   );
 }
 
-function DeletePresetModal({ onCancel, onConfirm, scheme }: {
+function DeletePresetModal({ busy, status, onCancel, onConfirm, scheme }: {
+  busy: boolean;
+  status: React.ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
   scheme: PanelColorScheme | null;
@@ -1141,13 +1309,14 @@ function DeletePresetModal({ onCancel, onConfirm, scheme }: {
         <View style={styles.confirmCard}>
           <Text style={styles.confirmEyebrow}>DELETE PRESET</Text>
           <Text style={styles.confirmTitle}>Delete “{scheme?.name}”?</Text>
-          <Text style={styles.confirmText}>This removes the saved panel setup from this device. This cannot be undone.</Text>
+          <Text style={styles.confirmText}>This removes the saved setup from this device. Undo will be available until the next deletion or until you leave Panel Colors.</Text>
+          {status}
           <View style={styles.confirmActions}>
-            <Pressable accessibilityRole="button" onPress={onCancel} style={styles.confirmCancelButton}>
+            <Pressable disabled={busy} accessibilityRole="button" onPress={onCancel} style={styles.confirmCancelButton}>
               <Text style={styles.confirmCancelText}>Keep it</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={onConfirm} style={styles.confirmDeleteButton}>
-              <Text style={styles.confirmDeleteText}>Delete</Text>
+            <Pressable disabled={busy} accessibilityRole="button" onPress={onConfirm} style={styles.confirmDeleteButton}>
+              <Text style={styles.confirmDeleteText}>{busy ? "Removing…" : "Delete"}</Text>
             </Pressable>
           </View>
         </View>

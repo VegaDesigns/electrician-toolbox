@@ -17,6 +17,7 @@ export type PanelColorScheme = {
   isQuickChoice: boolean;
   name: string;
   phaseOrder: Phase[];
+  panelLabel?: string;
   voltageSystem: string;
 };
 

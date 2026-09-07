@@ -3,6 +3,29 @@ import { StyleSheet } from "react-native";
 import { Colors, Effects } from "../../theme";
 
 export const styles = StyleSheet.create({
+  contentStack: { gap: 8 },
+  swipeHint: { color: Colors.textMuted, fontSize: 11 },
+  placeholderTile: { flex: 1, justifyContent: "center", opacity: 0.45 },
+  placeholderNumber: { color: Colors.textMuted, fontSize: 18 },
+  placeholderDot: { backgroundColor: Colors.borderStrong, width: 8, height: 8, borderRadius: 4, marginTop: 5 },
+  editorFields: { gap: 16 },
+  resultBody: { flex: 1, alignItems: "center", justifyContent: "center", width: "100%", paddingBottom: 26 },
+  resultActions: { position: "absolute", bottom: 0, left: 8, right: 8, height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  resultAction: { minWidth: 60, minHeight: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: 10 },
+  resultActionText: { color: Colors.textMuted, fontSize: 13, fontWeight: "700" },
+  copyAction: { minHeight: 44, minWidth: 64, justifyContent: "center", alignItems: "center", borderRadius: 11, paddingHorizontal: 12 },
+  copyActionText: { color: Colors.textMuted, fontSize: 13, fontWeight: "700" },
+  actionDisabled: { opacity: 0.35 },
+  expectedLabel: { color: Colors.textMuted, fontSize: 10, letterSpacing: 1, marginTop: 5 },
+  paletteContext: { color: Colors.textMuted, fontSize: 11, marginTop: 4, marginBottom: 6 },
+  storageNotice: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface2, borderRadius: 12, padding: 10, gap: 6 },
+  storageText: { flex: 1, color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
+  storageError: { color: "#F1A094" },
+  deviceNote: { color: Colors.textMuted, fontSize: 12, lineHeight: 18, marginTop: 12, marginBottom: 8 },
+  layoutGuide: { borderColor: Colors.border, borderWidth: 1, padding: 14, borderRadius: 14, gap: 8, marginVertical: 14 },
+  layoutRows: { gap: 8 },
+  layoutRow: { flexDirection: "row", gap: 16, alignItems: "center" },
+  layoutNumbers: { color: Colors.text, fontSize: 17, fontWeight: "700", minWidth: 60 },
   safe: {
     backgroundColor: Colors.bg,
     flex: 1,
@@ -24,24 +47,25 @@ export const styles = StyleSheet.create({
 
   homeButton: {
     alignItems: "center",
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.border,
     borderRadius: 13,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 40,
+    minHeight: 44,
+    width: 44,
     paddingHorizontal: 12,
     ...Effects.controlRaised,
   },
 
   homeButtonText: {
-    color: Colors.primary,
-    fontSize: 13,
+    color: Colors.textMuted,
+    fontSize: 22,
     fontWeight: "900",
   },
 
   headerCopy: {
-    alignItems: "flex-end",
+    alignItems: "flex-start",
     flex: 1,
   },
 
@@ -54,7 +78,7 @@ export const styles = StyleSheet.create({
 
   headerTitle: {
     color: Colors.text,
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: "900",
     marginTop: 1,
   },
@@ -63,9 +87,9 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     gap: 10,
     maxWidth: 520,
-    paddingBottom: 17,
+    paddingBottom: 8,
     paddingHorizontal: 12,
-    paddingTop: 10,
+    paddingTop: 6,
     width: "100%",
   },
 
@@ -192,10 +216,10 @@ export const styles = StyleSheet.create({
     borderRadius: 23,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 228,
+    height: 148,
     overflow: "hidden",
     paddingHorizontal: 17,
-    paddingVertical: 15,
+    paddingVertical: 10,
     ...Effects.surfaceRaised,
   },
 
@@ -215,16 +239,16 @@ export const styles = StyleSheet.create({
 
   circuitNumber: {
     color: Colors.text,
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: 30,
+    fontWeight: "600",
     letterSpacing: -0.5,
   },
 
   phaseLabel: {
     color: Colors.textMuted,
     fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 1.6,
+    fontWeight: "600",
+    letterSpacing: 0.3,
     marginTop: 5,
   },
 
@@ -234,15 +258,15 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     marginTop: 7,
-    minHeight: 61,
+    minHeight: 40,
     paddingHorizontal: 23,
     width: "100%",
     ...Effects.controlRaised,
   },
 
   colorHeroText: {
-    fontSize: 31,
-    fontWeight: "900",
+    fontSize: 30,
+    fontWeight: "800",
     letterSpacing: 1.5,
   },
 
@@ -293,8 +317,8 @@ export const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 17,
     borderWidth: 1,
-    minHeight: 103,
-    padding: 10,
+    height: 106,
+    padding: 8,
     ...Effects.surfaceRaised,
   },
 
@@ -302,18 +326,20 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 7,
-    minHeight: 20,
+    marginBottom: 3,
+    height: 20,
   },
 
   sectionLabel: {
     color: Colors.textSubtle,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "900",
     letterSpacing: 0.9,
   },
 
   returnButton: {
+    minHeight: 44,
+    justifyContent: "center",
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primaryMuted,
     borderRadius: 10,
@@ -324,7 +350,7 @@ export const styles = StyleSheet.create({
 
   returnButtonText: {
     color: Colors.primary,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: "900",
     letterSpacing: 0.5,
   },
@@ -378,7 +404,7 @@ export const styles = StyleSheet.create({
 
   nearbyColor: {
     color: Colors.textMuted,
-    fontSize: 7,
+    fontSize: 10,
     fontWeight: "900",
     marginTop: 3,
     maxWidth: "100%",
@@ -394,7 +420,7 @@ export const styles = StyleSheet.create({
   nearbyPlaceholder: {
     color: Colors.textMuted,
     fontSize: 12,
-    marginTop: 15,
+    marginTop: 21,
     textAlign: "center",
   },
 
@@ -409,10 +435,9 @@ export const styles = StyleSheet.create({
   },
 
   keypadStatus: {
-    color: Colors.textSubtle,
-    fontSize: 8,
-    fontWeight: "900",
-    letterSpacing: 0.8,
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   keypadStatusActive: {
@@ -461,6 +486,38 @@ export const styles = StyleSheet.create({
     color: "#B8C5D1",
   },
 
+  keyEnter: {
+    alignItems: "center",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    minHeight: 46,
+    paddingHorizontal: 16,
+    ...Effects.controlRaised,
+  },
+
+  keyEnterText: {
+    color: Colors.inverseText,
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.3,
+  },
+
+  keyEnterHint: {
+    color: Colors.inverseText,
+    fontSize: 11,
+    fontWeight: "700",
+    opacity: 0.8,
+  },
+
+  keyDisabled: {
+    opacity: 0.38,
+  },
+
   keyPressed: {
     backgroundColor: Colors.surface3,
     opacity: 0.78,
@@ -469,8 +526,8 @@ export const styles = StyleSheet.create({
   },
 
   notice: {
-    color: Colors.textSubtle,
-    fontSize: 9,
+    color: Colors.textMuted,
+    fontSize: 10,
     lineHeight: 13,
     paddingHorizontal: 4,
     textAlign: "center",
@@ -493,6 +550,7 @@ export const styles = StyleSheet.create({
   },
 
   selectionSheet: {
+    maxHeight: "88%",
     alignSelf: "center",
     backgroundColor: Colors.surface,
     borderColor: Colors.borderStrong,
@@ -537,16 +595,16 @@ export const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 14,
     borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    minWidth: 60,
+    paddingHorizontal: 10,
   },
 
   closeButtonText: {
     color: Colors.textMuted,
-    fontSize: 26,
-    fontWeight: "500",
-    lineHeight: 28,
+    fontSize: 13,
+    fontWeight: "800",
   },
 
   optionList: {
