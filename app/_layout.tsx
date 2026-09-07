@@ -18,6 +18,7 @@ export default function RootLayout() {
           <Stack.Screen name="box-fill" />
           <Stack.Screen name="wire-guide" />
           <Stack.Screen name="trade-talk" />
+          <Stack.Screen name="job-board" />
         </Stack>
         <StatusBar style="light" />
       </SafeAreaProvider>

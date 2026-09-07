@@ -107,11 +107,10 @@ export default function HomeScreen() {
 
           <ToolTile
             accent="blue"
-            icon="↱"
-            onPress={() => router.push("/bending")}
-            status="COMING SOON"
-            subtitle="Field-first conduit bending"
-            title="Bending"
+            icon="✓"
+            onPress={() => router.push("/job-board")}
+            subtitle="Notes, materials, punch and tasks"
+            title="Job Board"
           />
 
           <ToolTile
@@ -136,6 +135,15 @@ export default function HomeScreen() {
             onPress={() => router.push("/trade-talk")}
             subtitle="Electrical terms and jobsite slang"
             title="Trade Talk"
+          />
+
+          <ToolTile
+            accent="blue"
+            icon="↱"
+            onPress={() => router.push("/bending")}
+            status="COMING SOON"
+            subtitle="Field-first conduit bending"
+            title="Bending"
           />
         </View>
 
