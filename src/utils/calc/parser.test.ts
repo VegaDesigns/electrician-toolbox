@@ -31,6 +31,13 @@ describe("smart measurement parser", () => {
     expectMeasure(`4' - 2' 3"`, 21, `4' - 2' 3"`);
   });
 
+  it("does not silently round decimal or custom-fraction interpretations", () => {
+    expectMeasure("4 and 3/10", 4.3, '4.3"');
+    expectMeasure("4.3in", 4.3, '4.3"');
+    expectMeasure("-4.3in", -4.3, '-4.3"');
+    expectMeasure("1/128in", 1 / 128, '0.0078125"');
+  });
+
   it("supports scalar arithmetic", () => {
     const parsed = parseSmartExpression("2 * 3 + 1");
     assert.equal(parsed.ok, true);

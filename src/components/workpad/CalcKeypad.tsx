@@ -455,7 +455,8 @@ const styles = StyleSheet.create({
   },
 
   keyDanger: {
-    backgroundColor: Colors.keyDanger,
+    backgroundColor: Colors.errorSoft,
+    borderColor: "#633B36",
   },
 
   fractionUtilityRow: {
@@ -629,7 +630,7 @@ const styles = StyleSheet.create({
   },
 
   keyTextDanger: {
-    color: Colors.text,
+    color: "#E79183",
     fontWeight: "800",
   },
 });

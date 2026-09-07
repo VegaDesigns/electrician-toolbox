@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CalcDisplay, {
   type ResultFormatKey,
@@ -42,7 +42,9 @@ import {
   createCalcHistoryItem,
   deleteCalcHistoryItem,
   loadCalcHistory,
+  restoreCalcHistoryItems,
   saveCalcHistoryItem,
+  updateCalcHistoryPresentation,
   toggleCalcHistoryFavorite,
   type CalcHistoryItem,
 } from "../../utils/storage/calcHistory";
@@ -142,12 +144,16 @@ function formatInchesOnlyFraction(
 
 export default function WorkpadScreen() {
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [state, setState] = useState(createInitialCalcState());
   const [isFracOpen, setIsFracOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
+  const [removedHistory, setRemovedHistory] = useState<CalcHistoryItem[]>([]);
+  const [historyError, setHistoryError] = useState("");
+  const [recalledPrecision, setRecalledPrecision] = useState<Precision | null>(null);
   const [cleanedExpression, setCleanedExpression] = useState("");
   const [copyLabel, setCopyLabel] = useState("Copy answer");
   const [precision, setPrecision] = useState<Precision>(
@@ -158,10 +164,11 @@ export default function WorkpadScreen() {
     useState<ResultFormatKey>("ft-in");
 
   const lastSavedHistoryKeyRef = useRef<string>("");
+  const lastSavedHistoryIdRef = useRef<string>("");
   const skipNextHistorySaveRef = useRef(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isCompact = height < 740;
+  const isCompact = height - insets.top - insets.bottom < 740;
 
   const expression = useMemo(() => getExpressionString(state), [state]);
 
@@ -169,6 +176,7 @@ export default function WorkpadScreen() {
 
   const isEditing = state.tokens.length > 0 || state.buffer.length > 0;
   const hasResult = !!result && !isEditing;
+  const displayPrecision = recalledPrecision ?? precision;
 
   const resultOptions: ResultOption[] = useMemo(() => {
     if (!result) return [];
@@ -183,23 +191,23 @@ export default function WorkpadScreen() {
       ];
     }
 
-    const roundedInches = roundInches(result.inches, precision);
+    const roundedInches = roundInches(result.inches, displayPrecision);
     const decFt = inToFt(result.inches);
 
     return [
       {
         key: "ft-in",
         label: "Feet & inches",
-        value: formatFeetInches(roundedInches, precision),
+        value: formatFeetInches(roundedInches, displayPrecision),
       },
       {
         key: "rounded-in",
         label: "Inches",
-        value: formatInchesOnlyFraction(roundedInches, precision),
+        value: formatInchesOnlyFraction(roundedInches, displayPrecision),
       },
       {
         key: "exact-in",
-        label: "Exact inches",
+        label: "Decimal inches",
         value: `${formatDecimalResult(result.inches, 6)}"`,
       },
       {
@@ -208,7 +216,7 @@ export default function WorkpadScreen() {
         value: `${formatDecimalResult(decFt, 4)} ft`,
       },
     ];
-  }, [result, precision]);
+  }, [result, displayPrecision]);
 
   const primary = useMemo(() => {
     if (!result) return "0";
@@ -223,14 +231,14 @@ export default function WorkpadScreen() {
       return formatPlainNumber(result.value);
     }
 
-    const rounded = roundInches(result.inches, precision);
-    return formatFeetInches(rounded, precision);
-  }, [result, resultOptions, selectedResultKey, precision]);
+    const rounded = roundInches(result.inches, displayPrecision);
+    return formatFeetInches(rounded, displayPrecision);
+  }, [result, resultOptions, selectedResultKey, displayPrecision]);
 
   useEffect(() => {
     loadCalcHistory()
       .then(setHistoryItems)
-      .catch(() => {});
+      .catch(() => setHistoryError("History couldn't be loaded. Try reopening Workpad."));
   }, []);
 
   useEffect(() => {
@@ -255,11 +263,8 @@ export default function WorkpadScreen() {
 
   useEffect(() => {
     if (!hasResult || !result || state.lastExpression.trim().length === 0) {
-      return;
-    }
-
-    if (skipNextHistorySaveRef.current) {
-      skipNextHistorySaveRef.current = false;
+      lastSavedHistoryKeyRef.current = "";
+      lastSavedHistoryIdRef.current = "";
       return;
     }
 
@@ -269,40 +274,45 @@ export default function WorkpadScreen() {
         : `number:${result.value}`;
 
     const historyKey = `${state.lastExpression}=${rawResultKey}`;
+    if (skipNextHistorySaveRef.current) {
+      skipNextHistorySaveRef.current = false;
+      lastSavedHistoryKeyRef.current = historyKey;
+      return;
+    }
 
     if (lastSavedHistoryKeyRef.current === historyKey) {
+      updateCalcHistoryPresentation(lastSavedHistoryIdRef.current, {
+        result: primary, resultFormat: selectedResultKey, precision: displayPrecision,
+      }).then(setHistoryItems).catch(() => setHistoryError("Couldn't update history. Please try again."));
       return;
     }
 
     lastSavedHistoryKeyRef.current = historyKey;
 
-    const historyResult =
-      result.kind === "number"
-        ? formatPlainNumber(result.value)
-        : formatFeetInches(
-            roundInches(result.inches, precision),
-            precision,
-          );
-
     const item = createCalcHistoryItem(
       state.lastExpression,
-      historyResult,
+      primary,
       {
         kind: result.kind,
         value: result.kind === "measure" ? result.inches : result.value,
       },
       cleanedExpression || state.lastExpression,
     );
+    item.resultFormat = selectedResultKey;
+    item.precision = displayPrecision;
+    lastSavedHistoryIdRef.current = item.id;
 
     saveCalcHistoryItem(item)
       .then(setHistoryItems)
-      .catch(() => {});
+      .catch(() => setHistoryError("Couldn't save this calculation to history."));
   }, [
     cleanedExpression,
     hasResult,
     result,
     state.lastExpression,
-    precision,
+    displayPrecision,
+    selectedResultKey,
+    primary,
   ]);
 
   function applyFraction(
@@ -352,6 +362,9 @@ export default function WorkpadScreen() {
   }
 
   function onKeyPress(key: CalcKey) {
+    if (key !== "FRAC") setRecalledPrecision(null);
+    setCopyLabel("Copy answer");
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     if (key === "FRAC") {
       setIsFracOpen((v) => !v);
       Haptics.selectionAsync().catch(() => {});
@@ -435,6 +448,7 @@ export default function WorkpadScreen() {
   }
 
   function onPickFraction(f: FractionPick) {
+    setRecalledPrecision(null);
     setState((prev) => {
       const r = applyFraction(prev.buffer, f.label);
 
@@ -483,21 +497,36 @@ export default function WorkpadScreen() {
   }
 
   function onClearHistory() {
+    const removed = historyItems.filter((item) => !item.isFavorite);
+    setHistoryError("");
     clearCalcHistory()
       .then((next) => {
         setHistoryItems(next);
+        setRemovedHistory(removed);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       })
-      .catch(() => {});
+      .catch(() => setHistoryError("Couldn't clear history. Please try again."));
   }
 
   function onDeleteHistoryItem(id: string) {
+    const removed = historyItems.filter((item) => item.id === id);
+    setHistoryError("");
     deleteCalcHistoryItem(id)
       .then((next) => {
         setHistoryItems(next);
+        setRemovedHistory(removed);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       })
-      .catch(() => {});
+      .catch(() => setHistoryError("Couldn't delete this calculation. Please try again."));
+  }
+
+  function onUndoHistory() {
+    restoreCalcHistoryItems(removedHistory).then((next) => {
+      setHistoryItems(next);
+      setRemovedHistory([]);
+      setHistoryError("");
+      Haptics.selectionAsync().catch(() => {});
+    }).catch(() => setHistoryError("Couldn't restore history. Tap Undo to try again."));
   }
 
   function onToggleHistoryFavorite(id: string) {
@@ -506,7 +535,7 @@ export default function WorkpadScreen() {
         setHistoryItems(next);
         Haptics.selectionAsync().catch(() => {});
       })
-      .catch(() => {});
+      .catch(() => setHistoryError("Couldn't change saved status. Please try again."));
   }
 
   function onSelectHistoryItem(item: CalcHistoryItem) {
@@ -521,6 +550,9 @@ export default function WorkpadScreen() {
     }
 
     skipNextHistorySaveRef.current = true;
+    lastSavedHistoryIdRef.current = item.id;
+    setRecalledPrecision(item.precision ?? null);
+    setCopyLabel("Copy answer");
     setCleanedExpression(item.cleanedExpression ?? item.expression);
 
     if (item.resultKind === "measure") {
@@ -537,7 +569,8 @@ export default function WorkpadScreen() {
       });
 
       setSelectedResultKey(
-        inferPreferredResultFormat(item.expression, "measure"),
+        item.resultFormat && item.resultFormat !== "standard"
+          ? item.resultFormat : inferPreferredResultFormat(item.expression, "measure"),
       );
     } else {
       setState({
@@ -563,6 +596,8 @@ export default function WorkpadScreen() {
     const parsed = parseSmartExpression(value);
 
     if (!parsed.ok) return parsed.error;
+    setRecalledPrecision(null);
+    setCopyLabel("Copy answer");
 
     setState({
       tokens: [],
@@ -582,6 +617,7 @@ export default function WorkpadScreen() {
   }
 
   function updatePrecision(next: Precision) {
+    setRecalledPrecision(null);
     setPrecision(next);
     Haptics.selectionAsync().catch(() => {});
   }
@@ -601,13 +637,13 @@ export default function WorkpadScreen() {
     if (
       !hasResult ||
       result?.kind !== "measure" ||
-      precision === "none" ||
+      displayPrecision === "none" ||
       (selectedResultKey !== "ft-in" && selectedResultKey !== "rounded-in")
     ) {
       return "";
     }
 
-    const rounded = roundInches(result.inches, precision);
+    const rounded = roundInches(result.inches, displayPrecision);
     const direction = getRoundingDirection(result.inches, rounded);
     if (!direction) return "";
 
@@ -617,7 +653,7 @@ export default function WorkpadScreen() {
         : `${formatCleanDecimal(result.inches, 6)}"`;
 
     return `${direction === "up" ? "↑" : "↓"} Rounded ${direction} from ${original}`;
-  }, [hasResult, precision, result, selectedResultKey]);
+  }, [hasResult, displayPrecision, result, selectedResultKey]);
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
@@ -637,7 +673,7 @@ export default function WorkpadScreen() {
           <Text style={styles.homeButtonText}>←</Text>
         </Pressable>
 
-        <Text style={styles.title}>Workpad Calculator</Text>
+        <Text style={styles.title}>Workpad</Text>
 
         <Pressable
           accessibilityLabel="Open calculation history"
@@ -678,13 +714,13 @@ export default function WorkpadScreen() {
         showsVerticalScrollIndicator={false}
       >
         <CalcDisplay
+          compact={isCompact}
           copyLabel={copyLabel}
           error={state.error}
           expression={expression}
           hasResult={hasResult}
           interpretation={interpretation}
           onCopy={onCopyPrimary}
-          onDismissInterpretation={() => setCleanedExpression("")}
           onOpenSmartInput={() => setIsSmartInputOpen(true)}
           onToggleUnit={onToggleResultUnit}
           primary={primary}
@@ -708,6 +744,9 @@ export default function WorkpadScreen() {
       </ScrollView>
 
       <HistoryDrawer
+        undoCount={removedHistory.length}
+        onUndo={onUndoHistory}
+        error={historyError}
         visible={isHistoryOpen}
         items={historyItems}
         onClose={() => setIsHistoryOpen(false)}
@@ -719,7 +758,7 @@ export default function WorkpadScreen() {
 
       {isSmartInputOpen && (
         <SmartInputSheet
-          initialValue={state.lastExpression}
+          initialValue={expression}
           onClose={() => setIsSmartInputOpen(false)}
           onSubmit={onSubmitSmartInput}
         />
@@ -729,8 +768,8 @@ export default function WorkpadScreen() {
         onChangePrecision={updatePrecision}
         onClose={() => setIsSettingsOpen(false)}
         onSelectResultFormat={onSelectResultOption}
-        precision={precision}
-        resultOptions={resultOptions}
+        precision={displayPrecision}
+        resultOptions={hasResult ? resultOptions : []}
         selectedResultKey={selectedResultKey}
         visible={isSettingsOpen}
       />

@@ -48,27 +48,27 @@ export const styles = StyleSheet.create({
 
   homeButton: {
     alignItems: "center",
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.border,
     borderRadius: 13,
     borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
     ...Effects.controlRaised,
   },
 
   homeButtonText: {
-    color: Colors.primary,
+    color: Colors.textMuted,
     fontSize: 22,
     fontWeight: "900",
   },
 
   historyButton: {
     alignItems: "center",
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
     borderRadius: 13,
     backgroundColor: Colors.surface3,
     borderWidth: 1,
@@ -126,18 +126,18 @@ export const styles = StyleSheet.create({
 
   settingsButton: {
     alignItems: "center",
-    backgroundColor: Colors.primarySoft,
-    borderColor: Colors.primaryMuted,
+    backgroundColor: Colors.surface3,
+    borderColor: Colors.border,
     borderRadius: 13,
     borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
     ...Effects.controlRaised,
   },
 
   settingsButtonText: {
-    color: Colors.primary,
+    color: Colors.textMuted,
     fontSize: 22,
     fontWeight: "900",
     lineHeight: 24,

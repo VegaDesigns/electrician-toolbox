@@ -221,6 +221,10 @@ export function formatCanonicalMeasurement(totalInches: number): string {
 
   const sign = totalInches < 0 ? "-" : "";
   const units = Math.round(Math.abs(totalInches) * 64);
+  // Interpretation describes the input, not a second rounded answer.
+  if (Math.abs(units / 64 - Math.abs(totalInches)) > 1e-9) {
+    return `${formatDecimal(totalInches)}"`;
+  }
   const unitsPerFoot = 12 * 64;
   const feet = Math.floor(units / unitsPerFoot);
   const remaining = units - feet * unitsPerFoot;

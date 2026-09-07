@@ -1,173 +1,87 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { retainHistory, restoreHistory, type CalcHistoryItem } from "../calc/historyModel";
+export type { CalcHistoryItem, CalcHistoryResultKind } from "../calc/historyModel";
 
 const CALC_HISTORY_KEY = "electrician-toolbox:calc-history:v1";
-const MAX_HISTORY_ITEMS = 50;
+let writes: Promise<unknown> = Promise.resolve();
 
-export type CalcHistoryResultKind = "number" | "measure";
-
-export type CalcHistoryItem = {
-  id: string;
-  expression: string;
-  result: string;
-  cleanedExpression?: string;
-  createdAt: number;
-
-  // Optional so older saved history items do not break.
-  resultKind?: CalcHistoryResultKind;
-  rawValue?: number;
-
-  // Saved/pinned calculation.
-  isFavorite?: boolean;
-};
+async function readHistory(): Promise<CalcHistoryItem[]> {
+  const raw = await AsyncStorage.getItem(CALC_HISTORY_KEY);
+  if (!raw) return [];
+  const parsed: unknown = JSON.parse(raw);
+  if (!Array.isArray(parsed)) throw new Error("Unable to read calculation history");
+  return parsed.filter(isCalcHistoryItem);
+}
 
 export async function loadCalcHistory(): Promise<CalcHistoryItem[]> {
-  try {
-    const raw = await AsyncStorage.getItem(CALC_HISTORY_KEY);
-
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-
-    if (!Array.isArray(parsed)) return [];
-
-    return parsed.filter(isCalcHistoryItem);
-  } catch {
-    return [];
-  }
+  await writes.catch(() => {});
+  return readHistory();
 }
 
-export async function saveCalcHistoryItem(
-  item: CalcHistoryItem,
-): Promise<CalcHistoryItem[]> {
-  const current = await loadCalcHistory();
-
-  const next = [item, ...current]
-    .filter((entry, index, arr) => {
-      return arr.findIndex((x) => x.id === entry.id) === index;
-    })
-    .slice(0, MAX_HISTORY_ITEMS);
-
-  await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(next));
-
-  return next;
+// Serialize read/modify/write so quick taps cannot overwrite each other's saves.
+function mutateHistory(transform: (items: CalcHistoryItem[]) => CalcHistoryItem[]) {
+  const operation = writes.catch(() => {}).then(async () => {
+    const next = transform(await readHistory());
+    await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(next));
+    return next;
+  });
+  writes = operation;
+  return operation;
 }
 
-export async function deleteCalcHistoryItem(
+export function saveCalcHistoryItem(item: CalcHistoryItem) {
+  return mutateHistory((items) => retainHistory([item, ...items]));
+}
+
+export function updateCalcHistoryPresentation(
   id: string,
-): Promise<CalcHistoryItem[]> {
-  const current = await loadCalcHistory();
-  const next = current.filter((item) => item.id !== id);
-
-  if (next.length === 0) {
-    await AsyncStorage.removeItem(CALC_HISTORY_KEY);
-    return [];
-  }
-
-  await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(next));
-
-  return next;
+  presentation: Pick<CalcHistoryItem, "result" | "resultFormat" | "precision">,
+) {
+  return mutateHistory((items) => items.map((item) =>
+    item.id === id ? { ...item, ...presentation } : item));
 }
 
-export async function toggleCalcHistoryFavorite(
-  id: string,
-): Promise<CalcHistoryItem[]> {
-  const current = await loadCalcHistory();
-
-  const target = current.find((item) => item.id === id);
-
-  if (!target) {
-    return current;
-  }
-
-  const isCurrentlyFavorite = !!target.isFavorite;
-
-  const updatedTarget: CalcHistoryItem = {
-    ...target,
-    isFavorite: !isCurrentlyFavorite,
-
-    // If the user removes it from Saved, treat it like it just came back
-    // into Recent so it appears near the top of the history list.
-    createdAt: isCurrentlyFavorite ? Date.now() : target.createdAt,
-  };
-
-  const withoutTarget = current.filter((item) => item.id !== id);
-
-  const next = [updatedTarget, ...withoutTarget].slice(0, MAX_HISTORY_ITEMS);
-
-  await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(next));
-
-  return next;
+export function deleteCalcHistoryItem(id: string) {
+  return mutateHistory((items) => items.filter((item) => item.id !== id));
 }
 
-// Clears only normal recent history.
-// Favorite/saved calculations stay.
-export async function clearCalcHistory(): Promise<CalcHistoryItem[]> {
-  const current = await loadCalcHistory();
-  const favorites = current.filter((item) => item.isFavorite);
+export function restoreCalcHistoryItems(removed: CalcHistoryItem[]) {
+  return mutateHistory((items) => restoreHistory(items, removed));
+}
 
-  if (favorites.length === 0) {
-    await AsyncStorage.removeItem(CALC_HISTORY_KEY);
-    return [];
-  }
+export function toggleCalcHistoryFavorite(id: string) {
+  return mutateHistory((items) => retainHistory(items.map((item) =>
+    item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)));
+}
 
-  await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(favorites));
-
-  return favorites;
+export function clearCalcHistory() {
+  return mutateHistory((items) => items.filter((item) => item.isFavorite));
 }
 
 export function createCalcHistoryItem(
   expression: string,
   result: string,
-  rawResult?: {
-    kind: CalcHistoryResultKind;
-    value: number;
-  },
+  rawResult?: { kind: "number" | "measure"; value: number },
   cleanedExpression?: string,
 ): CalcHistoryItem {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    expression,
-    result,
-    cleanedExpression,
-    createdAt: Date.now(),
-    resultKind: rawResult?.kind,
-    rawValue: rawResult?.value,
-    isFavorite: false,
+    expression, result, cleanedExpression, createdAt: Date.now(),
+    resultKind: rawResult?.kind, rawValue: rawResult?.value, isFavorite: false,
   };
 }
 
 function isCalcHistoryItem(value: unknown): value is CalcHistoryItem {
   if (!value || typeof value !== "object") return false;
-
   const item = value as CalcHistoryItem;
-
-  const baseIsValid =
-    typeof item.id === "string" &&
-    typeof item.expression === "string" &&
-    typeof item.result === "string" &&
-    typeof item.createdAt === "number";
-
-  if (!baseIsValid) return false;
-
-  const favoriteIsValid =
-    item.isFavorite === undefined || typeof item.isFavorite === "boolean";
-
-  if (!favoriteIsValid) return false;
-
-  if (
-    item.cleanedExpression !== undefined &&
-    typeof item.cleanedExpression !== "string"
-  ) {
-    return false;
-  }
-
-  const hasNoRawFields =
-    item.resultKind === undefined && item.rawValue === undefined;
-
-  const hasValidRawFields =
-    (item.resultKind === "number" || item.resultKind === "measure") &&
-    typeof item.rawValue === "number" &&
-    Number.isFinite(item.rawValue);
-
-  return hasNoRawFields || hasValidRawFields;
+  if (typeof item.id !== "string" || typeof item.expression !== "string" ||
+      typeof item.result !== "string" || !Number.isFinite(item.createdAt)) return false;
+  if (item.isFavorite !== undefined && typeof item.isFavorite !== "boolean") return false;
+  if (item.cleanedExpression !== undefined && typeof item.cleanedExpression !== "string") return false;
+  if (item.precision !== undefined && !["none", 2, 4, 8, 16, 32].includes(item.precision)) return false;
+  if (item.resultFormat !== undefined &&
+      !["standard", "ft-in", "rounded-in", "exact-in", "decimal-ft"].includes(item.resultFormat)) return false;
+  return (item.resultKind === undefined && item.rawValue === undefined) ||
+    ((item.resultKind === "number" || item.resultKind === "measure") &&
+      typeof item.rawValue === "number" && Number.isFinite(item.rawValue));
 }

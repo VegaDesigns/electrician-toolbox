@@ -7,11 +7,15 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "../../theme";
+import { Colors, Effects } from "../../theme";
 import type { CalcHistoryItem } from "../../utils/storage/calcHistory";
 
 type Props = {
+  undoCount: number;
+  onUndo: () => void;
+  error: string;
   visible: boolean;
   items: CalcHistoryItem[];
   onClose: () => void;
@@ -22,6 +26,7 @@ type Props = {
 };
 
 export default function HistoryDrawer({
+  undoCount, onUndo, error,
   visible,
   items,
   onClose,
@@ -106,7 +111,8 @@ export default function HistoryDrawer({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <SafeAreaProvider>
+      <SafeAreaView edges={["top", "bottom"]} style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
         <View style={styles.sheet}>
@@ -126,7 +132,7 @@ export default function HistoryDrawer({
               onPress={onClose}
               style={styles.closeButton}
             >
-              <Text style={styles.closeText}>Close</Text>
+              <Text style={styles.closeText}>Done</Text>
             </Pressable>
           </View>
 
@@ -174,8 +180,20 @@ export default function HistoryDrawer({
               )}
             </>
           )}
+          {error ? <Text accessibilityRole="alert" style={styles.errorText}>{error}</Text> : null}
+          {undoCount > 0 ? (
+            <View style={styles.undoRow}>
+              <Text accessibilityLiveRegion="polite" style={styles.undoText}>
+                {undoCount === 1 ? "Calculation removed" : `${undoCount} calculations removed`}
+              </Text>
+              <Pressable accessibilityRole="button" onPress={onUndo} style={styles.undoButton}>
+                <Text style={styles.undoAction}>Undo</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
-      </View>
+      </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -195,7 +213,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.70)",
   },
 
   backdrop: {
@@ -207,11 +225,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 18,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    backgroundColor: Colors.bg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Effects.surfaceRaised,
   },
 
   handle: {
@@ -245,16 +264,18 @@ const styles = StyleSheet.create({
   },
 
   closeButton: {
+    minHeight: 44,
+    justifyContent: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: Colors.surface,
+    borderRadius: 11,
+    backgroundColor: Colors.primary,
     borderWidth: 1,
     borderColor: Colors.border,
   },
 
   closeText: {
-    color: Colors.text,
+    color: Colors.inverseText,
     fontSize: 13,
     fontWeight: "900",
   },
@@ -280,6 +301,7 @@ const styles = StyleSheet.create({
 
   list: {
     maxHeight: 430,
+    flexShrink: 1,
   },
 
   listContent: {
@@ -342,6 +364,8 @@ const styles = StyleSheet.create({
   },
 
   favoriteButton: {
+    minHeight: 44,
+    justifyContent: "center",
     minWidth: 62,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -368,6 +392,8 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
+    minHeight: 44,
+    justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
@@ -403,4 +429,9 @@ const styles = StyleSheet.create({
     opacity: 0.75,
     transform: [{ scale: 0.98 }],
   },
+  errorText: { color: Colors.error, fontSize: 13, paddingVertical: 8 },
+  undoRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.primarySoft, borderRadius: 12, paddingLeft: 12, marginTop: 8 },
+  undoText: { color: Colors.text, fontSize: 13, flex: 1 },
+  undoButton: { minHeight: 44, minWidth: 64, alignItems: "center", justifyContent: "center" },
+  undoAction: { color: Colors.primary, fontSize: 14, fontWeight: "800" },
 });

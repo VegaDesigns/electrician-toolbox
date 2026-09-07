@@ -1,9 +1,9 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors, Effects } from "../../theme";
-import type { Precision } from "../../utils/calc/measure";
+import { formatFeetInches, type Precision } from "../../utils/calc/measure";
 import type { ResultFormatKey, ResultOption } from "./CalcDisplay";
 
 const PRECISION_OPTIONS: Precision[] = ["none", 32, 16, 8, 4, 2];
@@ -58,9 +58,10 @@ export default function WorkpadSettingsSheet({
               </Pressable>
             </View>
 
+            <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.settingBlock}>
               <Text style={styles.settingTitle}>Measurement precision</Text>
-              <Text style={styles.settingHint}>How closely fractional inches are rounded.</Text>
+              <Text style={styles.settingHint}>Round to the nearest fraction. None turns fractional rounding off.</Text>
               <View accessibilityRole="radiogroup" style={styles.segmented}>
                 {PRECISION_OPTIONS.map((value) => {
                   const selected = precision === value;
@@ -84,6 +85,8 @@ export default function WorkpadSettingsSheet({
                   );
                 })}
               </View>
+              <Text style={styles.exampleLabel}>EXAMPLE</Text>
+              <Text style={styles.exampleValue}>4.3″  →  {formatFeetInches(4.3, precision)}</Text>
             </View>
 
             {resultOptions.length > 1 ? (
@@ -142,6 +145,7 @@ export default function WorkpadSettingsSheet({
                 Measurement precision is saved automatically
               </Text>
             </View>
+            </ScrollView>
           </View>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -159,6 +163,8 @@ function getPrecisionAccessibilityLabel(value: Precision): string {
 }
 
 const styles = StyleSheet.create({
+  exampleLabel: { color: Colors.textMuted, fontSize: 10, letterSpacing: 1, marginTop: 14 },
+  exampleValue: { color: Colors.text, fontSize: 19, fontWeight: "600", marginTop: 5, fontVariant: ["tabular-nums"] },
   safe: { flex: 1, justifyContent: "flex-end" },
   scrim: {
     backgroundColor: "rgba(0,0,0,0.70)",
@@ -169,6 +175,7 @@ const styles = StyleSheet.create({
     top: 0,
   },
   sheet: {
+    maxHeight: "90%",
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
     borderTopLeftRadius: 24,
@@ -196,6 +203,8 @@ const styles = StyleSheet.create({
   eyebrow: { color: Colors.primary, fontSize: 8, fontWeight: "900", letterSpacing: 1 },
   title: { color: Colors.text, fontSize: 23, fontWeight: "900", marginTop: 2 },
   doneButton: {
+    minHeight: 44,
+    justifyContent: "center",
     backgroundColor: Colors.primary,
     borderRadius: 11,
     paddingHorizontal: 15,
@@ -213,27 +222,29 @@ const styles = StyleSheet.create({
     ...Effects.recessed,
   },
   settingTitle: { color: Colors.text, fontSize: 14, fontWeight: "900" },
-  settingHint: { color: Colors.textMuted, fontSize: 10, lineHeight: 14, marginTop: 3 },
+  settingHint: { color: Colors.textMuted, fontSize: 12, lineHeight: 18, marginTop: 3 },
   segmented: {
     backgroundColor: Colors.bg,
     borderColor: Colors.border,
     borderRadius: 11,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 3,
+    flexWrap: "wrap",
+    gap: 6,
     marginTop: 11,
     padding: 3,
   },
   segment: {
     alignItems: "center",
     borderRadius: 8,
-    flex: 1,
+    flexBasis: "30%",
+    flexGrow: 1,
     justifyContent: "center",
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: 5,
   },
   segmentSelected: { backgroundColor: Colors.primary, ...Effects.primaryRaised },
-  segmentText: { color: Colors.textMuted, fontSize: 11, fontWeight: "800" },
+  segmentText: { color: Colors.textMuted, fontSize: 13, fontWeight: "800" },
   segmentTextSelected: { color: Colors.inverseText, fontWeight: "900" },
   formatGrid: {
     flexDirection: "row",
@@ -259,10 +270,10 @@ const styles = StyleSheet.create({
   },
   formatLabel: {
     color: Colors.textSubtle,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: "900",
     letterSpacing: 0.45,
-    textTransform: "uppercase",
+    textTransform: "none",
   },
   formatLabelSelected: { color: Colors.primary },
   formatValue: {
@@ -273,12 +284,12 @@ const styles = StyleSheet.create({
   },
   formatNote: {
     color: Colors.textSubtle,
-    fontSize: 9,
+    fontSize: 11,
     marginTop: 8,
     textAlign: "center",
   },
   savedNote: { alignItems: "center", flexDirection: "row", gap: 7, paddingHorizontal: 3, paddingTop: 2 },
   savedDot: { backgroundColor: Colors.primary, borderRadius: 4, height: 6, width: 6 },
-  savedText: { color: Colors.textSubtle, fontSize: 9, fontWeight: "700" },
+  savedText: { color: Colors.textSubtle, fontSize: 11, fontWeight: "700" },
   pressed: { opacity: 0.78, transform: [{ scale: 0.985 }], ...Effects.pressed },
 });
