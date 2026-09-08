@@ -1,6 +1,6 @@
 # Electrician Toolbox — project-state handoff
 
-As of September 8, 2026. Internal iPhone field-test release 0.9.1 is being prepared; build receipts below will identify the exact shipped source.
+As of September 8, 2026. Bending release code is committed and pushed. Internal iPhone field-test build 0.9.1 (6) finished successfully and is ready to install; see the release receipt for its exact source.
 
 ## 1. Start here
 
@@ -10,8 +10,8 @@ The user approved saving and pushing the bending milestone, creating a new inter
 - Current focus: the Bending Suite, now implemented with seven bend workflows.
 - Latest milestone: extend the approved 90° screen’s simplified information layout and visual treatment to the other six bends.
 - Current state: local preview is working; lint, type checking and 86 automated tests passed again during release preparation.
-- Release status: save/push authorized; preparing a new version 0.9.1 internal iPhone build. Exact commit and build receipts will be recorded after the operations complete.
-- Next objective: collect specific field-test observations, reproduce them, and agree on the smallest useful fixes.
+- Release status: code committed and pushed as d0bf385; version 0.9.1, iPhone build 6 is FINISHED on EAS with an installable IPA artifact. Installation on the user's phone and field acceptance remain unverified.
+- Next objective: install build 0.9.1 (6), verify saved work and offline behavior, then collect specific field-test observations and agree on the smallest useful fixes.
 
 README has been updated to describe the implemented tools and the 0.9.1 field-test workflow. This handoff remains the detailed project-state reference.
 
@@ -22,9 +22,10 @@ README has been updated to describe the implemented tools and the 0.9.1 field-te
 | Local repository | `C:/Users/Cr_Ve/Documents/Codex/2026-08-20/i-am-looking-to-polish-out/work/electrician-toolbox-review` |
 | Git remote | [VegaDesigns/electrician-toolbox](https://github.com/VegaDesigns/electrician-toolbox) |
 | Working branch | `feature/home-navigation` |
+| Bending release source | [d0bf3852e70254754e4d757877f114c9113e0c98](https://github.com/VegaDesigns/electrician-toolbox/commit/d0bf3852e70254754e4d757877f114c9113e0c98) — Add polished Bending Suite and prepare 0.9.1 field-test release |
 | Previous pushed checkpoint | `32b0815be0e24ccfc7870d23f41c9aff64bd9a78` — Polish Jobsite Lists for field testing with notes, quantities and swipe actions |
 | Previous checkpoint date | September 7, 2026, 22:00:29 EDT |
-| Upstream state | GitHub fetched during release preparation; branch had no divergence before the new milestone commit. |
+| Upstream state | Release source d0bf385 pushed successfully to origin/feature/home-navigation. Final build-receipt documentation is a follow-up commit; the app source remains d0bf385. |
 | App name / version | Electrician Toolbox / 0.9.1 |
 | iOS bundle ID / Android package | `com.brokecoderlabs.electriciantoolbox` |
 | Expo owner | `brokecoderlabs` |
@@ -215,7 +216,7 @@ Current palette: graphite `#12161B`, surfaces `#1D2430` / `#2A3442`, safety ambe
 | Known limitation, not a newly reported bug | Only the stub animates; other bends show static views. All drawings are schematic. |
 | Maintenance warning | Expo Doctor passed 20/21 checks. Its dependency-alignment check reports 10 newer SDK 57 maintenance patches; tested locked versions are retained for this field build. No warnings were suppressed. |
 | Legacy cleanup deferred | Previous Job Board route/code/storage remain. Do not remove them or erase old user data during unrelated work. |
-| Distribution in progress | New internal iPhone build requested. Version/runtime 0.9.1 includes react-native-svg and avoids sharing the old 0.9.0 update runtime. Completion/install confirmation will be recorded below. |
+| Installation / field acceptance pending | EAS build 468f6cf3-1209-4a42-8251-ddb72cbb05bd FINISHED successfully with an IPA artifact. Version/runtime 0.9.1 includes native SVG; build 6 uses the profile containing the registered iPhone. Actual installation, retained user data and real-device behavior still need the user's confirmation. |
 
 No additional reproducible, unresolved bending code defect was established in the latest completed UI pass. That is not a claim that the suite is bug-free.
 
@@ -294,11 +295,30 @@ Deferred direction: user-selectable themes, subscription packaging, possible fut
 
 ## 10. Resume brief for the next session
 
-Read this handoff and the bending methods document. The active repo is on feature/home-navigation; the seven-workflow bending milestone is approved for an internal 0.9.1 iPhone release. Consult the release receipt for the exact source/build. Preserve the approved layout, saved drafts, generic hand-bender setup and inch/fraction results. The user is field-testing and will bring specific tweaks; ask for those observations rather than restarting the design. Future commits, updates and builds need their own user request.
+Read this handoff and the bending methods document. The active repo is on feature/home-navigation; the seven-workflow bending milestone is committed and pushed as d0bf385, and internal iPhone build 0.9.1 (6) has finished successfully. Consult the release receipt for the exact source/build. Preserve the approved layout, saved drafts, generic hand-bender setup and inch/fraction results. The user is field-testing and will bring specific tweaks; ask for those observations rather than restarting the design. Future commits, updates and builds need their own user request.
 
 ## 11. Release receipt — 0.9.1
 
 - Target: iOS internal/ad-hoc distribution, preview profile/channel, same app identifier and registered-device setup.
 - Previous installed-build candidate: version 0.9.0, build 5, EAS ID e33012e6-a297-43c1-b172-9519e4ef295b, source 32b0815be0e24ccfc7870d23f41c9aff64bd9a78.
-- New build: pending milestone commit and EAS submission. This section will be updated with the source commit, build ID, final status and install page.
+- Release code commit: [d0bf3852e70254754e4d757877f114c9113e0c98](https://github.com/VegaDesigns/electrician-toolbox/commit/d0bf3852e70254754e4d757877f114c9113e0c98), pushed to feature/home-navigation.
+- EAS build ID: `468f6cf3-1209-4a42-8251-ddb72cbb05bd`.
+- Version / iOS build number / runtime: `0.9.1 / 6 / 0.9.1`.
+- Profile / channel / distribution: `preview / preview / INTERNAL`; physical iPhone, not simulator.
+- EAS status: `FINISHED`; installable IPA artifact returned. Source commit, app version, build number and runtime verified against the EAS build record.
+- Download availability verified: HTTP 200; IPA artifact size 12,193,328 bytes. This does not substitute for installing and testing on the physical phone.
+- Completed: September 8, 2026, 06:35:40 UTC (02:35:40 EDT). Cloud build duration was approximately 5 minutes 43 seconds.
+- Successful installation on the user's phone has not been claimed; the install link is ready for the user.
+- Submitted: September 8, 2026, 06:29:58 UTC (02:29:58 EDT).
+- Build and installation page: [Open this exact iPhone build](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/468f6cf3-1209-4a42-8251-ddb72cbb05bd).
+- Expo-reported build expiration: September 22, 2026, 06:29 UTC. This is separate from the signing certificate/profile expiration.
+- Signing: existing remote credentials reused with `--freeze-credentials`; the selected profile contains the registered iPhone. No new Apple login, device registration, certificate or provisioning-profile mutation was performed. Non-interactive EAS did not revalidate those credentials against Apple’s portal.
+- Remote build-number management incremented 5 to 6. The legacy local `ios.buildNumber` value in app.json is ignored by EAS; the build receipt is authoritative.
+- The follow-up handoff commit records the build result; it does not change the app source uploaded from d0bf385.
 - No store submission or JavaScript OTA publication requested or performed.
+
+### Installation and first field check
+
+The build is FINISHED. Open its installation page in Safari on the registered iPhone and use Install. Install over the existing Electrician Toolbox app rather than deleting it first; local lists, history and preferences should not be intentionally erased for this update.
+
+After installation, confirm that Bending opens, try a 10″ stub with a verified 6″ deduction (4″ mark), and check the 6″ / 30° offset example (12″ spacing). Check existing saved lists/history and reopen the app offline. These checks are for the user; successful installation and physical bending accuracy cannot be claimed from a cloud build alone.
