@@ -6,6 +6,8 @@ export interface GuideStep {
   instruction: string;
   finished: boolean;
   marks: number[];
+  formed?: number[];
+  flip?: boolean;
 }
 
 // Presentation only: measurement rules and complete instructions stay in calculate().
@@ -26,6 +28,7 @@ export function bendPresentation(bend: OtherBend, r: Result, p: Precision) {
         step("Measure", r.steps[1], false, [0]),
         step("Star", r.steps[2], false, [0]),
         step("Bend", r.steps[3], true, [0]),
+        step("Check", "Check the outside back-to-back distance, both resting 90° angles and that the legs lie in the same plane.", true),
       ];
       break;
     case "saddle3":
@@ -51,6 +54,37 @@ export function bendPresentation(bend: OtherBend, r: Result, p: Precision) {
         step("Bend", r.steps[2], true, all),
         step("Check", r.steps[3], true),
       ];
+  }
+  // Each physical bend gets its own view. The calculator remains authoritative.
+  if (bend !== "back") {
+    const formedStep = (label: string, instruction: string, formed: number[], marks: number[], flip = false): GuideStep =>
+      ({ label, instruction, formed, marks, flip, finished: formed.length === r.marks.length });
+    if (bend === "saddle3") {
+      steps = [
+        steps[0], steps[1],
+        formedStep("Center", r.steps[2], [1], [1]),
+        formedStep("Return 1", `Arrow on the near return mark. Bend ${r.angle}° opposite the center bend, in the same plane.`, [1, 0], [0]),
+        formedStep("Return 2", `Arrow on the far return mark. Make the other ${r.angle}° return opposite the center bend. Keep all bends in one plane.`, [1, 0, 2], [2]),
+        formedStep("Check", "Check saddle height, parallel legs, and obstacle clearance after springback.", all, []),
+      ];
+    } else if (bend === "saddle4") {
+      steps = [steps[0], steps[1],
+        ...all.map((i) => formedStep(`Bend ${i + 1}`,
+          `Arrow on mark ${i + 1}: bend ${r.angle}°. ${["Start the first offset.", "Rotate the pipe 180°; bring the first pair parallel.", "Start the return pair toward the original level.", "Rotate the pipe 180°; bring the final leg parallel."][i]}`, all.slice(0, i + 1), [i])),
+        formedStep("Check", r.steps[3], all, []),
+      ];
+    } else {
+      const base = bend === "rolling" ? 1 : 0;
+      steps = [
+        ...(bend === "rolling" ? [steps[0]] : []),
+        step("Place", r.steps[base], false, [0]),
+        step("Space", r.steps[base + 1], false, all),
+        formedStep("Bend 1", `Arrow on the first mark. Make the first ${r.angle}° bend; check the resting angle.`, [0], [0]),
+        formedStep("Flip", "Rotate the conduit 180° around its length. Keep the second bend in the same plane to avoid a dogleg.", [0], [1], true),
+        formedStep("Bend 2", `Arrow on the second mark. Bend ${r.angle}° in the opposite direction until both legs are parallel.`, all, [1], true),
+        formedStep("Check", r.steps[base + 3], all, [], true),
+      ];
+    }
   }
   const marking =
     bend === "back"

@@ -1,4 +1,6 @@
 import React from "react";
+import { guideGeometry, backPreviewGeometry } from "../../utils/bending/guideGeometry";
+import { useGuideMotion } from "./useGuideMotion";
 import Svg, {
   Defs,
   Ellipse,
@@ -42,7 +44,7 @@ function Label({
     </Text>
   );
 }
-type End = { x: number; y: number; vertical?: boolean };
+type End = { x: number; y: number; vertical?: boolean; rotation?: number };
 function Pipe({ d, ends }: { d: string; ends: End[] }) {
   return (
     <G>
@@ -84,7 +86,7 @@ function Pipe({ d, ends }: { d: string; ends: End[] }) {
             " " +
             (end.y - 2) +
             ") rotate(" +
-            (end.vertical ? 90 : 0) +
+            (end.rotation ?? (end.vertical ? 90 : 0)) +
             ")"
           }
         >
@@ -178,143 +180,85 @@ function rounded(points: number[][]) {
   const last = points[points.length - 1];
   return d + " L" + last[0] + " " + last[1];
 }
-function Height({
-  top,
-  bottom,
-  label,
-}: {
-  top: number;
-  bottom: number;
-  label: string;
-}) {
-  return (
-    <G>
-      <Path
-        d={
-          "M324 " +
-          top +
-          " H363 M324 " +
-          bottom +
-          " H363 M358 " +
-          top +
-          " V" +
-          bottom +
-          " M354 " +
-          (top + 5) +
-          " L358 " +
-          top +
-          " L362 " +
-          (top + 5) +
-          " M354 " +
-          (bottom - 5) +
-          " L358 " +
-          bottom +
-          " L362 " +
-          (bottom - 5)
-        }
-        stroke={C.primary}
-        fill="none"
-      />
-      <Label x={350} y={top - 20} color={C.primary} width={88}>
-        {label}
-      </Label>
-    </G>
-  );
-}
 export function BendDiagram({
   bend,
   result: r,
   finished,
   precision: p,
   focusMarks,
+  formed,
+  flip = false,
+  guideLabel: selectedGuideLabel,
 }: {
   bend: OtherBend;
   result: Result;
   finished: boolean;
   precision: Precision;
   focusMarks?: number[];
+  formed?: number[];
+  flip?: boolean;
+  guideLabel?: string;
 }) {
+  const guideLabel = selectedGuideLabel ?? (finished ? "Check" : undefined);
   const f = (n: number) => inches(n, p);
   const color = (i: number) =>
     !focusMarks || focusMarks.includes(i) ? C.primary : C.borderStrong;
+  const motion = useGuideMotion([
+    ...r.marks.map((_, i) => formed ? Number(formed.includes(i)) : Number(finished)),
+    Number(flip),
+  ]);
   let drawing: React.ReactNode;
   if (bend === "back") {
-    drawing = finished ? (
-      <>
-        <Pipe
-          d="M70 76 V166 Q70 194 98 194 H302 Q330 194 330 166 V76"
-          ends={[
-            { x: 70, y: 76, vertical: true },
-            { x: 330, y: 76, vertical: true },
-          ]}
-        />
-        <Dim x1={60} x2={340} y={239} label={f(r.span)} />
-        <Label x={116} y={162} color={C.primary}>
-          90°
-        </Label>
-        <Label x={284} y={162} color={C.primary}>
-          90°
-        </Label>
-        <Label x={200} y={36}>
-          OUTSIDE BACK TO BACK
-        </Label>
-      </>
-    ) : (
-      <>
-        <Pipe
-          d="M70 104 V147 Q70 180 103 180 H360"
-          ends={[
-            { x: 70, y: 104, vertical: true },
-            { x: 360, y: 180 },
-          ]}
-        />
-        <Dim x1={60} x2={280} y={76} label={f(r.span)} />
-        <Line
-          x1={60}
-          x2={60}
-          y1={82}
-          y2={200}
-          stroke={C.borderStrong}
-          strokeDasharray="3 4"
-        />
-        <Line
-          x1={280}
-          x2={280}
-          y1={86}
-          y2={163}
-          stroke={color(0)}
-          strokeDasharray="3 4"
-        />
-        <Line
-          x1={280}
-          x2={280}
-          y1={167}
-          y2={190}
-          stroke={color(0)}
-          strokeWidth={4}
-        />
-        <Label x={280} y={221} color={color(0)}>
-          ★ Star mark
-        </Label>
-        <Label x={91} y={240}>
-          Existing 90°
-        </Label>
-      </>
-    );
+    const { points, angle } = backPreviewGeometry(motion[0]);
+    const last = points[points.length - 1];
+    drawing = <>
+      <Pipe d={rounded(points)} ends={[{ x: 70, y: 85, vertical: true }, { x: last[0], y: last[1], rotation: -angle * 180 / Math.PI }]} />
+      <Dim x1={60} x2={250} y={62} label={f(r.span)} />
+      <Label x={200} y={28} width={340}>{"FROM THE OUTSIDE BACK OF THE FIRST 90"}</Label>
+      <Line x1={250} x2={250} y1={176} y2={201} stroke={C.primary} strokeWidth={3} />
+      <Label x={250} y={226} color={C.primary}>{motion[0] < 0.01 ? "★ Star mark" : `${Number((motion[0] * 90).toFixed(1))}° · Star`}</Label>
+      <Label x={102} y={250} width={140}>{"Existing 90°"}</Label>
+    </>;
+  } else if (finished || (formed?.length ?? 0) > 0 || motion.slice(0, r.marks.length).some(v => v > 0.001)) {
+    const { points: pts, headings } = guideGeometry(bend, r.angle, motion, motion[r.marks.length]);
+    const first = pts[0], last = pts[pts.length - 1];
+    const selected = focusMarks?.[0];
+    const labelXs = r.marks.map((_, i) => 55 + i * 290 / (r.marks.length - 1));
+    drawing = <>
+      <Label x={200} y={30} color={C.primary} width={340}>
+        {guideLabel === "Flip" ? "ROTATE CONDUIT 180°" : selected !== undefined ?
+          `Mark ${selected + 1} · ${guideLabel} · ${r.marks[selected].angle}°` : "CHECK HEIGHT & PARALLEL LEGS"}
+      </Label>
+      <Pipe d={rounded(pts)} ends={[
+        { x: first[0], y: first[1], rotation: headings[0] * 180 / Math.PI * Math.cos(Math.PI * motion[r.marks.length]) },
+        { x: last[0], y: last[1], rotation: headings[headings.length - 1] * 180 / Math.PI * Math.cos(Math.PI * motion[r.marks.length]) },
+      ]} />
+      {r.marks.map((mark, i) => <G key={i}>
+        <Line x1={pts[i + 1][0]} x2={pts[i + 1][0]} y1={pts[i + 1][1] - 12} y2={pts[i + 1][1] + 12} stroke={color(i)} strokeWidth={3} />
+        {guideLabel === "Check" && <Line x1={pts[i + 1][0]} y1={pts[i + 1][1] + 14} x2={labelXs[i]} y2={235} stroke={C.borderStrong} />}
+        {((selected === i && guideLabel !== "Flip") || guideLabel === "Check" || (guideLabel === "Flip" && i === 0)) && <Label x={guideLabel === "Check" ? labelXs[i] : pts[i + 1][0]} y={guideLabel === "Check" ? 255 : pts[i + 1][1] + 34} color={color(i)} width={60}>
+          {Number((mark.angle * motion[i]).toFixed(1)) + "°"}
+        </Label>}
+      </G>)}
+      {guideLabel === "Flip" && <Label x={200} y={270} color={C.primary} width={340}>{"↻ 180° · Keep both bends in one plane"}</Label>}
+      {guideLabel === "Check" && <Label x={200} y={282} color={C.primary} width={330}>{bend === "rolling" ? `Rise ${f(r.height)} · Sideways ${f(r.roll)}` : `Finished height ${f(r.height)}`}</Label>}
+    </>;
   } else if (!finished) {
-    const xs =
+    const straight = guideGeometry(bend, r.angle, r.marks.map(() => 0)).points;
+    const xs = straight ? straight.slice(1, -1).map(pt => pt[0]) :
       r.marks.length === 4
         ? [65, 145, 255, 335]
         : r.marks.length === 3
           ? [70, 200, 330]
           : [80, 320];
+    const labelXs = r.marks.map((_, i) => 55 + i * 290 / (r.marks.length - 1));
     drawing = (
       <>
         <Pipe
-          d="M35 150 H365"
+          d={straight ? `M${straight[0][0]} 145 H${straight[straight.length - 1][0]}` : "M35 150 H365"}
           ends={[
-            { x: 35, y: 150 },
-            { x: 365, y: 150 },
+            { x: straight?.[0][0] ?? 35, y: straight ? 145 : 150 },
+            { x: straight?.[straight.length - 1][0] ?? 365, y: straight ? 145 : 150 },
           ]}
         />
         {xs.map((x, i) => (
@@ -336,21 +280,22 @@ export function BendDiagram({
               strokeWidth={4}
             />
             <Line
-              x1={x}
+              x1={labelXs[i]}
               x2={x}
               y1={112}
               y2={130}
               stroke={color(i)}
               strokeDasharray="2 4"
             />
-            <Label x={x} y={199} color={color(i)} width={76}>
+            <Line x1={x} y1={165} x2={labelXs[i]} y2={182} stroke={C.borderStrong} />
+            <Label x={labelXs[i]} y={199} color={color(i)} width={76}>
               {bend === "saddle3"
                 ? i === 1
                   ? "Center"
                   : "Return"
                 : "Mark " + (i + 1)}
             </Label>
-            <Label x={x} y={222} width={76}>
+            <Label x={labelXs[i]} y={222} width={76}>
               {r.marks[i].angle + "°"}
             </Label>
           </G>
@@ -358,106 +303,12 @@ export function BendDiagram({
         {r.gaps.map((gap, i) => (
           <Dim
             key={i}
-            x1={xs[i]}
-            x2={xs[i + 1]}
+            x1={labelXs[i]}
+            x2={labelXs[i + 1]}
             y={r.marks.length === 4 && i === 1 ? 60 : 98}
             label={f(gap)}
           />
         ))}
-      </>
-    );
-  } else {
-    const saddle = bend === "saddle3" || bend === "saddle4";
-    const theta = (r.angle * Math.PI) / 180;
-    const run = saddle ? (bend === "saddle4" ? 66 : 110) : 160;
-    const dy = Math.min(110, run * Math.tan(theta)),
-      dx = dy / Math.tan(theta);
-    const bridge = bend === "saddle4" ? 70 : 0;
-    const left = (330 - (saddle ? 2 * dx + bridge : dx)) / 2;
-    // Center shallow and steep bends on the same stage, not against the bottom edge.
-    const bottom = 150 + dy / 2,
-      top = 150 - dy / 2;
-    const pts = saddle
-      ? [
-          [20, bottom],
-          [left, bottom],
-          [left + dx, top],
-          ...(bend === "saddle4" ? [[left + dx + bridge, top]] : []),
-          [330 - left, bottom],
-          [310, bottom],
-        ]
-      : [
-          [20, bottom],
-          [left, bottom],
-          [left + dx, top],
-          [310, top],
-        ];
-    drawing = (
-      <>
-        <Pipe
-          d={rounded(pts)}
-          ends={[
-            { x: 20, y: bottom },
-            { x: 310, y: saddle ? bottom : top },
-          ]}
-        />
-        <Label x={left} y={bottom + 37} color={color(0)} width={80}>
-          {r.angle + "°"}
-        </Label>
-        <Label x={left + dx} y={top - 24} color={color(1)} width={70}>
-          {(bend === "saddle3" ? r.angle * 2 : r.angle) + "°"}
-        </Label>
-        {bend === "saddle4" && (
-          <Label
-            x={left + dx + bridge}
-            y={top - 24}
-            color={color(2)}
-            width={70}
-          >
-            {r.angle + "°"}
-          </Label>
-        )}
-        {saddle && (
-          <Label
-            x={330 - left}
-            y={bottom + 37}
-            color={color(r.marks.length - 1)}
-            width={80}
-          >
-            {r.angle + "°"}
-          </Label>
-        )}
-        <Height
-          top={top}
-          bottom={bottom}
-          label={f(
-            bend === "rolling" ? Math.hypot(r.height, r.roll) : r.height,
-          )}
-        />
-        {bend === "rolling" && (
-          <G>
-            <Label x={76} y={22} width={95}>
-              END VIEW
-            </Label>
-            <Path
-              d={
-                "M50 88 V" +
-                (88 - (r.height * 48) / Math.hypot(r.height, r.roll)) +
-                " H" +
-                (50 + (r.roll * 48) / Math.hypot(r.height, r.roll)) +
-                " Z"
-              }
-              stroke={C.borderStrong}
-              fill="#4D6A8618"
-            />
-            <Label x={24} y={65} width={43}>
-              {f(r.height)}
-            </Label>
-            <Label x={100} y={45} width={70}>
-              {f(r.roll)}
-            </Label>
-          </G>
-        )}
       </>
     );
   }
@@ -467,13 +318,13 @@ export function BendDiagram({
       height={280}
       viewBox="0 0 400 290"
       accessibilityLabel={
-        (finished ? "Finished shape" : "Marking layout") +
+        (selectedGuideLabel ? `Guide: ${selectedGuideLabel}` : finished ? "Finished shape" : "Marking layout") +
         ": " +
         r.label +
         " " +
         f(r.value) +
         ". " +
-        r.marks.map((m) => m.label + ", " + m.angle + " degrees").join(". ")
+        r.marks.map((m, i) => "Mark " + (i + 1) + (m.label === "Mark " + (i + 1) ? "" : ", " + m.label) + ", " + m.angle + " degrees").join(". ")
       }
     >
       <Defs>

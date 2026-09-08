@@ -7,6 +7,7 @@ import {
   Result,
 } from "../../utils/bending/bending";
 import { bendPresentation, OtherBend } from "../../utils/bending/presentation";
+import { PreviewControls, GuideNavigation } from "./PreviewControls";
 import { BendDiagram } from "./BendDiagram";
 import { previewStyles as styles } from "./previewStyles";
 
@@ -38,60 +39,15 @@ export function BendPreview({
     : finished
       ? content.finished
       : content.marking;
+  function selectStep(index: number) {
+    setStep(index); onFinishedChange(content.steps[index].finished);
+  }
   return (
     <View>
-      <View style={styles.controls}>
-        {guided ? (
-          <View style={styles.steps}>
-            {content.steps.map((item, i) => (
-              <Pressable
-                key={item.label}
-                accessibilityRole="button"
-                accessibilityLabel={`${i + 1}. ${item.label}`}
-                accessibilityState={{ selected: step === i }}
-                onPress={() => {
-                  setStep(i);
-                  onFinishedChange(item.finished);
-                }}
-                style={({ pressed }) => [
-                  styles.step,
-                  step === i && styles.active,
-                  { opacity: pressed ? 0.65 : 1 },
-                ]}
-              >
-                <Text style={[styles.stepNumber, step === i && styles.amber]}>
-                  {i + 1}
-                </Text>
-                <Text style={[styles.stepName, step === i && styles.amber]}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.tabs}>
-            {[false, true].map((value) => (
-              <Pressable
-                key={String(value)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: finished === value }}
-                onPress={() => onFinishedChange(value)}
-                style={({ pressed }) => [
-                  styles.tab,
-                  finished === value && styles.active,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Text
-                  style={[styles.tabText, finished === value && styles.amber]}
-                >
-                  {value ? "Finished" : "Mark it"}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-      </View>
+      <PreviewControls guided={guided} finished={finished} steps={content.steps.map(s => s.label)} step={step}
+        onView={onFinishedChange} onGuide={() => {
+          setGuided(!guided); setStep(0); onFinishedChange(false);
+        }} onStep={selectStep} />
       <View style={styles.stage}>
         <BendDiagram
           bend={bend}
@@ -99,8 +55,30 @@ export function BendPreview({
           precision={precision}
           finished={finished}
           focusMarks={guided ? current.marks : undefined}
+          formed={guided ? (current.formed ?? []) : undefined}
+          flip={guided && current.flip}
+          guideLabel={guided ? current.label : undefined}
         />
       </View>
+      {!result.relative && bend !== "back" && (
+        <View style={styles.markList}>
+          <Text style={styles.legend}>MARKS FROM TIP</Text>
+          <View style={styles.markRows}>
+            {result.marks.map((mark, i) => (
+              <View key={i} style={styles.markPosition}>
+                <Text style={styles.legend}>
+                  {bend === "saddle3"
+                    ? `${i + 1} · ${["Near return", "Center", "Far return"][i]}`
+                    : `Mark ${i + 1}`}
+                </Text>
+                <Text
+                  style={styles.markMeasurement}
+                >{`${isRounded(mark.at, precision) ? "≈ " : ""}${inches(mark.at, precision)}`}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
       <View style={styles.summary}>
         <View style={styles.summaryText}>
           <Text
@@ -120,48 +98,14 @@ export function BendPreview({
       <View style={styles.caption}>
         <Text style={styles.captionText}>{instruction}</Text>
       </View>
-      {!result.relative && bend !== "back" && (
-        <View style={styles.markList}>
-          <Text style={styles.legend}>FROM PIPE END</Text>
-          <View style={styles.markRows}>
-            {result.marks.map((mark, i) => (
-              <View key={i} style={styles.markPosition}>
-                <Text style={styles.legend}>
-                  {bend === "saddle3"
-                    ? ["Near return", "Center", "Far return"][i]
-                    : `Mark ${i + 1}`}
-                </Text>
-                <Text
-                  style={styles.copyText}
-                >{`${isRounded(mark.at, precision) ? "≈ " : ""}${inches(mark.at, precision)}`}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
+      {guided && <GuideNavigation step={step} count={content.steps.length} onStep={selectStep} />}
       {bend === "rolling" && (
         <Text
           style={[styles.hint, { paddingBottom: 10 }]}
         >{`True offset ${inches(Math.hypot(result.height, result.roll), precision)} · Roll ${result.rollAngle?.toFixed(1)}° from vertical`}</Text>
       )}
       <View style={styles.footer}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: guided }}
-          onPress={() => {
-            setGuided(!guided);
-            setStep(0);
-            if (!guided) onFinishedChange(content.steps[0].finished);
-          }}
-          style={({ pressed }) => [
-            styles.textButton,
-            { opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <Text style={styles.guideText}>
-            {guided ? "Exit guide" : "Guide me"}
-          </Text>
-        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Bender help and references"
@@ -175,11 +119,6 @@ export function BendPreview({
         </Pressable>
       </View>
       <Text style={styles.hint}>{content.notice}</Text>
-      {content.closeMarks && bend !== "box" && (
-        <Text style={styles.hint}>
-          Close marks: make sure the shoe can seat between bends.
-        </Text>
-      )}
       <Text style={styles.hint}>
         Drawing not to scale · Full measurements in Help
       </Text>

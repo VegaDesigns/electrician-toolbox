@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Pressable, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import Svg, {
   Defs,
   Ellipse,
@@ -11,6 +11,8 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from "react-native-svg";
+import { PreviewControls, GuideNavigation } from "./PreviewControls";
+import { useGuideMotion } from "./useGuideMotion";
 import { Colors as C } from "../../theme";
 import { previewStyles as styles } from "./previewStyles";
 import {
@@ -26,13 +28,14 @@ import {
   stubPipePath as pipePath,
 } from "../../utils/bending/stubPreviewGeometry";
 
-type Step = "measure" | "deduct" | "mark";
-const steps = ["measure", "deduct", "mark", "bend"] as const;
+type Step = "measure" | "deduct" | "mark" | "bend" | "check";
+const steps = ["measure", "deduct", "mark", "bend", "check"] as const;
 const names = {
   measure: "Measure",
   deduct: "Deduct",
   mark: "Mark",
   bend: "Bend",
+  check: "Check",
 };
 // SVG labels receive one string; separate text children overlap on native SVG.
 function Label({
@@ -107,52 +110,11 @@ export function StubPreview({
   onHelp: () => void;
 }) {
   const [step, setStep] = useState<Step>("mark"),
-    [guided, setGuided] = useState(false),
-    [amount, setAmount] = useState(finished ? 1 : 0);
-  const position = useRef(finished ? 1 : 0),
-    reduceMotion = useRef(true);
-  useEffect(() => {
-    let active = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((value) => {
-        if (active) reduceMotion.current = value;
-      })
-      .catch(() => {});
-    const listener = AccessibilityInfo.addEventListener(
-      "reduceMotionChanged",
-      (value) => {
-        reduceMotion.current = value;
-      },
-    );
-    return () => {
-      active = false;
-      listener.remove();
-    };
-  }, []);
-  useEffect(() => {
-    const end = finished ? 1 : 0,
-      start = position.current;
-    let frame = 0;
-    let began: number | undefined;
-    if (reduceMotion.current) {
-      position.current = end;
-      setAmount(end);
-      return;
-    }
-    function tick(time: number) {
-      began ??= time;
-      const t = Math.min((time - began) / 650, 1),
-        ease = t * t * (3 - 2 * t);
-      position.current = start + (end - start) * ease;
-      setAmount(position.current);
-      if (t < 1) frame = requestAnimationFrame(tick);
-    }
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [finished]);
+    [guided, setGuided] = useState(false);
+  const [amount] = useGuideMotion([Number(finished)]);
   const f = (n: number) => inches(n, precision),
     markX = STUB_MARK.x,
-    active = finished ? "bend" : step,
+    active = guided ? step : finished ? "bend" : "mark",
     end = point(300, amount),
     tip = point(0, amount),
     mark = point(STUB_MARK_DISTANCE, amount),
@@ -161,77 +123,24 @@ export function StubPreview({
     ? finished
       ? "Check the outside height and resting angle after springback."
       : "Arrow on the amber mark; hook toward the short end."
-    : finished
+    : step === "bend"
+      ? "Arrow on the mark, hook toward the short end. Bend to a resting 90° after springback."
+      : finished
       ? `Check ${f(r.height)} to the outside back of the pipe after springback.`
       : step === "measure"
         ? `From the cut end, measure ${f(r.height)}. This is your target—not the bend mark.`
         : step === "deduct"
           ? `Come back ${f(r.deduction)} toward the same end. You land at ${f(r.value)}.`
           : `Put the arrow on the ${f(r.value)} mark. Face the hook toward the short end.`;
+  function selectStep(index: number) {
+    const next = steps[index]; setStep(next); onFinishedChange(next === "bend" || next === "check");
+  }
   return (
     <View>
-      <View style={styles.controls}>
-        {guided ? (
-          <View style={styles.steps}>
-            {steps.map((item, i) => (
-              <Pressable
-                key={item}
-                accessibilityRole="button"
-                accessibilityLabel={`${i + 1}. ${names[item]}`}
-                accessibilityState={{ selected: active === item }}
-                onPress={() => {
-                  if (item === "bend") onFinishedChange(true);
-                  else {
-                    setStep(item);
-                    onFinishedChange(false);
-                  }
-                }}
-                style={({ pressed }) => [
-                  styles.step,
-                  active === item && styles.active,
-                  { opacity: pressed ? 0.65 : 1 },
-                ]}
-              >
-                <Text
-                  style={[styles.stepNumber, active === item && styles.amber]}
-                >
-                  {i + 1}
-                </Text>
-                <Text
-                  style={[styles.stepName, active === item && styles.amber]}
-                >
-                  {names[item]}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.tabs}>
-            {[false, true].map((value) => (
-              <Pressable
-                key={String(value)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: finished === value }}
-                onPress={() => {
-                  setStep("mark");
-                  onFinishedChange(value);
-                }}
-                style={({ pressed }) => [
-                  styles.tab,
-                  finished === value && styles.active,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Text
-                  style={[styles.tabText, finished === value && styles.amber]}
-                >
-                  {value ? "Finished" : "Mark it"}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-      </View>
+      <PreviewControls guided={guided} finished={finished} steps={steps.map(s => names[s])}
+        step={steps.indexOf(active)} onView={value => { setStep("mark"); onFinishedChange(value); }}
+        onGuide={() => { setGuided(!guided); setStep(guided ? "mark" : "measure"); onFinishedChange(false); }}
+        onStep={selectStep} />
       <View style={styles.stage}>
         <Svg
           width="100%"
@@ -466,24 +375,9 @@ export function StubPreview({
       <View style={styles.caption}>
         <Text style={styles.captionText}>{instruction}</Text>
       </View>
+      {guided && <GuideNavigation step={steps.indexOf(active)} count={steps.length} onStep={selectStep} />}
       <View style={styles.footer}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: guided }}
-          onPress={() => {
-            setGuided(!guided);
-            setStep(guided ? "mark" : "measure");
-            if (!guided) onFinishedChange(false);
-          }}
-          style={({ pressed }) => [
-            styles.textButton,
-            { opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <Text style={styles.guideText}>
-            {guided ? "Exit guide" : "Guide me"}
-          </Text>
-        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Bender help and references"

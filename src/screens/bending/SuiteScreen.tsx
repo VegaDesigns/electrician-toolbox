@@ -30,6 +30,7 @@ import {
   initialDraft,
   parseInches,
 } from "../../utils/bending/bending";
+import { fitForDraft } from "../../utils/bending/feasibility";
 import { BendPreview } from "./BendPreview";
 import { StubPreview } from "./StubPreview";
 import { styles as s } from "./suiteStyles";
@@ -122,6 +123,9 @@ export default function SuiteScreen() {
     ),
     r = calc.result,
     b = BENDS.find((b) => b.id === bend)!;
+  const fit = r ? fitForDraft(bend, r, draft, settings.size, settings.deduction, settings.method, settings.precision) : null;
+  const strongFitWarning = fit?.issues.some(i => i.blocksLayout || i.title === "Likely too tight for the bender" || i.title === "Tight back-to-back bends") ?? false;
+  const layoutBlocked = fit?.issues.some(i => i.blocksLayout) ?? false;
   const f = (n: number) => inches(n, settings.precision);
   useEffect(() => {
     let active = true;
@@ -197,7 +201,12 @@ export default function SuiteScreen() {
     const timer = setTimeout(() => setCopied(false), 2200);
     return () => clearTimeout(timer);
   }, [copied]);
+  const previewKey = `${bend}:${JSON.stringify(draft)}:${settings.deduction}:${settings.method}:${settings.precision}:${settings.size}`;
+  function applySettings(change: Partial<Settings>) {
+    setSettings(v => ({ ...v, ...change })); setFinished(false); setCopied(false);
+  }
   function update(change: Partial<Draft>) {
+    setFinished(false);
     setDrafts((v) => ({ ...v, [bend]: { ...v[bend], ...change } }));
     setCopied(false);
   }
@@ -225,7 +234,7 @@ export default function SuiteScreen() {
       );
       return;
     }
-    if (editing === "deduction") setSettings((v) => ({ ...v, deduction: n }));
+    if (editing === "deduction") applySettings({ deduction: n });
     else update({ [editing]: text.trim() });
     setSheet(null);
   }
@@ -242,7 +251,7 @@ export default function SuiteScreen() {
     bridge: "Between inner marks",
     span: "Outside back-to-back",
     location:
-      bend === "saddle3" ? "Obstacle center from end" : "First mark from end",
+      bend === "saddle3" ? "Obstacle center from tip" : "First mark from tip",
     deduction: "Bender deduction",
   };
   function tile(field: Field) {
@@ -261,11 +270,11 @@ export default function SuiteScreen() {
     );
   }
   async function copy() {
-    if (!r) return;
+    if (!r || layoutBlocked) return;
     setFeedbackError("");
     try {
       await Clipboard.setStringAsync(
-        `${b.title} · ${sizes[settings.size].name} EMT\n${r.label}: ${f(r.value)}\n${r.origin}\n${r.steps.join("\n")}\n${r.method}. Nearest 1/${settings.precision} inch. Verify with your bender.`,
+        `${b.title} · ${sizes[settings.size].name} EMT\n${r.label}: ${f(r.value)}\n${r.origin}\n${r.steps.join("\n")}\n${[...r.warnings, ...(fit?.issues.map(i => `${i.title}: ${i.message}`) ?? [])].join("\n")}\n${r.method}. Nearest 1/${settings.precision} inch. Verify with your bender.`,
       );
       setCopied(true);
     } catch {
@@ -291,11 +300,15 @@ export default function SuiteScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
       <View style={s.header}>
-        <Button label="←" onPress={() => router.replace("/")} />
-        <View style={s.grow}>
-          <Text style={s.eyebrow}>MEASURE · MARK · BEND</Text>
-          <Text style={s.title}>Bending Suite</Text>
-        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Return to toolbox home"
+          onPress={() => router.replace("/")} style={({ pressed }) => [s.homeButton, { opacity: pressed ? 0.7 : 1 }]}>
+          <Text style={s.homeIcon}>⌂</Text><Text style={s.homeLabel}>Toolbox</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Change bend from header, currently ${b.title}`}
+          onPress={() => setSheet("bends")} style={[s.grow, { minHeight: 48, justifyContent: "center", gap: 3 }]}>
+          <Text style={s.headerTitle}>Bending Suite</Text>
+          <Text style={s.label}>{b.title} ⌄</Text>
+        </Pressable>
         <Button label="⚙" onPress={() => setSheet("settings")} />
       </View>
       <ScrollView
@@ -318,16 +331,18 @@ export default function SuiteScreen() {
         ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Choose bend type"
+          accessibilityLabel={`Change bend type, currently ${b.title}`}
           onPress={() => setSheet("bends")}
           style={[s.card, s.row]}
         >
           <Text style={[s.title, s.amber]}>{b.icon}</Text>
           <View style={s.grow}>
+            <Text style={s.eyebrow}>BEND TYPE</Text>
             <Text style={s.title}>{b.title}</Text>
             <Text style={s.muted}>{b.hint}</Text>
           </View>
-          <Text style={s.amber}>⌄</Text>
+          <Text style={s.changeBend}>Change
+bend ⌄</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -376,24 +391,44 @@ export default function SuiteScreen() {
             </>
           )}
           {!["stub", "back"].includes(bend) && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${labels.location}, optional`}
-              onPress={() => openInput("location")}
-              style={s.locationButton}
-            >
-              <Text style={s.muted}>
-                {draft.location
-                  ? `${labels.location}: ${f(parseInches(draft.location) ?? 0)} · Change`
-                  : "+ Mark location (optional)"}
-              </Text>
-            </Pressable>
+            draft.location ? (
+              <View style={s.savedLocation}>
+                <Text style={[s.text, s.grow]}>
+                  {`${labels.location}: ${f(parseInches(draft.location) ?? 0)}`}
+                </Text>
+                <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${labels.location}`}
+                  onPress={() => openInput("location")}
+                  style={({ pressed }) => [s.locationEdit, { opacity: pressed ? 0.7 : 1 }]}>
+                  <Text style={s.label}>Edit</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable accessibilityRole="button" accessibilityLabel={`Add ${labels.location}, optional`}
+                onPress={() => openInput("location")}
+                style={({ pressed }) => [s.locationButton, { opacity: pressed ? 0.7 : 1 }]}>
+                <Text style={s.locationIcon}>＋</Text>
+                <Text style={s.locationText}>{`Add ${bend === "saddle3" ? "obstacle center" : "first mark"}`}</Text>
+                <Text style={s.muted}>optional</Text>
+              </Pressable>
+            )
           )}
         </View>
-        <View style={s.card}>
-          {r && bend === "stub" ? (
+        {fit && fit.issues.length > 0 && <View style={[s.fitWarning, !strongFitWarning && s.fitReminder]} accessibilityRole="alert">
+          {fit.issues.map(issue => <View key={issue.title} style={{ gap: 4 }}>
+            <Text style={s.label}>{issue.title}</Text><Text style={s.fitBody}>{issue.message}</Text>
+          </View>)}
+          {strongFitWarning && <Text style={s.muted}>Reference shoe only. Match your actual bender; clearance can require more room.</Text>}
+          {layoutBlocked && <Button label="Change precision" onPress={() => setSheet("settings")} />}
+          {fit.suggestedAngle !== undefined && <Button label={`Try ${fit.suggestedAngle}° · more spacing`}
+            onPress={() => { update({ angle: fit.suggestedAngle! }); setFinished(false); }} />}
+          <Pressable accessibilityRole="button" onPress={() => setSheet("help")} style={s.locationEdit}>
+            <Text style={s.label}>How this is checked</Text>
+          </Pressable>
+        </View>}
+        {!layoutBlocked && <View style={s.card}>
+          {r && !layoutBlocked && bend === "stub" ? (
             <StubPreview
-              key={bend}
+              key={previewKey}
               result={r}
               precision={settings.precision}
               finished={finished}
@@ -402,9 +437,9 @@ export default function SuiteScreen() {
               onCopy={copy}
               onHelp={() => setSheet("help")}
             />
-          ) : r ? (
+          ) : r && !layoutBlocked ? (
             <BendPreview
-              key={bend}
+              key={previewKey}
               bend={bend as Exclude<Bend, "stub">}
               result={r}
               precision={settings.precision}
@@ -417,7 +452,7 @@ export default function SuiteScreen() {
           ) : (
             <View style={{ minHeight: 280, justifyContent: "center", gap: 16 }}>
               <Text accessibilityRole="alert" style={s.error}>
-                {calc.error}
+                {calc.error ?? fit?.issues.find(i => i.blocksLayout)?.message}
               </Text>
               <Button
                 label="Bender help and references"
@@ -425,7 +460,7 @@ export default function SuiteScreen() {
               />
             </View>
           )}
-        </View>
+        </View>}
       </ScrollView>
       <Modal
         visible={sheet !== null}
@@ -471,6 +506,7 @@ export default function SuiteScreen() {
                   <Pressable
                     key={item.id}
                     accessibilityRole="button"
+                    accessibilityState={{ selected: bend === item.id }}
                     onPress={() => {
                       setBend(item.id);
                       if (item.id !== bend) setFinished(false);
@@ -516,25 +552,10 @@ export default function SuiteScreen() {
                     onSubmitEditing={done}
                     maxLength={24}
                   />
-                  <View style={s.wrap}>
-                    {["1/4", "1/2", "3/4"].map((v) => (
-                      <Button
-                        key={v}
-                        label={`+ ${v}`}
-                        onPress={() =>
-                          setText((old) => {
-                            const a = parseInches(old) || 0;
-                            return String(a + (parseInches(v) || 0));
-                          })
-                        }
-                      />
-                    ))}
-                    <Button label="Clear" onPress={() => setText("")} />
-                  </View>
                   {inputError ? (
                     <Text style={s.error}>{inputError}</Text>
                   ) : null}
-                  <Button label="Use measurement ✓" onPress={done} primary />
+                  <Button label="Enter" onPress={done} primary />
                 </>
               )}
               {sheet === "settings" && (
@@ -547,11 +568,7 @@ export default function SuiteScreen() {
                         label={v.name}
                         selected={settings.size === i}
                         onPress={() =>
-                          setSettings((s) => ({
-                            ...s,
-                            size: i,
-                            deduction: v.deduct,
-                          }))
+                          applySettings({ size: i, deduction: v.deduct })
                         }
                       />
                     ))}
@@ -573,7 +590,7 @@ export default function SuiteScreen() {
                         label={`1/${p}″`}
                         selected={settings.precision === p}
                         onPress={() =>
-                          setSettings((v) => ({ ...v, precision: p }))
+                          applySettings({ precision: p })
                         }
                       />
                     ))}
@@ -583,14 +600,14 @@ export default function SuiteScreen() {
                     label="Hand-bender multipliers"
                     selected={settings.method === "field"}
                     onPress={() =>
-                      setSettings((v) => ({ ...v, method: "field" }))
+                      applySettings({ method: "field" })
                     }
                   />
                   <Button
                     label="Ideal geometry · advanced"
                     selected={settings.method === "geometry"}
                     onPress={() =>
-                      setSettings((v) => ({ ...v, method: "geometry" }))
+                      applySettings({ method: "geometry" })
                     }
                   />
                   <Text style={s.muted}>
@@ -607,6 +624,11 @@ export default function SuiteScreen() {
                       {referenceError}
                     </Text>
                   ) : null}
+                  {fit && <View style={{ gap: 8 }}>
+                    <Text style={s.eyebrow}>BENDER FIT CHECK</Text>
+                    <Text style={s.muted}>Checks use an illustrative {f(fit.referenceRadius)} centerline radius from the Greenlee Site-Rite manual for this EMT size. This is not your identified shoe. Two equal round bends need at least 2 × radius × (1 − cos(angle)) of height before any straight section fits between them. The app compares height to that geometric bound, not the multiplier mark distance to an arc length.</Text>
+                    <Text style={s.muted}>A warning is not a universal rejection. No warning is not a guarantee: hook engagement, bend radius, springback, pipe length and obstacle clearance still require your actual tool. Close marks under 4″ and tip marks under 1″ trigger conservative reminders, not manufacturer minimums. Numeric layouts that round to zero or merge marks are withheld.</Text>
+                  </View>}
                   {r && (
                     <>
                       <Text style={s.eyebrow}>

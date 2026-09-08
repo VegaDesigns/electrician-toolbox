@@ -322,3 +322,23 @@ Read this handoff and the bending methods document. The active repo is on featur
 The build is FINISHED. Open its installation page in Safari on the registered iPhone and use Install. Install over the existing Electrician Toolbox app rather than deleting it first; local lists, history and preferences should not be intentionally erased for this update.
 
 After installation, confirm that Bending opens, try a 10″ stub with a verified 6″ deduction (4″ mark), and check the 6″ / 30° offset example (12″ spacing). Check existing saved lists/history and reopen the app offline. These checks are for the user; successful installation and physical bending accuracy cannot be claimed from a cloud build alone.
+
+## 12. Follow-up field-feedback work — local preview, not released
+
+After installing build 6, the user requested simpler typed measurement entry, unchanged common angle choices, clearer optional first-mark placement, a more obvious guide entry point, and animated multi-bend instructions. The local working tree now implements these changes. Offset-family guides separate Place, Space, Bend 1, Flip, Bend 2 and Check (rolling includes its initial measurement/plane step). Saddles show individual bend stages, preserving center-first ordering for three-point saddles. New guideGeometry and useGuideMotion modules support the illustrative animations and reduced motion. The existing calculator and storage schemas are unchanged.
+
+These follow-up edits are not in the build-6 release receipt above; no commit, push, update publication, or new iPhone build has been performed for them. Review the local preview, then validate native rendering and motion on iPhone before release.
+
+Follow-up visual refinement: optional placement is now a quiet single text row (First mark or Obstacle center, marked optional). The guide entry is a muted text link above the diagram. Amber callout backgrounds and explanatory subtitles were removed at the user’s request; entry dialogs and guide behavior are retained.
+
+Optional location clarification: empty locations use the dashed add control; populated locations use a solid row with the tip measurement and a separate Edit button. Actual calculated mark-from-tip measurements appear in amber badges below the diagram when a location is present. Number-only circles were removed from the pipe. Calculations and storage schemas remain unchanged.
+
+## 13. Approved five-part UX and fit review
+
+Implemented the user's approved review: guide below Mark it/Finished; labeled Toolbox navigation and explicit Change bend selector; shared controls/motion across all seven bends; prominent fit screening and smaller-angle suggestions; consistent check steps, Previous/Next/Restart, readable callouts and input-change resets. Radius screening is a warning against documented reference shoes, not universal physical validation. Displayed zero/colliding marks are withheld. See bending-methods.md and feasibility.ts for assumptions and limits. Existing user drafts and settings remain on the same storage schema. This work is not in iPhone build 6; see the new release checkpoint below.
+
+## 14. Follow-up iPhone field build — September 8, 2026
+
+The user explicitly approved saving, pushing and creating a new iPhone build after the completed Bending Suite review. This checkpoint includes all follow-up work in sections 12–13. ESLint, TypeScript and all 92 tests passed; all seven guides were walked through at phone widths. Native iPhone rendering, retained local data, offline operation and physical bender fit remain field checks.
+
+Release target: the existing internal/ad-hoc iOS preview profile and preview channel, version/runtime 0.9.1, with the next remotely managed build number. The existing bundle identifier, saved-data schemas and registered-device signing setup are retained. Source will be committed and pushed to feature/home-navigation before upload. Reuse existing credentials with --freeze-credentials. No App Store or TestFlight submission and no OTA publication are included. The build receipt will be appended after the cloud build completes.
