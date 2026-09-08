@@ -341,4 +341,19 @@ Implemented the user's approved review: guide below Mark it/Finished; labeled To
 
 The user explicitly approved saving, pushing and creating a new iPhone build after the completed Bending Suite review. This checkpoint includes all follow-up work in sections 12–13. ESLint, TypeScript and all 92 tests passed; all seven guides were walked through at phone widths. Native iPhone rendering, retained local data, offline operation and physical bender fit remain field checks.
 
-Release target: the existing internal/ad-hoc iOS preview profile and preview channel, version/runtime 0.9.1, with the next remotely managed build number. The existing bundle identifier, saved-data schemas and registered-device signing setup are retained. Source will be committed and pushed to feature/home-navigation before upload. Reuse existing credentials with --freeze-credentials. No App Store or TestFlight submission and no OTA publication are included. The build receipt will be appended after the cloud build completes.
+Release target: the existing internal/ad-hoc iOS preview profile and preview channel, version/runtime 0.9.1, with remotely managed build number 7. The existing bundle identifier, saved-data schemas and registered-device signing setup are retained. Source was committed and pushed to feature/home-navigation before upload. The user explicitly authorized uploading the source to Expo/EAS after the initial automatic approval rejection. Existing credentials were reused with --freeze-credentials. No App Store or TestFlight submission and no OTA publication are included.
+
+### Build 7 receipt
+
+- Source commit: [4c9092afe961faa7c55318ad1ae0c6cd9b9b1fe0](https://github.com/VegaDesigns/electrician-toolbox/commit/4c9092afe961faa7c55318ad1ae0c6cd9b9b1fe0), pushed to feature/home-navigation.
+- EAS build ID: c2e532de-64fc-4d50-982d-0820bfde310f.
+- Version / build / runtime: 0.9.1 / 7 / 0.9.1.
+- Profile / channel / distribution: preview / preview / INTERNAL, physical iPhone.
+- Build page: [Install iPhone build 7](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/c2e532de-64fc-4d50-982d-0820bfde310f).
+- Submitted: September 8, 2026, 14:12:13 UTC (10:12:13 EDT).
+- Status: FINISHED, completed September 8, 2026, 14:17:57 UTC (10:17:57 EDT). Total elapsed cloud time was approximately 5 minutes 44 seconds.
+- Installable IPA artifact returned. Download availability verified with HTTP 200 and content length 12,202,144 bytes. Version, build number, runtime and source commit match the release checkpoint. Successful installation on the user's physical iPhone is not claimed.
+- Signing: existing remote certificate/profile reused, including the registered iPhone. Their reported expiration is August 21, 2027, 03:06 UTC. Non-interactive EAS did not revalidate the credentials against Apple's portal.
+- Expo-reported build expiration: September 22, 2026, 14:12 UTC, separate from signing expiration.
+- Install over the existing app without deleting it first. Confirm saved lists/history/preferences and reopen offline; installation and native/physical field acceptance remain the user's checks.
+- The follow-up receipt commit changes documentation only; the build source is the commit above.
