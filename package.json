@@ -1,7 +1,7 @@
 {
   "name": "electrician-toolbox",
   "main": "expo-router/entry",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "engines": {
     "node": ">=22.13.0"
   },
@@ -12,7 +12,7 @@
     "web": "expo start --web",
     "lint": "eslint app src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/utils/calc/engine.test.ts src/utils/calc/parser.test.ts src/utils/calc/measure.test.ts src/utils/calc/outputIntent.test.ts src/utils/calc/historyModel.test.ts src/utils/panelColors/phase.test.ts src/utils/panelColors/presetValidation.test.ts src/utils/conduitFill/conduitFill.test.ts src/utils/boxFill/boxFill.test.ts src/utils/wireGuide/ampacity.test.ts src/utils/tradeTalk/dictionary.test.ts src/utils/jobBoard/jobBoard.test.ts src/utils/jobBoard/shareList.test.ts src/utils/jobBoard/materialLists.test.ts",
+    "test": "tsx --test src/utils/calc/engine.test.ts src/utils/calc/parser.test.ts src/utils/calc/measure.test.ts src/utils/calc/outputIntent.test.ts src/utils/calc/historyModel.test.ts src/utils/panelColors/phase.test.ts src/utils/panelColors/presetValidation.test.ts src/utils/conduitFill/conduitFill.test.ts src/utils/boxFill/boxFill.test.ts src/utils/wireGuide/ampacity.test.ts src/utils/tradeTalk/dictionary.test.ts src/utils/jobBoard/jobBoard.test.ts src/utils/jobBoard/shareList.test.ts src/utils/jobBoard/materialLists.test.ts src/utils/bending/bending.test.ts src/utils/bending/geometry.test.ts",
     "check": "npm run lint && npm run typecheck && npm test",
     "doctor": "expo-doctor",
     "export:web": "expo export --platform web"
@@ -36,6 +36,7 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.1"
   },

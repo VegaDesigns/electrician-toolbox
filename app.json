@@ -2,7 +2,7 @@
   "expo": {
     "name": "Electrician Toolbox",
     "slug": "electrician-toolbox",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "orientation": "portrait",
     "icon": "./assets/images/electrician-toolbox-icon.png",
     "scheme": "electriciantoolbox",

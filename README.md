@@ -1,68 +1,47 @@
 # Electrician Toolbox
 
-An offline-first field toolkit built with React Native and Expo. The app now
-combines the Workpad measurement calculator, a panel circuit color checker,
-and a parked conduit-bending route in one scalable toolbox home.
+An offline-first React Native / Expo toolkit for helpers and experienced electricians.
+Version 0.9.1 is an internal field-test milestone, not a public store release.
 
-## Panel circuit color checker
+## Included tools
 
-- Fast circuit-number entry with a compact jobsite keypad
-- Phase and conductor color shown as the primary result
-- Five nearby circuits for quick panel work
-- Beginner-first visual choices for Black/Red/Blue, Brown/Orange/Yellow,
-  and Black/Red panels
-- Advanced technical details and saved job-specific presets
-- One-tap result copy and an always-visible verification notice
-- Standard branch-panel row logic for three-phase and split-phase panels
+- Workpad: measurement math, fractions, contextual unit conversion, precision settings, and recent/saved history.
+- Panel Colors: explicit circuit submission, phase/color results, nearby circuits, and job-specific presets.
+- Jobsite Lists: separate jobs, materials with quantities, notes, edit history, timed Undo, and swipe actions.
+- Fill Guide: conduit and box fill with common selections, mixed conductor groups, and direct quantity entry.
+- Wire Guide: conductor ampacity and adjustment guidance.
+- Trade Talk: electrical definitions and jobsite slang.
+- Bending Suite: 90° stub-up, offset, rolling offset, three- and four-point saddles, back-to-back 90s, and box offset.
 
-## Workpad beta features
+Each tool has its own route behind the square-tile home. Calculations and domain
+models live in src/utils; feature UI lives in src/screens. Local preferences and
+saved work use AsyncStorage. Cloud sync and subscription billing are not implemented.
 
-- Calculator keypad for feet, inches, decimals, and fractions
-- Smart Entry for typed jobsite measurements
-- Cleaned interpretation shown before a result is trusted or copied
-- Feet/inches, exact inches, decimal feet, and rounded-inches outputs
-- Selectable 1/16, 1/8, 1/4, and 1/2-inch precision
-- Normal and always-up rounding modes
-- Tap-to-select and tap-to-copy result formats
-- Offline recent and saved calculation history
-- Saved precision and rounding preferences
-- Compact layout for short phone screens and accessible control labels
+## Bending field-test scope
 
-Smart Entry accepts formats such as:
+Inch/fraction results, editable EMT hand-bender setup, Mark it / Finished views,
+optional guided steps, copy, and saved input drafts. The 90° stub preview animates
+around its marked point; the other bends use centered static views.
 
-```text
-48"
-1.5ft
-1' 6"
-5 4/8"
-5 and 4/8th
-12/8
-1' 6" + 5 1/2"
-```
-
-## Conduit bending suite
-
-The toolbox keeps a dedicated route and home card for conduit bending while the
-field workflow is redesigned. Its current screen is an intentional coming-soon
-experience; no unfinished bending calculations ship in this version.
-
-## Requirements
-
-- Node.js 22.13 or newer
-- npm
-- An Expo account for cloud builds
-- An Apple Developer account for TestFlight distribution
+These are schematic layout aids, not calibrated shoe models, guaranteed clearances,
+or cut-length calculations. Verify tool markings, deduction, minimum spacing and
+springback with the actual bender. Manufacturer references and limits are documented
+in docs/bending-methods.md. Current architecture, checkpoint and build receipts are
+recorded in docs/PROJECT_STATE_HANDOFF.md.
 
 ## Local development
+
+Requires Node.js 22.13 or newer and npm.
 
 ```bash
 npm ci
 npm run check
-npm start
+npx expo start --go --lan --port 8081
 ```
 
-Scan the QR code with a compatible development build, or use the iOS, Android,
-or web commands shown by Expo.
+Use a compatible Expo Go release on the same network, or open
+[the local preview](http://localhost:8081). Expo Go and an installed internal
+distribution build are different ways to run the app.
 
 ## Quality checks
 
@@ -71,52 +50,27 @@ npm run check
 npm run doctor
 ```
 
-`npm run check` runs linting, strict TypeScript checks, and calculation tests.
-The same check runs for pull requests and pushes to `main` through GitHub
-Actions.
+The first command runs ESLint, TypeScript and the automated tests (86 at this
+milestone). Expo Doctor also checks SDK/dependency alignment. The current locked
+SDK 57 versions have newer maintenance patches available; this warning is recorded
+in the handoff and is not hidden. Upgrade dependencies as a separate verified change.
 
-## Internal field-test build
+## Internal iPhone build
 
-Install the EAS CLI and sign in once:
-
-```bash
-npm install --global eas-cli
-eas login
-eas init
-```
-
-Confirm the app identifiers in `app.json`, then create an installable build:
+The configured EAS preview profile creates an internal-distribution build for
+registered devices, uses the preview channel, and increments the remote build number.
 
 ```bash
-eas build --profile preview --platform ios
+npx eas-cli build --profile preview --platform ios
 ```
 
-For an iPhone internal-distribution build, EAS will guide you through Apple
-credentials and registering test devices. Android preview builds use an
-installable APK.
+The app identity is com.brokecoderlabs.electriciantoolbox. Install using the exact
+completed build link in the handoff; older links do not contain newer code.
 
-## TestFlight / store build
+Version 0.9.1 separates this native SVG-enabled build from the older 0.9.0 update
+runtime. Future native dependency changes require another compatible build/runtime
+decision before publishing JavaScript updates. See [Expo runtime compatibility](https://docs.expo.dev/eas-update/runtime-versions/).
 
-```bash
-eas build --profile production --platform ios
-eas submit --profile production --platform ios
-```
-
-Before submitting, replace any provisional app identity values, confirm the
-bundle identifier belongs to your Apple Developer team, add support and privacy
-policy URLs, and complete real-device field testing.
-
-## Offline behavior
-
-The Workpad does not require an account or network connection. Calculations,
-history, saved calculations, and preferences stay on the device through local
-storage.
-
-## Planned additions
-
-The toolbox home is designed to accept future tools without mixing their
-workflows. Likely additions include a panel color checker, box/conduit fill,
-and a basic jobsite to-do list.
-
-Calculation and formatting logic lives under `src/utils` so future features can
-reuse the same tested measurement foundation.
+Production and submission profiles exist, but field testing, release review,
+support/privacy information and store readiness must be completed before any
+public submission. A request to save code is not authorization to publish a store release.

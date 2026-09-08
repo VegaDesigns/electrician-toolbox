@@ -141,8 +141,8 @@ export default function HomeScreen() {
             accent="blue"
             icon="↱"
             onPress={() => router.push("/bending")}
-            status="COMING SOON"
-            subtitle="Field-first conduit bending"
+            status="NEW"
+            subtitle="Bend marks and pipe layouts"
             title="Bending"
           />
         </View>
