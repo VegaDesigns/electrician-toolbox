@@ -110,7 +110,7 @@ export default function HomeScreen() {
             icon="✓"
             onPress={() => router.push("/job-board")}
             subtitle="Notes, materials, punch and tasks"
-            title="Job Board"
+            title="Jobsite Lists"
           />
 
           <ToolTile

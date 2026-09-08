@@ -9,7 +9,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.bg }}>
       <SafeAreaProvider>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="workpad" />
           <Stack.Screen name="bending" />

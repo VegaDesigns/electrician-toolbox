@@ -7,7 +7,6 @@ import {
   dueChoice,
   dueLabel,
   jobProgress,
-  localDateKey,
   materialProgress,
   sortWorkItems,
   toggleWorkItem,
@@ -16,7 +15,7 @@ import {
 test("creates a fast item with field-friendly defaults", () => {
   const item = createWorkItem("one", "task", "  Finish room 210  ", 100);
   assert.equal(item.title, "Finish room 210");
-  assert.equal(item.dueOn, localDateKey(new Date(100)));
+  assert.equal(item.dueOn, null);
   assert.equal(item.status, "open");
   assert.equal(item.jobId, null);
 });

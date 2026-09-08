@@ -33,6 +33,7 @@ export type WorkItem = {
   dueOn: string | null;
   estimateMinutes: number | null;
   notes: string;
+  waitingOn?: string;
   quantity: number;
   unit: string;
   checklist: ChecklistLine[];
@@ -77,7 +78,7 @@ export function createWorkItem(
     jobId: null,
     location: "",
     priority: "normal",
-    dueOn: localDateKey(new Date(now)),
+    dueOn: null,
     estimateMinutes: null,
     notes: "",
     quantity: 1,
