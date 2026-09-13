@@ -1,31 +1,31 @@
+import { Space, Layout , FontSize, Radius, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import { StyleSheet } from "react-native";
 
-import { Colors, Effects } from "../../theme";
-
-export const styles = StyleSheet.create({
-  contentStack: { gap: 8 },
-  swipeHint: { color: Colors.textMuted, fontSize: 11 },
+export const useStyles = defineStyles(({ colors: Colors }) => ({
+  contentStack: { gap: Space.xs },
+  swipeHint: { color: Colors.textMuted, fontSize: FontSize.caption },
   placeholderTile: { flex: 1, justifyContent: "center", opacity: 0.45 },
-  placeholderNumber: { color: Colors.textMuted, fontSize: 18 },
+  placeholderNumber: { color: Colors.textMuted, fontSize: FontSize.subtitle },
   placeholderDot: { backgroundColor: Colors.borderStrong, width: 8, height: 8, borderRadius: 4, marginTop: 5 },
-  editorFields: { gap: 16 },
+  editorFields: { gap: Space.md },
   resultBody: { flex: 1, alignItems: "center", justifyContent: "center", width: "100%", paddingBottom: 26 },
   resultActions: { position: "absolute", bottom: 0, left: 8, right: 8, height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   resultAction: { minWidth: 60, minHeight: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: 10 },
-  resultActionText: { color: Colors.textMuted, fontSize: 13, fontWeight: "700" },
-  copyAction: { minHeight: 44, minWidth: 64, justifyContent: "center", alignItems: "center", borderRadius: 11, paddingHorizontal: 12 },
-  copyActionText: { color: Colors.textMuted, fontSize: 13, fontWeight: "700" },
+  resultActionText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
+  copyAction: { minHeight: 44, minWidth: 64, justifyContent: "center", alignItems: "center", borderRadius: Radius.control, paddingHorizontal: Space.sm },
+  copyActionText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   actionDisabled: { opacity: 0.35 },
-  expectedLabel: { color: Colors.textMuted, fontSize: 10, letterSpacing: 1, marginTop: 5 },
-  paletteContext: { color: Colors.textMuted, fontSize: 11, marginTop: 4, marginBottom: 6 },
-  storageNotice: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface2, borderRadius: 12, padding: 10, gap: 6 },
-  storageText: { flex: 1, color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
-  storageError: { color: "#F1A094" },
-  deviceNote: { color: Colors.textMuted, fontSize: 12, lineHeight: 18, marginTop: 12, marginBottom: 8 },
-  layoutGuide: { borderColor: Colors.border, borderWidth: 1, padding: 14, borderRadius: 14, gap: 8, marginVertical: 14 },
-  layoutRows: { gap: 8 },
-  layoutRow: { flexDirection: "row", gap: 16, alignItems: "center" },
-  layoutNumbers: { color: Colors.text, fontSize: 17, fontWeight: "700", minWidth: 60 },
+  expectedLabel: { color: Colors.textMuted, fontSize: FontSize.caption, letterSpacing: 1, marginTop: 5 },
+  paletteContext: { color: Colors.textMuted, fontSize: FontSize.caption, marginTop: Space.xxs, marginBottom: 6 },
+  storageNotice: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface2, borderRadius: Radius.control, padding: 10, gap: 6 },
+  storageText: { flex: 1, color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 19 },
+  storageError: { color: Colors.error },
+  deviceNote: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 18, marginTop: Space.sm, marginBottom: Space.xs },
+  layoutGuide: { borderColor: Colors.border, borderWidth: 1, padding: 14, borderRadius: Radius.card, gap: Space.xs, marginVertical: 14 },
+  layoutRows: { gap: Space.xs },
+  layoutRow: { flexDirection: "row", gap: Space.md, alignItems: "center" },
+  layoutNumbers: { color: Colors.text, fontSize: FontSize.body, fontWeight: "500", minWidth: 60 },
   safe: {
     backgroundColor: Colors.bg,
     flex: 1,
@@ -37,11 +37,11 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: 12,
-    maxWidth: 520,
+    gap: Space.sm,
+    maxWidth: Layout.contentWidth,
     minHeight: 58,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.xs,
     width: "100%",
   },
 
@@ -49,19 +49,19 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 44,
     width: 44,
-    paddingHorizontal: 12,
-    ...Effects.controlRaised,
+    paddingHorizontal: Space.sm,
+
   },
 
   homeButtonText: {
     color: Colors.textMuted,
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   headerCopy: {
@@ -71,68 +71,68 @@ export const styles = StyleSheet.create({
 
   headerEyebrow: {
     color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 1,
   },
 
-  headerTitle: {
+  headerTitle: { fontFamily: Fonts.heading,
     color: Colors.text,
-    fontSize: 21,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     marginTop: 1,
   },
 
   container: {
     alignSelf: "center",
     gap: 10,
-    maxWidth: 520,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
+    maxWidth: Layout.contentWidth,
+    paddingBottom: Space.xs,
+    paddingHorizontal: Space.sm,
     paddingTop: 6,
     width: "100%",
   },
 
   panelChoiceRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
   },
 
   paletteButton: {
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flex: 1,
     flexDirection: "row",
     minHeight: 58,
-    paddingHorizontal: 12,
-    ...Effects.controlRaised,
+    paddingHorizontal: Space.sm,
+
   },
 
   activePaletteRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 8,
-    marginTop: 4,
+    gap: Space.xs,
+    marginTop: Space.xxs,
   },
 
   activePaletteName: {
     color: Colors.text,
     flex: 1,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   paletteSwatches: {
     flexDirection: "row",
-    paddingLeft: 4,
+    paddingLeft: Space.xxs,
   },
 
   paletteSwatch: {
-    borderColor: "rgba(255,255,255,0.28)",
-    borderRadius: 10,
+    borderColor: Colors.border,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 25,
     marginLeft: -4,
@@ -143,43 +143,43 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.borderStrong,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 58,
     paddingHorizontal: 11,
-    ...Effects.controlRaised,
+
   },
 
   advancedIcon: {
-    color: "#AFC0CF",
-    fontSize: 17,
-    fontWeight: "900",
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontWeight: "500",
   },
 
   advancedButtonText: {
     color: Colors.textMuted,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 2,
   },
 
   selectorRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
   },
 
   selectorButton: {
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flex: 1,
     flexDirection: "row",
     minHeight: 51,
-    paddingHorizontal: 12,
-    ...Effects.controlRaised,
+    paddingHorizontal: Space.sm,
+
   },
 
   selectorCopy: {
@@ -189,22 +189,22 @@ export const styles = StyleSheet.create({
 
   selectorLabel: {
     color: Colors.textSubtle,
-    fontSize: 8,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
   },
 
   selectorValue: {
     color: Colors.text,
-    fontSize: 14,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
     marginTop: 2,
   },
 
   selectorChevron: {
     color: Colors.primary,
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     marginLeft: 5,
     marginTop: -5,
   },
@@ -213,40 +213,40 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface,
     borderColor: Colors.borderStrong,
-    borderRadius: 23,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     justifyContent: "center",
     height: 148,
     overflow: "hidden",
     paddingHorizontal: 17,
     paddingVertical: 10,
-    ...Effects.surfaceRaised,
+
   },
 
   circuitLine: {
     alignItems: "baseline",
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
     justifyContent: "center",
   },
 
   circuitLabel: {
     color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 1.2,
   },
 
   circuitNumber: {
     color: Colors.text,
-    fontSize: 30,
+    fontSize: FontSize.heading,
     fontWeight: "600",
     letterSpacing: -0.5,
   },
 
   phaseLabel: {
     color: Colors.textMuted,
-    fontSize: 14,
+    fontSize: FontSize.label,
     fontWeight: "600",
     letterSpacing: 0.3,
     marginTop: 5,
@@ -254,33 +254,33 @@ export const styles = StyleSheet.create({
 
   colorHero: {
     alignItems: "center",
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     justifyContent: "center",
     marginTop: 7,
     minHeight: 40,
     paddingHorizontal: 23,
     width: "100%",
-    ...Effects.controlRaised,
+
   },
 
   colorHeroText: {
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: FontSize.heading,
+    fontWeight: "500",
     letterSpacing: 1.5,
   },
 
   resultMeta: {
     color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: 8,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
+    marginTop: Space.xs,
   },
 
   copyHint: {
     color: Colors.primary,
-    fontSize: 8,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.9,
     marginTop: 6,
   },
@@ -293,7 +293,7 @@ export const styles = StyleSheet.create({
   emptySwatch: {
     backgroundColor: Colors.surface3,
     borderColor: Colors.borderStrong,
-    borderRadius: 25,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     height: 49,
     width: 49,
@@ -301,25 +301,25 @@ export const styles = StyleSheet.create({
 
   emptyTitle: {
     color: Colors.text,
-    fontSize: 20,
-    fontWeight: "900",
-    marginTop: 8,
+    fontSize: FontSize.section,
+    fontWeight: "500",
+    marginTop: Space.xs,
   },
 
   emptyDescription: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     marginTop: 3,
   },
 
   nearbySection: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     height: 106,
-    padding: 8,
-    ...Effects.surfaceRaised,
+    padding: Space.xs,
+
   },
 
   nearbyHeader: {
@@ -332,8 +332,8 @@ export const styles = StyleSheet.create({
 
   sectionLabel: {
     color: Colors.textSubtle,
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.9,
   },
 
@@ -342,16 +342,16 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primaryMuted,
-    borderRadius: 10,
+    borderRadius: Radius.control,
     borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: Space.xs,
+    paddingVertical: Space.xxs,
   },
 
   returnButtonText: {
     color: Colors.primary,
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.5,
   },
 
@@ -370,7 +370,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.key,
     borderColor: Colors.border,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexShrink: 0,
     minHeight: 65,
@@ -385,8 +385,8 @@ export const styles = StyleSheet.create({
 
   nearbyCircuit: {
     color: Colors.text,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   nearbyCircuitSelected: {
@@ -394,7 +394,7 @@ export const styles = StyleSheet.create({
   },
 
   nearbyDot: {
-    borderColor: "rgba(255,255,255,0.22)",
+    borderColor: Colors.border,
     borderRadius: 5,
     borderWidth: 1,
     height: 9,
@@ -404,22 +404,22 @@ export const styles = StyleSheet.create({
 
   nearbyColor: {
     color: Colors.textMuted,
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 3,
     maxWidth: "100%",
   },
 
   nearbyPhase: {
     color: Colors.textSubtle,
-    fontSize: 7,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 1,
   },
 
   nearbyPlaceholder: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     marginTop: 21,
     textAlign: "center",
   },
@@ -436,7 +436,7 @@ export const styles = StyleSheet.create({
 
   keypadStatus: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     fontWeight: "600",
   },
 
@@ -453,17 +453,17 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.key,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
     minHeight: 47,
-    ...Effects.controlRaised,
+
   },
 
   keyClear: {
-    backgroundColor: Colors.errorSoft,
-    borderColor: "#713932",
+    backgroundColor: Colors.keyUtility,
+    borderColor: Colors.border,
   },
 
   keyUtility: {
@@ -472,45 +472,45 @@ export const styles = StyleSheet.create({
 
   keyText: {
     color: Colors.text,
-    fontSize: 21,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   keyClearText: {
-    color: "#E47669",
-    fontSize: 13,
+    color: Colors.text,
+    fontSize: FontSize.caption,
     letterSpacing: 0.2,
   },
 
   keyUtilityText: {
-    color: "#B8C5D1",
+    color: Colors.textMuted,
   },
 
   keyEnter: {
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
     justifyContent: "center",
     minHeight: 46,
-    paddingHorizontal: 16,
-    ...Effects.controlRaised,
+    paddingHorizontal: Space.md,
+
   },
 
   keyEnterText: {
     color: Colors.inverseText,
-    fontSize: 16,
-    fontWeight: "900",
+    fontSize: FontSize.body,
+    fontWeight: "500",
     letterSpacing: 0.3,
   },
 
   keyEnterHint: {
     color: Colors.inverseText,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     opacity: 0.8,
   },
 
@@ -522,25 +522,25 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.surface3,
     opacity: 0.78,
     transform: [{ scale: 0.985 }],
-    ...Effects.pressed,
+
   },
 
   notice: {
     color: Colors.textMuted,
-    fontSize: 10,
+    fontSize: FontSize.caption,
     lineHeight: 13,
-    paddingHorizontal: 4,
+    paddingHorizontal: Space.xxs,
     textAlign: "center",
   },
 
   pressed: {
     opacity: 0.78,
     transform: [{ scale: 0.985 }],
-    ...Effects.pressed,
+
   },
 
   modalBackdrop: {
-    backgroundColor: "rgba(4, 7, 10, 0.78)",
+    backgroundColor: Colors.overlay,
     flex: 1,
     justifyContent: "flex-end",
   },
@@ -554,14 +554,14 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: Colors.surface,
     borderColor: Colors.borderStrong,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     borderWidth: 1,
-    maxWidth: 520,
-    padding: 16,
+    maxWidth: Layout.contentWidth,
+    padding: Space.md,
     paddingBottom: 22,
     width: "100%",
-    ...Effects.surfaceRaised,
+
   },
 
   advancedSheet: {
@@ -577,15 +577,15 @@ export const styles = StyleSheet.create({
 
   sheetEyebrow: {
     color: Colors.primary,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.9,
   },
 
-  sheetTitle: {
+  sheetTitle: { fontFamily: Fonts.heading,
     color: Colors.text,
-    fontSize: 21,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     marginTop: 2,
   },
 
@@ -593,7 +593,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     height: 44,
     justifyContent: "center",
@@ -603,12 +603,12 @@ export const styles = StyleSheet.create({
 
   closeButtonText: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   optionList: {
-    gap: 8,
+    gap: Space.xs,
   },
 
   paletteOptionList: {
@@ -619,25 +619,25 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flexDirection: "row",
     gap: 13,
     minHeight: 72,
     padding: 13,
-    ...Effects.controlRaised,
+
   },
 
   paletteOptionTitle: {
     color: Colors.text,
-    fontSize: 16,
-    fontWeight: "900",
+    fontSize: FontSize.body,
+    fontWeight: "500",
   },
 
   savedLabel: {
     color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
     marginBottom: 7,
     marginTop: 14,
@@ -656,8 +656,8 @@ export const styles = StyleSheet.create({
 
   manageLinkText: {
     color: Colors.primary,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.7,
   },
 
@@ -665,7 +665,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.borderStrong,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flexDirection: "row",
     gap: 11,
@@ -675,14 +675,14 @@ export const styles = StyleSheet.create({
   },
 
   differentColorsIcon: {
-    color: "#89A6C1",
-    fontSize: 25,
-    fontWeight: "900",
+    color: Colors.primary,
+    fontSize: FontSize.title,
+    fontWeight: "500",
   },
 
   sheetNotice: {
     color: Colors.textSubtle,
-    fontSize: 9,
+    fontSize: FontSize.caption,
     lineHeight: 13,
     marginTop: 11,
     textAlign: "center",
@@ -691,10 +691,10 @@ export const styles = StyleSheet.create({
   detailsCard: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     overflow: "hidden",
-    ...Effects.recessed,
+
   },
 
   detailRow: {
@@ -702,16 +702,16 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: 12,
+    gap: Space.sm,
     minHeight: 43,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: Space.sm,
+    paddingVertical: Space.xs,
   },
 
   detailLabel: {
     color: Colors.textSubtle,
-    fontSize: 8,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
     width: 58,
   },
@@ -719,8 +719,8 @@ export const styles = StyleSheet.create({
   detailValue: {
     color: Colors.text,
     flex: 1,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     textAlign: "right",
   },
 
@@ -728,7 +728,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flexDirection: "row",
     gap: 11,
@@ -746,8 +746,8 @@ export const styles = StyleSheet.create({
   },
 
   optionSwatch: {
-    borderColor: "rgba(255,255,255,0.24)",
-    borderRadius: 9,
+    borderColor: Colors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
     height: 28,
     marginLeft: -5,
@@ -760,69 +760,69 @@ export const styles = StyleSheet.create({
 
   optionTitle: {
     color: Colors.text,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   optionDescription: {
     color: Colors.textMuted,
-    fontSize: 10,
+    fontSize: FontSize.caption,
     marginTop: 3,
   },
 
   optionCheck: {
     color: Colors.primary,
-    fontSize: 19,
-    fontWeight: "900",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
   },
 
   customOptionIcon: {
     alignItems: "center",
     backgroundColor: Colors.surface3,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     height: 35,
     justifyContent: "center",
     width: 35,
   },
 
   customOptionIconText: {
-    color: "#89A6C1",
-    fontSize: 22,
-    fontWeight: "900",
+    color: Colors.primary,
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   addPresetButton: {
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     justifyContent: "center",
     marginTop: 11,
     minHeight: 52,
-    ...Effects.primaryRaised,
+
   },
 
   addPresetButtonText: {
     color: Colors.inverseText,
-    fontSize: 14,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   managePresetButton: {
     alignItems: "center",
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: Space.xs,
     minHeight: 46,
   },
 
   managePresetButtonText: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   editorSafe: {
@@ -836,25 +836,25 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    maxWidth: 520,
+    maxWidth: Layout.contentWidth,
     minHeight: 58,
-    paddingHorizontal: 16,
+    paddingHorizontal: Space.md,
     width: "100%",
   },
 
   cancelButton: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     borderWidth: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: Space.sm,
     paddingVertical: 10,
   },
 
   cancelButtonText: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   editorHeaderCopy: {
@@ -864,36 +864,36 @@ export const styles = StyleSheet.create({
 
   editorTitle: {
     color: Colors.text,
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   editorContainer: {
     alignSelf: "center",
-    gap: 12,
-    maxWidth: 520,
-    padding: 16,
+    gap: Space.sm,
+    maxWidth: Layout.contentWidth,
+    padding: Space.md,
     width: "100%",
   },
 
   editorIntro: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 18,
+    borderRadius: Radius.large,
     borderWidth: 1,
     padding: 15,
-    ...Effects.surfaceRaised,
+
   },
 
   editorIntroTitle: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
   },
 
   editorIntroText: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     lineHeight: 18,
     marginTop: 5,
   },
@@ -913,7 +913,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primaryMuted,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 25,
@@ -922,15 +922,15 @@ export const styles = StyleSheet.create({
 
   fieldDoneText: {
     color: Colors.primary,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.6,
   },
 
   fieldLabel: {
     color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
     marginLeft: 3,
   },
@@ -938,42 +938,41 @@ export const styles = StyleSheet.create({
   fieldInput: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderTopColor: "rgba(0, 0, 0, 0.65)",
-    borderBottomColor: "rgba(255, 255, 255, 0.07)",
-    boxShadow:
-      "inset 0 2px 5px rgba(0, 0, 0, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.035)",
+    borderTopColor: Colors.border,
+    borderBottomColor: Colors.border,
+
     color: Colors.text,
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: FontSize.body,
+    fontWeight: "500",
     minHeight: 50,
     paddingHorizontal: 14,
   },
 
   colorSectionLabel: {
     color: Colors.primary,
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.9,
     marginTop: 5,
   },
 
   colorSectionHelp: {
     color: Colors.textMuted,
-    fontSize: 11,
+    fontSize: FontSize.caption,
     lineHeight: 16,
     marginTop: -6,
   },
 
   colorValidationError: {
     backgroundColor: Colors.errorSoft,
-    borderColor: "#713932",
-    borderRadius: 12,
+    borderColor: Colors.error,
+    borderRadius: Radius.control,
     borderWidth: 1,
-    color: "#F08A7E",
-    fontSize: 11,
-    fontWeight: "800",
+    color: Colors.error,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     lineHeight: 16,
     paddingHorizontal: 11,
     paddingVertical: 9,
@@ -997,12 +996,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
     gap: 7,
     minHeight: 43,
-    paddingHorizontal: 12,
+    paddingHorizontal: Space.sm,
   },
 
   choiceChipSelected: {
@@ -1012,8 +1011,8 @@ export const styles = StyleSheet.create({
 
   choiceChipText: {
     color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   choiceChipTextSelected: {
@@ -1022,16 +1021,16 @@ export const styles = StyleSheet.create({
 
   choiceCheck: {
     color: Colors.primary,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   colorChoiceSection: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    gap: 8,
+    gap: Space.xs,
     overflow: "hidden",
     padding: 11,
   },
@@ -1044,8 +1043,8 @@ export const styles = StyleSheet.create({
 
   colorChoiceValue: {
     color: Colors.text,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   colorChipRow: {
@@ -1057,7 +1056,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.key,
     borderColor: Colors.border,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
     gap: 6,
@@ -1075,8 +1074,8 @@ export const styles = StyleSheet.create({
   },
 
   colorChipDot: {
-    borderColor: "rgba(255,255,255,0.30)",
-    borderRadius: 8,
+    borderColor: Colors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
     height: 15,
     width: 15,
@@ -1084,8 +1083,8 @@ export const styles = StyleSheet.create({
 
   colorChipText: {
     color: Colors.textMuted,
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   colorChipTextSelected: {
@@ -1098,44 +1097,44 @@ export const styles = StyleSheet.create({
 
   colorChipCheck: {
     color: Colors.primary,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   presetSummary: {
     backgroundColor: Colors.surface,
     borderColor: Colors.borderStrong,
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     padding: 14,
-    ...Effects.surfaceRaised,
+
   },
 
   presetSummaryLabel: {
     color: Colors.primary,
-    fontSize: 8,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
   },
 
   presetSummaryName: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: "900",
-    marginTop: 4,
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
+    marginTop: Space.xxs,
   },
 
   presetSummaryMeta: {
     color: Colors.textMuted,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 2,
   },
 
   presetSummaryColors: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: Space.xs,
     marginTop: 11,
   },
 
@@ -1146,7 +1145,7 @@ export const styles = StyleSheet.create({
   },
 
   summaryDot: {
-    borderColor: "rgba(255,255,255,0.28)",
+    borderColor: Colors.border,
     borderRadius: 6,
     borderWidth: 1,
     height: 11,
@@ -1155,13 +1154,13 @@ export const styles = StyleSheet.create({
 
   presetSummaryColorText: {
     color: Colors.text,
-    fontSize: 9,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   presetSummarySupport: {
     color: Colors.textSubtle,
-    fontSize: 9,
+    fontSize: FontSize.caption,
     marginTop: 9,
   },
 
@@ -1169,12 +1168,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: Space.xxs,
     minHeight: 54,
-    ...Effects.primaryRaised,
+
   },
 
   saveButtonDisabled: {
@@ -1185,21 +1184,21 @@ export const styles = StyleSheet.create({
 
   saveButtonText: {
     color: Colors.inverseText,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   manageContainer: {
     alignSelf: "center",
     gap: 10,
-    maxWidth: 520,
-    padding: 16,
+    maxWidth: Layout.contentWidth,
+    padding: Space.md,
     width: "100%",
   },
 
   manageIntro: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     lineHeight: 18,
     marginBottom: 2,
   },
@@ -1207,11 +1206,11 @@ export const styles = StyleSheet.create({
   managePresetCard: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 17,
+    borderRadius: Radius.card,
     borderWidth: 1,
     gap: 11,
     padding: 13,
-    ...Effects.surfaceRaised,
+
   },
 
   managePresetInfo: {
@@ -1222,14 +1221,14 @@ export const styles = StyleSheet.create({
 
   manageActions: {
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
   },
 
   editPresetButton: {
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.borderStrong,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
@@ -1237,16 +1236,16 @@ export const styles = StyleSheet.create({
   },
 
   editPresetButtonText: {
-    color: "#B7CADB",
-    fontSize: 12,
-    fontWeight: "900",
+    color: Colors.textMuted,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   deletePresetButton: {
     alignItems: "center",
     backgroundColor: Colors.errorSoft,
-    borderColor: "#713932",
-    borderRadius: 12,
+    borderColor: Colors.error,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
@@ -1254,14 +1253,14 @@ export const styles = StyleSheet.create({
   },
 
   deletePresetButtonText: {
-    color: "#E47669",
-    fontSize: 12,
-    fontWeight: "900",
+    color: Colors.error,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   confirmBackdrop: {
     alignItems: "center",
-    backgroundColor: "rgba(4, 7, 10, 0.84)",
+    backgroundColor: Colors.overlay,
     flex: 1,
     justifyContent: "center",
     padding: 22,
@@ -1270,31 +1269,31 @@ export const styles = StyleSheet.create({
   confirmCard: {
     backgroundColor: Colors.surface,
     borderColor: Colors.borderStrong,
-    borderRadius: 20,
+    borderRadius: Radius.large,
     borderWidth: 1,
     maxWidth: 390,
     padding: 18,
     width: "100%",
-    ...Effects.surfaceRaised,
+
   },
 
   confirmEyebrow: {
-    color: "#E47669",
-    fontSize: 9,
-    fontWeight: "900",
+    color: Colors.error,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
   },
 
   confirmTitle: {
     color: Colors.text,
-    fontSize: 21,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     marginTop: 5,
   },
 
   confirmText: {
     color: Colors.textMuted,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     lineHeight: 18,
     marginTop: 7,
   },
@@ -1309,7 +1308,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
@@ -1318,15 +1317,15 @@ export const styles = StyleSheet.create({
 
   confirmCancelText: {
     color: Colors.text,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   confirmDeleteButton: {
     alignItems: "center",
     backgroundColor: Colors.keyDanger,
-    borderColor: "#D26457",
-    borderRadius: 13,
+    borderColor: Colors.error,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
@@ -1334,8 +1333,8 @@ export const styles = StyleSheet.create({
   },
 
   confirmDeleteText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "900",
+    color: Colors.error,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
-});
+}));

@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/electrician-toolbox-icon.png",
     "scheme": "electriciantoolbox",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.brokecoderlabs.electriciantoolbox",
@@ -36,9 +36,9 @@
           "image": "./assets/images/electrician-toolbox-icon.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#12161B",
+          "backgroundColor": "#F3F0E8",
           "dark": {
-            "backgroundColor": "#12161B"
+            "backgroundColor": "#171E1B"
           }
         }
       ]

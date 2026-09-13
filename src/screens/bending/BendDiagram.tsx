@@ -1,3 +1,4 @@
+import { ReferenceColors, useAppTheme } from "../../theme";
 import React from "react";
 import { guideGeometry, backPreviewGeometry } from "../../utils/bending/guideGeometry";
 import { useGuideMotion } from "./useGuideMotion";
@@ -12,7 +13,6 @@ import Svg, {
   G,
   Rect,
 } from "react-native-svg";
-import { Colors as C } from "../../theme";
 import { Result, Precision, inches } from "../../utils/bending/bending";
 import { OtherBend } from "../../utils/bending/presentation";
 
@@ -21,7 +21,7 @@ function Label({
   x,
   y,
   children,
-  color = C.textMuted,
+  color,
   width = 180,
 }: {
   x: number;
@@ -30,12 +30,13 @@ function Label({
   color?: string;
   width?: number;
 }) {
+  const { theme: { colors: Colors } } = useAppTheme();
   return (
     <Text
       x={x}
       y={y}
       textAnchor="middle"
-      fill={color}
+      fill={color ?? Colors.textMuted}
       fontSize={Math.min(17, width / (children.length * 0.56))}
       fontWeight="600"
       fontFamily="Arial"
@@ -51,7 +52,7 @@ function Pipe({ d, ends }: { d: string; ends: End[] }) {
       <Path
         d={d}
         transform="translate(2 7)"
-        stroke="#000"
+        stroke={ReferenceColors.color000}
         strokeOpacity={0.3}
         strokeWidth={24}
         fill="none"
@@ -62,13 +63,13 @@ function Pipe({ d, ends }: { d: string; ends: End[] }) {
           d={d}
           stroke={
             [
-              "#344653",
-              "#526A7B",
-              "#718A9B",
-              "#8DA3B3",
-              "#AABDCB",
-              "#CBD8E0",
-              "#E1E9EE",
+              ReferenceColors.color344653,
+              ReferenceColors.color526A7B,
+              ReferenceColors.color718A9B,
+              ReferenceColors.color8DA3B3,
+              ReferenceColors.colorAABDCB,
+              ReferenceColors.colorCBD8E0,
+              ReferenceColors.colorE1E9EE,
             ][i]
           }
           strokeWidth={width}
@@ -94,8 +95,8 @@ function Pipe({ d, ends }: { d: string; ends: End[] }) {
           <Ellipse
             rx={2.5}
             ry={7.5}
-            fill="#0C131A"
-            stroke="#6D8292"
+            fill={ReferenceColors.color0C131A}
+            stroke={ReferenceColors.color6D8292}
             strokeWidth={1}
           />
         </G>
@@ -114,9 +115,11 @@ function Dim({
   y: number;
   label: string;
 }) {
+  const { theme: { colors: Colors } } = useAppTheme();
+
   return (
     <G>
-      <Line x1={x1} x2={x2} y1={y} y2={y} stroke={C.primary} />
+      <Line x1={x1} x2={x2} y1={y} y2={y} stroke={Colors.primary} />
       <Path
         d={
           "M" +
@@ -144,10 +147,10 @@ function Dim({
           " " +
           (y + 4)
         }
-        stroke={C.primary}
+        stroke={Colors.primary}
         fill="none"
       />
-      <Label x={(x1 + x2) / 2} y={y - 12} color={C.primary} width={x2 - x1 - 8}>
+      <Label x={(x1 + x2) / 2} y={y - 12} color={Colors.primary} width={x2 - x1 - 8}>
         {label}
       </Label>
     </G>
@@ -199,10 +202,12 @@ export function BendDiagram({
   flip?: boolean;
   guideLabel?: string;
 }) {
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const guideLabel = selectedGuideLabel ?? (finished ? "Check" : undefined);
   const f = (n: number) => inches(n, p);
   const color = (i: number) =>
-    !focusMarks || focusMarks.includes(i) ? C.primary : C.borderStrong;
+    !focusMarks || focusMarks.includes(i) ? Colors.primary : Colors.borderStrong;
   const motion = useGuideMotion([
     ...r.marks.map((_, i) => formed ? Number(formed.includes(i)) : Number(finished)),
     Number(flip),
@@ -215,8 +220,8 @@ export function BendDiagram({
       <Pipe d={rounded(points)} ends={[{ x: 70, y: 85, vertical: true }, { x: last[0], y: last[1], rotation: -angle * 180 / Math.PI }]} />
       <Dim x1={60} x2={250} y={62} label={f(r.span)} />
       <Label x={200} y={28} width={340}>{"FROM THE OUTSIDE BACK OF THE FIRST 90"}</Label>
-      <Line x1={250} x2={250} y1={176} y2={201} stroke={C.primary} strokeWidth={3} />
-      <Label x={250} y={226} color={C.primary}>{motion[0] < 0.01 ? "★ Star mark" : `${Number((motion[0] * 90).toFixed(1))}° · Star`}</Label>
+      <Line x1={250} x2={250} y1={176} y2={201} stroke={Colors.primary} strokeWidth={3} />
+      <Label x={250} y={226} color={Colors.primary}>{motion[0] < 0.01 ? "★ Star mark" : `${Number((motion[0] * 90).toFixed(1))}° · Star`}</Label>
       <Label x={102} y={250} width={140}>{"Existing 90°"}</Label>
     </>;
   } else if (finished || (formed?.length ?? 0) > 0 || motion.slice(0, r.marks.length).some(v => v > 0.001)) {
@@ -225,7 +230,7 @@ export function BendDiagram({
     const selected = focusMarks?.[0];
     const labelXs = r.marks.map((_, i) => 55 + i * 290 / (r.marks.length - 1));
     drawing = <>
-      <Label x={200} y={30} color={C.primary} width={340}>
+      <Label x={200} y={30} color={Colors.primary} width={340}>
         {guideLabel === "Flip" ? "ROTATE CONDUIT 180°" : selected !== undefined ?
           `Mark ${selected + 1} · ${guideLabel} · ${r.marks[selected].angle}°` : "CHECK HEIGHT & PARALLEL LEGS"}
       </Label>
@@ -235,13 +240,13 @@ export function BendDiagram({
       ]} />
       {r.marks.map((mark, i) => <G key={i}>
         <Line x1={pts[i + 1][0]} x2={pts[i + 1][0]} y1={pts[i + 1][1] - 12} y2={pts[i + 1][1] + 12} stroke={color(i)} strokeWidth={3} />
-        {guideLabel === "Check" && <Line x1={pts[i + 1][0]} y1={pts[i + 1][1] + 14} x2={labelXs[i]} y2={235} stroke={C.borderStrong} />}
+        {guideLabel === "Check" && <Line x1={pts[i + 1][0]} y1={pts[i + 1][1] + 14} x2={labelXs[i]} y2={235} stroke={Colors.borderStrong} />}
         {((selected === i && guideLabel !== "Flip") || guideLabel === "Check" || (guideLabel === "Flip" && i === 0)) && <Label x={guideLabel === "Check" ? labelXs[i] : pts[i + 1][0]} y={guideLabel === "Check" ? 255 : pts[i + 1][1] + 34} color={color(i)} width={60}>
           {Number((mark.angle * motion[i]).toFixed(1)) + "°"}
         </Label>}
       </G>)}
-      {guideLabel === "Flip" && <Label x={200} y={270} color={C.primary} width={340}>{"↻ 180° · Keep both bends in one plane"}</Label>}
-      {guideLabel === "Check" && <Label x={200} y={282} color={C.primary} width={330}>{bend === "rolling" ? `Rise ${f(r.height)} · Sideways ${f(r.roll)}` : `Finished height ${f(r.height)}`}</Label>}
+      {guideLabel === "Flip" && <Label x={200} y={270} color={Colors.primary} width={340}>{"↻ 180° · Keep both bends in one plane"}</Label>}
+      {guideLabel === "Check" && <Label x={200} y={282} color={Colors.primary} width={330}>{bend === "rolling" ? `Rise ${f(r.height)} · Sideways ${f(r.roll)}` : `Finished height ${f(r.height)}`}</Label>}
     </>;
   } else if (!finished) {
     const straight = guideGeometry(bend, r.angle, r.marks.map(() => 0)).points;
@@ -268,7 +273,7 @@ export function BendDiagram({
               x2={x}
               y1={136}
               y2={160}
-              stroke="#0B1015"
+              stroke={ReferenceColors.color0B1015}
               strokeWidth={7}
             />
             <Line
@@ -287,7 +292,7 @@ export function BendDiagram({
               stroke={color(i)}
               strokeDasharray="2 4"
             />
-            <Line x1={x} y1={165} x2={labelXs[i]} y2={182} stroke={C.borderStrong} />
+            <Line x1={x} y1={165} x2={labelXs[i]} y2={182} stroke={Colors.borderStrong} />
             <Label x={labelXs[i]} y={199} color={color(i)} width={76}>
               {bend === "saddle3"
                 ? i === 1
@@ -329,13 +334,13 @@ export function BendDiagram({
     >
       <Defs>
         <LinearGradient id="bend-floor" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#141B22" />
-          <Stop offset="1" stopColor="#0E1318" />
+          <Stop offset="0" stopColor={Colors.diagramBackground} />
+          <Stop offset="1" stopColor={Colors.surface2} />
         </LinearGradient>
         <LinearGradient id="bend-rim" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#F1F4F5" />
-          <Stop offset="0.45" stopColor="#8799A7" />
-          <Stop offset="1" stopColor="#354552" />
+          <Stop offset="0" stopColor={ReferenceColors.colorF1F4F5} />
+          <Stop offset="0.45" stopColor={ReferenceColors.color8799A7} />
+          <Stop offset="1" stopColor={ReferenceColors.color354552} />
         </LinearGradient>
       </Defs>
       <Rect width={400} height={290} rx={14} fill="url(#bend-floor)" />
@@ -346,7 +351,7 @@ export function BendDiagram({
           x2={x}
           y1={15}
           y2={275}
-          stroke="#91A3B2"
+          stroke={Colors.diagramGrid}
           strokeOpacity={0.035}
         />
       ))}
@@ -357,7 +362,7 @@ export function BendDiagram({
           x2={385}
           y1={y}
           y2={y}
-          stroke="#91A3B2"
+          stroke={Colors.diagramGrid}
           strokeOpacity={0.035}
         />
       ))}

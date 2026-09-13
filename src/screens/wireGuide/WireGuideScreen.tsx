@@ -21,7 +21,7 @@ import {
   loadWireGuidePreferences,
   saveWireGuidePreferences,
 } from "../../utils/storage/wireGuidePreferences";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type SheetKind = "size" | "lug" | "ambient" | "conductors" | null;
 
@@ -44,6 +44,8 @@ function reasonLabel(reason: LimitingReason, effectiveLugRating: string): string
 }
 
 export default function WireGuideScreen() {
+  const styles = useStyles();
+
   const [material, setMaterial] = useState<ConductorMaterial>("copper");
   const [size, setSize] = useState<WireSize>("12");
   const [lugRating, setLugRating] = useState<LugRating>("unknown");
@@ -371,6 +373,8 @@ export default function WireGuideScreen() {
 }
 
 function SettingRow({ hint, label, onPress, value }: { hint: string; label: string; onPress: () => void; value: string }) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -391,6 +395,8 @@ function SettingRow({ hint, label, onPress, value }: { hint: string; label: stri
 }
 
 function BreakdownRow({ emphasis = false, label, value }: { emphasis?: boolean; label: string; value: string }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.breakdownRow}>
       <Text style={[styles.breakdownLabel, emphasis && styles.breakdownEmphasis]}>{label}</Text>
@@ -414,6 +420,8 @@ type SelectionSheetProps = {
 };
 
 function SelectionSheet(props: SelectionSheetProps) {
+  const styles = useStyles();
+
   const titles: Record<Exclude<SheetKind, null>, { eyebrow: string; title: string }> = {
     ambient: { eyebrow: "SURROUNDING AIR", title: "Temperature" },
     conductors: { eyebrow: "RACEWAY OR CABLE", title: "Current-carrying wires" },
@@ -515,6 +523,8 @@ function SelectionSheet(props: SelectionSheetProps) {
 }
 
 function SheetOption({ hint, label, onPress, selected }: { hint: string; label: string; onPress: () => void; selected: boolean }) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityRole="button"

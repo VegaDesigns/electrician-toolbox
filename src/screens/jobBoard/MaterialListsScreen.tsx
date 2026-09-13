@@ -1,10 +1,11 @@
+import { Space, Layout , Radius, FontSize, Fonts } from "../../theme/tokens";
+import { useAppTheme, defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Colors, Effects } from "../../theme";
-import { styles as fillStyles } from "../conduitFill/styles";
+import { useStyles as useFillStyles } from "../conduitFill/styles";
 import { editLine, restoreLine, materialParts, materialText, type ListLine, type MaterialList, type MaterialLists } from "../../utils/jobBoard/materialLists";
 import { loadMaterialLists, saveMaterialLists } from "../../utils/storage/materialListsStorage";
 
@@ -12,6 +13,9 @@ function newId() { return `${Date.now()}-${Math.random().toString(36).slice(2)}`
 type Removed = { kind: "item"; listId: string; line: ListLine; index: number } | { kind: "list"; list: MaterialList; index: number };
 
 function TimedUndo({ label, undo, expire, blocked }: { label: string; undo: () => void; expire: () => void; blocked: boolean }) {
+  const s = useLocalStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [left, setLeft] = useState(1);
   const [duration, setDuration] = useState<number | null>(null);
   const pause = useRef(false);
@@ -37,6 +41,8 @@ function TimedUndo({ label, undo, expire, blocked }: { label: string; undo: () =
 }
 
 function SwipeList({ list, open, action }: { list: MaterialList; open: () => void; action: (type: "finish" | "delete") => void }) {
+  const s = useLocalStyles();
+
   const swipe = useRef<{ close: () => void } | null>(null);
   const isRevealed = useRef(false);
   const ignoreTapUntil = useRef(0);
@@ -78,6 +84,10 @@ const BrowserSwipeRow = React.forwardRef<{ close: () => void }, React.ComponentP
 });
 
 export default function MaterialListsScreen() {
+  const s = useLocalStyles();
+  const fillStyles = useFillStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [data, setData] = useState<MaterialLists>({ lists: [] });
   const current = useRef(data);
   const queue = useRef(Promise.resolve());
@@ -317,85 +327,85 @@ export default function MaterialListsScreen() {
   </SafeAreaView>;
 }
 
-const s = StyleSheet.create({
-  swipeContainer: { borderRadius: 14, overflow: "hidden" },
-  swipeAction: { width: 104, alignItems: "center", justifyContent: "center", gap: 4 },
+const useLocalStyles = defineStyles(({ colors: Colors }) => ({
+  swipeContainer: { borderRadius: Radius.card, overflow: "hidden" },
+  swipeAction: { width: 104, alignItems: "center", justifyContent: "center", gap: Space.xxs },
   swipeDelete: { backgroundColor: Colors.keyDanger },
   swipeFinish: { backgroundColor: Colors.borderStrong },
-  swipeSymbol: { color: Colors.text, fontSize: 25, fontWeight: "700" },
-  swipeLabel: { color: Colors.text, fontSize: 14, fontWeight: "700" },
+  swipeSymbol: { color: Colors.text, fontSize: FontSize.title, fontWeight: "500" },
+  swipeLabel: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500" },
   safe: { flex: 1, backgroundColor: Colors.bg },
-  entryModalSafe: { flex: 1, backgroundColor: "rgba(0,0,0,0.70)" },
+  entryModalSafe: { flex: 1, backgroundColor: Colors.overlay },
   entryKeyboard: { flex: 1, justifyContent: "flex-end" },
-  entrySheet: { width: "100%", maxWidth: 520, alignSelf: "center" },
-  entryContent: { paddingHorizontal: 16, paddingBottom: 16, gap: 12 },
-  modalInput: { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 11, color: Colors.text, fontSize: 17, padding: 12, height: 50 },
+  entrySheet: { width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center" },
+  entryContent: { paddingHorizontal: Space.md, paddingBottom: Space.md, gap: Space.sm },
+  modalInput: { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, color: Colors.text, fontSize: FontSize.body, padding: Space.sm, height: 50 },
   noteInput: { height: 96, textAlignVertical: "top" },
-  pencil: { color: Colors.textSubtle, fontSize: 16 },
-  noteMarker: { color: Colors.textMuted, fontSize: 16 },
-  removeIcon: { color: Colors.error, fontSize: 26 },
+  pencil: { color: Colors.textSubtle, fontSize: FontSize.body },
+  noteMarker: { color: Colors.textMuted, fontSize: FontSize.body },
+  removeIcon: { color: Colors.error, fontSize: FontSize.title },
   rowIcon: { width: 44, minHeight: 48, alignItems: "center", justifyContent: "center" },
   editDot: { position: "absolute", width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary, top: 11, right: 9 },
-  previousPanel: { borderWidth: 1, borderColor: Colors.border, borderRadius: 11, padding: 12, gap: 4 },
+  previousPanel: { borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.control, padding: Space.sm, gap: Space.xxs },
   previousText: { color: Colors.text },
   grow: { flex: 1, minWidth: 120 },
-  cancelButton: { minHeight: 48, minWidth: 90, paddingHorizontal: 14, marginVertical: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 12, backgroundColor: Colors.surface3 },
-  groupLabel: { color: Colors.textMuted, fontSize: 10, fontWeight: "800", letterSpacing: 1, padding: 10 },
-  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 8, minHeight: 58, width: "100%", maxWidth: 520, alignSelf: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
-  homeButton: { width: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 13, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3, ...Effects.controlRaised },
-  heading: { color: Colors.text, fontSize: 21, fontWeight: "900" },
-  eyebrow: { color: Colors.textSubtle, fontSize: 9, fontWeight: "900", letterSpacing: 1.2 },
-  status: { minHeight: 28, paddingHorizontal: 16, maxWidth: 560, width: "100%", alignSelf: "center" },
-  content: { padding: 16, paddingTop: 12, gap: 12, maxWidth: 520, width: "100%", alignSelf: "center", paddingBottom: 32 },
-  title: { color: Colors.text, fontSize: 17, fontWeight: "700" },
-  muted: { color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
-  error: { color: Colors.error, fontSize: 13, lineHeight: 19 },
-  buttonText: { color: Colors.text, fontSize: 15, fontWeight: "600" },
-  smallButton: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 8 },
-  primary: { backgroundColor: Colors.primary, minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: Colors.primaryMuted, alignItems: "center", justifyContent: "center", paddingHorizontal: 16, marginVertical: 4, ...Effects.primaryRaised },
-  primaryText: { color: Colors.inverseText, fontSize: 15, fontWeight: "700" },
-  secondary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 12, backgroundColor: Colors.surface2, ...Effects.controlRaised },
+  cancelButton: { minHeight: 48, minWidth: 90, paddingHorizontal: 14, marginVertical: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface3 },
+  groupLabel: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1, padding: 10 },
+  header: { flexDirection: "row", alignItems: "center", gap: Space.sm, paddingHorizontal: Space.md, paddingVertical: Space.xs, minHeight: 58, width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
+  homeButton: { width: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,  },
+  heading: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
+  eyebrow: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
+  status: { minHeight: 28, paddingHorizontal: Space.md, maxWidth: Layout.contentWidth, width: "100%", alignSelf: "center" },
+  content: { padding: Space.md, paddingTop: Space.sm, gap: Space.sm, maxWidth: Layout.contentWidth, width: "100%", alignSelf: "center", paddingBottom: Space.xl },
+  title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.body, fontWeight: "500" },
+  muted: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 19 },
+  error: { color: Colors.error, fontSize: FontSize.caption, lineHeight: 19 },
+  buttonText: { color: Colors.text, fontSize: FontSize.label, fontWeight: "600" },
+  smallButton: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: Space.xs },
+  primary: { backgroundColor: Colors.primary, minHeight: 48, borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.primaryMuted, alignItems: "center", justifyContent: "center", paddingHorizontal: Space.md, marginVertical: Space.xxs,  },
+  primaryText: { color: Colors.inverseText, fontSize: FontSize.label, fontWeight: "500" },
+  secondary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface2,  },
   disabled: { opacity: 0.4 },
-  link: { color: Colors.primary, fontSize: 14, fontWeight: "600" },
+  link: { color: Colors.primary, fontSize: FontSize.label, fontWeight: "600" },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" },
-  listCard: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, padding: 16, borderRadius: 14, gap: 10, ...Effects.surfaceRaised },
-  cardHeading: { flexDirection: "row", alignItems: "center", gap: 12 },
+  listCard: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, padding: Space.md, borderRadius: Radius.card, gap: 10,  },
+  cardHeading: { flexDirection: "row", alignItems: "center", gap: Space.sm },
   cardTitle: { flex: 1 },
-  listMark: { width: 32, height: 32, borderRadius: 9, backgroundColor: Colors.surface3, alignItems: "center", justifyContent: "center" },
-  listMarkText: { color: Colors.primary, fontSize: 24 },
-  runSummary: { padding: 16, borderRadius: 18, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface, gap: 8, ...Effects.surfaceRaised },
-  countBadge: { backgroundColor: Colors.primarySoft, borderWidth: 1, borderColor: Colors.primaryMuted, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 },
-  countText: { color: Colors.primary, fontSize: 12, fontWeight: "700" },
-  progressTrack: { height: 4, borderRadius: 2, backgroundColor: Colors.bg, overflow: "hidden", marginTop: 4 },
+  listMark: { width: 32, height: 32, borderRadius: Radius.small, backgroundColor: Colors.surface3, alignItems: "center", justifyContent: "center" },
+  listMarkText: { color: Colors.primary, fontSize: FontSize.title },
+  runSummary: { padding: Space.md, borderRadius: Radius.large, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface, gap: Space.xs,  },
+  countBadge: { backgroundColor: Colors.primarySoft, borderWidth: 1, borderColor: Colors.primaryMuted, borderRadius: Radius.small, paddingHorizontal: 9, paddingVertical: 5 },
+  countText: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500" },
+  progressTrack: { height: 4, borderRadius: 2, backgroundColor: Colors.bg, overflow: "hidden", marginTop: Space.xxs },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: Colors.primary },
-  paper: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface, ...Effects.surfaceRaised },
-  empty: { paddingVertical: 28, gap: 8 },
-  name: { color: Colors.text, fontSize: 23, fontWeight: "600", paddingVertical: 8 },
-  renameTarget: { flexDirection: "row", alignItems: "center", minHeight: 52, gap: 12 },
-  undoBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderTopWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface2 },
+  paper: { paddingHorizontal: 10, paddingVertical: Space.xxs, borderRadius: Radius.card, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,  },
+  empty: { paddingVertical: 28, gap: Space.xs },
+  name: { color: Colors.text, fontSize: FontSize.title, fontWeight: "600", paddingVertical: Space.xs },
+  renameTarget: { flexDirection: "row", alignItems: "center", minHeight: 52, gap: Space.sm },
+  undoBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: Space.md, borderTopWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface2 },
   manageWrap: { width: "100%", alignItems: "center", justifyContent: "center", flex: 1 },
   line: { flexDirection: "row", alignItems: "flex-start", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, paddingVertical: 6, gap: 6 },
   checkTarget: { width: 44, minHeight: 48, alignItems: "center", justifyContent: "center" },
-  check: { width: 26, height: 26, borderWidth: 1.5, borderColor: Colors.borderStrong, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  checked: { backgroundColor: Colors.primary, borderColor: Colors.primary, ...Effects.primaryRaised },
-  checkText: { color: Colors.inverseText, fontSize: 18, fontWeight: "700" },
+  check: { width: 26, height: 26, borderWidth: 1.5, borderColor: Colors.borderStrong, borderRadius: Radius.small, alignItems: "center", justifyContent: "center" },
+  checked: { backgroundColor: Colors.primary, borderColor: Colors.primary,  },
+  checkText: { color: Colors.inverseText, fontSize: FontSize.subtitle, fontWeight: "500" },
   pressed: { opacity: 0.6 },
   lineBody: { flex: 1, minWidth: 0 },
-  lineContent: { flexDirection: "row", alignItems: "flex-start", gap: 4 },
+  lineContent: { flexDirection: "row", alignItems: "flex-start", gap: Space.xxs },
   lineTextTarget: { flex: 1, minWidth: 0, minHeight: 48, justifyContent: "center", paddingVertical: 10 },
-  lineText: { color: Colors.text, fontSize: 17, lineHeight: 25 },
+  lineText: { color: Colors.text, fontSize: FontSize.body, lineHeight: 25 },
   doneText: { color: Colors.textMuted, textDecorationLine: "line-through" },
-  editBadge: { minHeight: 48, minWidth: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: 4 },
-  editedText: { color: Colors.textMuted, fontSize: 10, fontWeight: "600", backgroundColor: Colors.surface3, paddingHorizontal: 5, paddingVertical: 3, borderRadius: 5 },
-  editInput: { color: Colors.text, backgroundColor: Colors.surface, borderRadius: 8, padding: 10, fontSize: 17, minHeight: 48 },
-  actions: { flexDirection: "row", gap: 8, flexWrap: "wrap", alignItems: "center" },
-  entryBox: { paddingHorizontal: 12, paddingVertical: 4, backgroundColor: Colors.bg, borderRadius: 14, borderWidth: 1, borderColor: Colors.border, ...Effects.recessed },
+  editBadge: { minHeight: 48, minWidth: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: Space.xxs },
+  editedText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "600", backgroundColor: Colors.surface3, paddingHorizontal: 5, paddingVertical: 3, borderRadius: 5 },
+  editInput: { color: Colors.text, backgroundColor: Colors.surface, borderRadius: Radius.small, padding: 10, fontSize: FontSize.body, minHeight: 48 },
+  actions: { flexDirection: "row", gap: Space.xs, flexWrap: "wrap", alignItems: "center" },
+  entryBox: { paddingHorizontal: Space.sm, paddingVertical: Space.xxs, backgroundColor: Colors.bg, borderRadius: Radius.card, borderWidth: 1, borderColor: Colors.border,  },
   entryBoxFocused: { borderColor: Colors.borderStrong },
-  entry: { color: Colors.text, fontSize: 17, lineHeight: 25, height: 52, textAlignVertical: "top", paddingVertical: 12, paddingHorizontal: 4 },
+  entry: { color: Colors.text, fontSize: FontSize.body, lineHeight: 25, height: 52, textAlignVertical: "top", paddingVertical: Space.sm, paddingHorizontal: Space.xxs },
   entryExpanded: { height: 112 },
-  entryHint: { color: Colors.textMuted, fontSize: 12, lineHeight: 18, paddingHorizontal: 4, marginBottom: 8 },
+  entryHint: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 18, paddingHorizontal: Space.xxs, marginBottom: Space.xs },
   addButton: { minWidth: 110 },
-  scrim: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", padding: 20 },
-  sheet: { backgroundColor: Colors.surface, borderRadius: 18, padding: 20, maxHeight: "85%", width: "100%", maxWidth: 520, alignSelf: "center" },
-  historyText: { color: Colors.text, fontSize: 17, paddingVertical: 14 },
-});
+  scrim: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "center", padding: 20 },
+  sheet: { backgroundColor: Colors.surface, borderRadius: Radius.large, padding: 20, maxHeight: "85%", width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center" },
+  historyText: { color: Colors.text, fontSize: FontSize.body, paddingVertical: 14 },
+}));

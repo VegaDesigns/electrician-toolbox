@@ -23,7 +23,7 @@ import {
   getNextStandardBox,
   STANDARD_BOXES,
 } from "../../utils/boxFill/boxFill";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type WireRow = {
   id: number;
@@ -86,6 +86,8 @@ function addOnLabel(addOn: BoxAddOn) {
 }
 
 export default function BoxFillScreen() {
+  const styles = useStyles();
+
   const [boxFamily, setBoxFamily] = useState<BoxFamily>("four-square");
   const [depth, setDepth] = useState("2-1/8");
   const [markedVolume, setMarkedVolume] = useState("");
@@ -966,6 +968,8 @@ export default function BoxFillScreen() {
 }
 
 function BreakdownRow({ label, value }: { label: string; value: number }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.breakdownRow}>
       <Text style={styles.breakdownLabel}>{label}</Text>

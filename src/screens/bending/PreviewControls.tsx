@@ -1,11 +1,13 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { previewStyles as s } from "./previewStyles";
+import { usePreviewStyles as useS } from "./previewStyles";
 
 export function PreviewControls({ guided, finished, steps, step, onView, onGuide, onStep }: {
   guided: boolean; finished: boolean; steps: readonly string[]; step: number;
   onView: (finished: boolean) => void; onGuide: () => void; onStep: (step: number) => void;
 }) {
+  const s = useS();
+
   return <>
     {!guided && <View style={s.tabs}>
       {[false, true].map(value => <Pressable key={String(value)} accessibilityRole="tab"
@@ -31,6 +33,8 @@ export function PreviewControls({ guided, finished, steps, step, onView, onGuide
 }
 
 export function GuideNavigation({ step, count, onStep }: { step: number; count: number; onStep: (step: number) => void }) {
+  const s = useS();
+
   return <View style={s.guideNavigation}>
     <Pressable accessibilityRole="button" accessibilityLabel="Previous guide step" disabled={step === 0}
       accessibilityState={{ disabled: step === 0 }} onPress={() => onStep(step - 1)}

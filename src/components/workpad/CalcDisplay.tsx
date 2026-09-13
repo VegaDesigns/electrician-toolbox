@@ -1,7 +1,8 @@
+import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Effects } from "../../theme";
 
 export type ResultFormatKey =
   | "standard"
@@ -47,6 +48,8 @@ export default function CalcDisplay({
   showUnitToggle,
   unitToggleLabel,
 }: Props) {
+  const styles = useStyles();
+
   const [detailsOpen, setDetailsOpen] = useState(false);
   const equationRef = useRef<ScrollView>(null);
   const entryRef = useRef<ScrollView>(null);
@@ -182,6 +185,8 @@ export default function CalcDisplay({
 }
 
 function FormattedMainValue({ value, compact }: { value: string; compact: boolean }) {
+  const styles = useStyles();
+
   const parsed = parseFractionDisplay(value);
 
   if (!parsed) {
@@ -235,16 +240,15 @@ function parseFractionDisplay(value: string): {
   };
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   display: {
     height: 246,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-    ...Effects.surfaceRaised,
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.xs,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.bg,
+    borderWidth: 0,
+
   },
 
   valueArea: {
@@ -256,9 +260,9 @@ const styles = StyleSheet.create({
   valueAreaCompact: { height: 72 },
   equationScrollCompact: { height: 24 },
   entryScrollCompact: { height: 48 },
-  mainValueCompact: { fontSize: 42, lineHeight: 48 },
-  inlineFractionCompact: { fontSize: 30 },
-  inlineUnitCompact: { fontSize: 34 },
+  mainValueCompact: { fontSize: FontSize.display, lineHeight: 48 },
+  inlineFractionCompact: { fontSize: FontSize.heading },
+  inlineUnitCompact: { fontSize: FontSize.screen },
 
   displayPressed: {
     opacity: 0.86,
@@ -266,7 +270,7 @@ const styles = StyleSheet.create({
 
   topLine: {
     color: Colors.textMuted,
-    fontSize: 18,
+    fontSize: FontSize.subtitle,
     fontWeight: "600",
     textAlign: "right",
     minHeight: 25,
@@ -274,13 +278,13 @@ const styles = StyleSheet.create({
 
   topLineHint: {
     color: Colors.textSubtle,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   mainValue: {
     color: Colors.text,
-    fontSize: 54,
+    fontSize: FontSize.hero,
     fontWeight: "400",
     fontVariant: ["tabular-nums"],
     textAlign: "right",
@@ -289,14 +293,14 @@ const styles = StyleSheet.create({
 
   inlineFraction: {
     color: Colors.text,
-    fontSize: 38,
+    fontSize: FontSize.screen,
     fontWeight: "400",
     letterSpacing: -0.8,
   },
 
   inlineUnit: {
     color: Colors.text,
-    fontSize: 44,
+    fontSize: FontSize.display,
     fontWeight: "400",
   },
 
@@ -317,8 +321,8 @@ const styles = StyleSheet.create({
   interpretationText: {
     color: Colors.primary,
     flex: 1,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   interpretationDismiss: {
@@ -330,24 +334,24 @@ const styles = StyleSheet.create({
 
   interpretationDismissText: {
     color: Colors.primary,
-    fontSize: 19,
-    fontWeight: "700",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
     lineHeight: 20,
   },
 
   error: {
     color: Colors.error,
     flex: 1,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     textAlign: "right",
   },
 
   roundingNotice: {
     color: Colors.textMuted,
     flex: 1,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   actionSlot: {
@@ -361,57 +365,57 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.primaryMuted,
-    borderRadius: 10,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 44,
     justifyContent: "center",
     minWidth: 52,
     paddingHorizontal: 10,
     zIndex: 2,
-    ...Effects.controlRaised,
+
   },
 
   unitToggleText: {
     color: Colors.primary,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   copyButton: {
     alignItems: "center",
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primaryMuted,
-    borderRadius: 10,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 44,
     justifyContent: "center",
     minWidth: 86,
     paddingHorizontal: 11,
-    ...Effects.controlRaised,
+
   },
 
   copyButtonText: {
     color: Colors.primary,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   actionPressed: {
     opacity: 0.72,
     transform: [{ scale: 0.98 }],
-    ...Effects.pressed,
+
   },
   toolbar: { flexDirection: "row", height: 44, alignItems: "center", justifyContent: "space-between" },
-  editButton: { minHeight: 44, minWidth: 54, paddingHorizontal: 8, justifyContent: "center", alignItems: "center" },
-  editText: { color: Colors.textMuted, fontSize: 13, fontWeight: "700" },
+  editButton: { minHeight: 44, minWidth: 54, paddingHorizontal: Space.xs, justifyContent: "center", alignItems: "center" },
+  editText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   equationScroll: { flexGrow: 0, height: 26 },
   entryScroll: { flexGrow: 0, height: 70 },
   equationContent: { flexGrow: 1, justifyContent: "flex-end", alignItems: "center" },
-  detailsIcon: { color: Colors.textMuted, fontSize: 17 },
+  detailsIcon: { color: Colors.textMuted, fontSize: FontSize.body },
   detailSafe: { flex: 1, justifyContent: "flex-end" },
-  detailScrim: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.7)" },
-  detailSheet: { backgroundColor: Colors.surface, padding: 16, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "75%" },
-  detailTitle: { color: Colors.text, fontSize: 18, fontWeight: "800", flexShrink: 1 },
-  detailBody: { color: Colors.text, fontSize: 15, lineHeight: 23, marginVertical: 10 },
-  detailError: { color: Colors.error, fontSize: 15, lineHeight: 23, marginVertical: 10 },
-});
+  detailScrim: { ...StyleSheet.absoluteFill, backgroundColor: Colors.overlay },
+  detailSheet: { backgroundColor: Colors.surface, padding: Space.md, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, maxHeight: "75%" },
+  detailTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.subtitle, fontWeight: "500", flexShrink: 1 },
+  detailBody: { color: Colors.text, fontSize: FontSize.label, lineHeight: 23, marginVertical: 10 },
+  detailError: { color: Colors.error, fontSize: FontSize.label, lineHeight: 23, marginVertical: 10 },
+}));

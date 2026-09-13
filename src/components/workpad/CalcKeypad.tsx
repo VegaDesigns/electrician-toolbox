@@ -1,12 +1,12 @@
+import { Space , Radius, FontSize } from "../../theme/tokens";
+import { useAppTheme, defineStyles } from "../../theme";
 import React, { useRef, useState } from "react";
 import {
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { Colors, Effects } from "../../theme";
 import type { CalcKey } from "../../utils/calc/engine";
 
 type Props = {
@@ -57,6 +57,9 @@ export default function CalcKeypad({
   fractionMode = false,
   compact = false,
 }: Props) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [customNumerator, setCustomNumerator] = useState("");
   const [customDenominator, setCustomDenominator] = useState("");
   const [customError, setCustomError] = useState("");
@@ -289,6 +292,8 @@ function FractionButton({
   fraction: FractionSpec;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityLabel={`${fraction.label} inch`}
@@ -315,6 +320,8 @@ function KeyButton({
   compact: boolean;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+
   const variant = getVariant(item.key);
   const label = item.label ?? item.key;
 
@@ -395,12 +402,12 @@ function getVariant(k: CalcKey): Variant {
   return "default";
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   container: {
     flexGrow: 1,
     minHeight: 390,
     maxHeight: 580,
-    gap: 8,
+    gap: Space.xs,
   },
 
   containerCompact: {
@@ -410,19 +417,19 @@ const styles = StyleSheet.create({
   row: {
     flex: 1,
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
   },
 
   keyBase: {
     flex: 1,
     minHeight: 52,
-    borderRadius: 18,
+    borderRadius: Radius.pill,
     backgroundColor: Colors.key,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: Colors.border,
-    ...Effects.controlRaised,
+
   },
 
   keyFull: {
@@ -431,7 +438,7 @@ const styles = StyleSheet.create({
 
   keyCompact: {
     minHeight: 44,
-    borderRadius: 15,
+    borderRadius: Radius.card,
   },
 
   keyOperator: {
@@ -441,7 +448,7 @@ const styles = StyleSheet.create({
   keyPrimary: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    ...Effects.primaryRaised,
+
   },
 
   keyUtility: {
@@ -455,8 +462,8 @@ const styles = StyleSheet.create({
   },
 
   keyDanger: {
-    backgroundColor: Colors.errorSoft,
-    borderColor: "#633B36",
+    backgroundColor: Colors.keyUtility,
+    borderColor: Colors.border,
   },
 
   fractionUtilityRow: {
@@ -478,17 +485,17 @@ const styles = StyleSheet.create({
 
   backKeyText: {
     color: Colors.primary,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   fractionSectionLabel: {
     color: Colors.textMuted,
     flexShrink: 0,
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.7,
-    marginLeft: 4,
+    marginLeft: Space.xxs,
     textTransform: "uppercase",
   },
 
@@ -502,8 +509,8 @@ const styles = StyleSheet.create({
 
   fractionKeyText: {
     color: Colors.text,
-    fontSize: 17,
-    fontWeight: "800",
+    fontSize: FontSize.body,
+    fontWeight: "500",
   },
 
   keySpacer: {
@@ -513,12 +520,12 @@ const styles = StyleSheet.create({
   customFractionCard: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 18,
+    borderRadius: Radius.large,
     borderWidth: 1,
     flexGrow: 0,
-    gap: 8,
-    padding: 12,
-    ...Effects.surfaceRaised,
+    gap: Space.xs,
+    padding: Space.sm,
+
   },
 
   customFractionCardCompact: {
@@ -528,25 +535,25 @@ const styles = StyleSheet.create({
 
   customFractionTitle: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   customFractionRow: {
     alignItems: "flex-end",
     flexDirection: "row",
-    gap: 8,
+    gap: Space.xs,
   },
 
   customField: {
     flex: 1,
-    gap: 4,
+    gap: Space.xxs,
   },
 
   customFieldLabel: {
     color: Colors.textSubtle,
-    fontSize: 10,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -554,15 +561,14 @@ const styles = StyleSheet.create({
   customInput: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 12,
-    borderTopColor: "rgba(0, 0, 0, 0.65)",
-    borderBottomColor: "rgba(255, 255, 255, 0.07)",
+    borderRadius: Radius.control,
+    borderTopColor: Colors.border,
+    borderBottomColor: Colors.border,
     borderWidth: 1,
-    boxShadow:
-      "inset 0 2px 5px rgba(0, 0, 0, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.035)",
+
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
     height: 48,
     paddingHorizontal: 10,
     textAlign: "center",
@@ -570,8 +576,8 @@ const styles = StyleSheet.create({
 
   customSlash: {
     color: Colors.textMuted,
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: FontSize.title,
+    fontWeight: "500",
     lineHeight: 48,
   },
 
@@ -579,58 +585,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 48,
     justifyContent: "center",
     paddingHorizontal: 18,
-    ...Effects.primaryRaised,
+
   },
 
   customAddKeyText: {
     color: Colors.inverseText,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   customError: {
     color: Colors.error,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   pressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
-    ...Effects.pressed,
+
   },
 
   keyText: {
     color: Colors.text,
-    fontSize: 24,
+    fontSize: FontSize.title,
     fontWeight: "500",
   },
 
   keyTextOperator: {
     color: Colors.primary,
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: FontSize.heading,
+    fontWeight: "500",
   },
 
   keyTextPrimary: {
     color: Colors.inverseText,
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: FontSize.heading,
+    fontWeight: "500",
   },
 
   keyTextUnit: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
   },
 
   keyTextDanger: {
-    color: "#E79183",
-    fontWeight: "800",
+    color: Colors.text,
+    fontWeight: "500",
   },
-});
+}));

@@ -54,11 +54,13 @@ import {
   saveWorkpadPreferences,
 } from "../../utils/storage/preferences";
 
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type FractionPick = { label: string; value: number };
 
 function HistoryIcon() {
+  const styles = useStyles();
+
   return (
     <View aria-hidden style={styles.historyIcon}>
       <View style={styles.historyClockFace}>
@@ -143,6 +145,8 @@ function formatInchesOnlyFraction(
 }
 
 export default function WorkpadScreen() {
+  const styles = useStyles();
+
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [state, setState] = useState(createInitialCalcState());

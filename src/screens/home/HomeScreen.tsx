@@ -4,7 +4,7 @@ import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type ToolTileProps = {
   accent: "amber" | "blue" | "phase";
@@ -16,6 +16,8 @@ type ToolTileProps = {
 };
 
 function ToolIcon({ accent, icon }: Pick<ToolTileProps, "accent" | "icon">) {
+  const styles = useStyles();
+
   if (accent === "phase") {
     return (
       <View accessibilityElementsHidden style={[styles.toolIcon, styles.toolIconPhase]}>
@@ -36,6 +38,8 @@ function ToolIcon({ accent, icon }: Pick<ToolTileProps, "accent" | "icon">) {
 }
 
 function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTileProps) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityHint={`Opens ${title}`}
@@ -47,9 +51,6 @@ function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTilePr
       }}
       style={({ pressed }) => [
         styles.toolTile,
-        accent === "amber" && styles.toolTileAmber,
-        accent === "blue" && styles.toolTileBlue,
-        accent === "phase" && styles.toolTilePhase,
         pressed && styles.pressed,
       ]}
     >
@@ -68,6 +69,8 @@ function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTilePr
 }
 
 export default function HomeScreen() {
+  const styles = useStyles();
+
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScrollView
@@ -84,6 +87,9 @@ export default function HomeScreen() {
             <Text style={styles.brandName}>ELECTRICIAN TOOLBOX</Text>
             <Text style={styles.headline}>What do you need?</Text>
           </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Open app settings" onPress={() => router.push("/settings")} style={({ pressed }) => [styles.menu, pressed && styles.pressed]}>
+            <View style={styles.menuLine} /><View style={styles.menuLine} /><View style={styles.menuLine} />
+          </Pressable>
         </View>
 
         <Text style={styles.sectionLabel}>TOOLS</Text>

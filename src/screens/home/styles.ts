@@ -1,7 +1,10 @@
-import { StyleSheet } from "react-native";
-import { Colors, Effects } from "../../theme";
+import { Space, Layout , Radius, FontSize, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
+import { ReferenceColors } from "../../theme/color";
 
-export const styles = StyleSheet.create({
+export const useStyles = defineStyles(({ colors: Colors }) => ({
+  menu: { width: 48, height: 48, borderRadius: Radius.round, alignItems: "center", justifyContent: "center", gap: 5, backgroundColor: Colors.surface2 },
+  menuLine: { width: 20, height: 2, borderRadius: 1, backgroundColor: Colors.text },
   safe: {
     backgroundColor: Colors.bg,
     flex: 1,
@@ -10,17 +13,17 @@ export const styles = StyleSheet.create({
   container: {
     alignSelf: "center",
     flexGrow: 1,
-    maxWidth: 520,
+    maxWidth: Layout.contentWidth,
     paddingBottom: 22,
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: Space.md,
+    paddingTop: Space.sm,
     width: "100%",
   },
 
   header: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12,
+    gap: Space.sm,
     marginBottom: 28,
   },
 
@@ -28,18 +31,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     height: 50,
     justifyContent: "center",
     width: 50,
-    ...Effects.primaryRaised,
+
   },
 
   brandMarkText: {
     color: Colors.inverseText,
-    fontSize: 30,
-    fontWeight: "900",
+    fontSize: FontSize.heading,
+    fontWeight: "500",
     lineHeight: 33,
   },
 
@@ -50,22 +53,22 @@ export const styles = StyleSheet.create({
 
   brandName: {
     color: Colors.textMuted,
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 1.1,
   },
 
-  headline: {
+  headline: { fontFamily: Fonts.heading,
     color: Colors.text,
-    fontSize: 23,
-    fontWeight: "900",
+    fontSize: FontSize.title,
+    fontWeight: "500",
     letterSpacing: 0.1,
   },
 
   sectionLabel: {
     color: Colors.textSubtle,
-    fontSize: 10,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 1.25,
     marginBottom: 10,
     marginLeft: 2,
@@ -74,36 +77,28 @@ export const styles = StyleSheet.create({
   toolGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: Space.sm,
   },
 
   toolTile: {
     aspectRatio: 1,
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 20,
+    borderRadius: Radius.large,
     borderWidth: 1,
     flexBasis: "47%",
     flexGrow: 1,
     maxWidth: "48.5%",
     overflow: "hidden",
     padding: 15,
-    ...Effects.surfaceRaised,
+
   },
 
-  toolTileAmber: {
-    borderBottomColor: Colors.primaryMuted,
-  },
-
-  toolTileBlue: {
+toolTileBlue: {
     borderBottomColor: Colors.borderStrong,
   },
 
-  toolTilePhase: {
-    borderBottomColor: "#713932",
-  },
-
-  toolTopRow: {
+toolTopRow: {
     alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -112,14 +107,14 @@ export const styles = StyleSheet.create({
   toolIcon: {
     alignItems: "center",
     backgroundColor: Colors.primarySoft,
-    borderColor: "rgba(255,255,255,0.05)",
-    borderRadius: 13,
+    borderColor: Colors.border,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
     height: 44,
     justifyContent: "center",
     width: 44,
-    ...Effects.recessed,
+
   },
 
   toolIconBlue: {
@@ -127,7 +122,7 @@ export const styles = StyleSheet.create({
   },
 
   toolIconPhase: {
-    backgroundColor: "#171D24",
+    backgroundColor: Colors.surface2,
     gap: 3,
     paddingHorizontal: 6,
     width: 53,
@@ -135,70 +130,70 @@ export const styles = StyleSheet.create({
 
   toolIconText: {
     color: Colors.primary,
-    fontSize: 27,
-    fontWeight: "900",
+    fontSize: FontSize.heading,
+    fontWeight: "500",
     lineHeight: 30,
   },
 
   toolIconTextBlue: {
-    color: "#89A6C1",
+    color: Colors.primary,
   },
 
   phaseDot: {
-    borderColor: "rgba(255,255,255,0.28)",
-    borderRadius: 8,
+    borderColor: Colors.border,
+    borderRadius: Radius.small,
     borderWidth: 1,
     height: 13,
     width: 13,
   },
 
   phaseBlack: {
-    backgroundColor: "#14171A",
+    backgroundColor: ReferenceColors.color14171A,
   },
 
   phaseRed: {
-    backgroundColor: "#D94A43",
+    backgroundColor: ReferenceColors.colorD94A43,
   },
 
   phaseBlue: {
-    backgroundColor: "#3277D5",
+    backgroundColor: ReferenceColors.color3277D5,
   },
 
   openArrow: {
     color: Colors.textSubtle,
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   toolCopy: {
-    gap: 4,
+    gap: Space.xxs,
     marginTop: "auto",
   },
 
   statusText: {
-    color: "#89A6C1",
-    fontSize: 8,
-    fontWeight: "900",
+    color: Colors.primary,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.8,
   },
 
-  toolTitle: {
+  toolTitle: { fontFamily: Fonts.heading,
     color: Colors.text,
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     letterSpacing: 0.1,
   },
 
   toolSubtitle: {
     color: Colors.textMuted,
-    fontSize: 11,
+    fontSize: FontSize.caption,
     lineHeight: 15,
   },
 
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.975 }],
-    ...Effects.pressed,
+
   },
 
   footer: {
@@ -218,8 +213,8 @@ export const styles = StyleSheet.create({
 
   footerText: {
     color: Colors.textSubtle,
-    fontSize: 9,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.9,
   },
-});
+}));

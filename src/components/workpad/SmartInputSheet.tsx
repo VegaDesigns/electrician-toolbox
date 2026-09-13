@@ -1,3 +1,5 @@
+import { Space , FontSize, Radius, Fonts } from "../../theme/tokens";
+import { useAppTheme, defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,8 +12,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import { Colors, Effects } from "../../theme";
 
 type Props = {
   initialValue: string;
@@ -26,6 +26,9 @@ export default function SmartInputSheet({
   onClose,
   onSubmit,
 }: Props) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
@@ -134,7 +137,7 @@ export default function SmartInputSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   flex: { flex: 1 },
   safe: { flex: 1, backgroundColor: Colors.bg },
   header: {
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: Space.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
   },
@@ -151,42 +154,41 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
   },
-  headerButtonText: { color: Colors.textMuted, fontSize: 15, fontWeight: "700" },
+  headerButtonText: { color: Colors.textMuted, fontSize: FontSize.label, fontWeight: "500" },
   doneButton: { alignItems: "flex-end" },
-  doneText: { color: Colors.primary, fontSize: 15, fontWeight: "900" },
-  title: { color: Colors.text, fontSize: 17, fontWeight: "900" },
+  doneText: { color: Colors.primary, fontSize: FontSize.label, fontWeight: "500" },
+  title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.body, fontWeight: "500" },
   content: { padding: 20, gap: 14 },
-  label: { color: Colors.text, fontSize: 18, fontWeight: "900" },
+  label: { color: Colors.text, fontSize: FontSize.subtitle, fontWeight: "500" },
   input: {
     minHeight: 112,
-    borderRadius: 18,
+    borderRadius: Radius.large,
     borderWidth: 1,
     borderColor: Colors.borderStrong,
     backgroundColor: Colors.surface,
     color: Colors.text,
-    fontSize: 24,
-    fontWeight: "700",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    fontSize: FontSize.title,
+    fontWeight: "500",
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.md,
     textAlignVertical: "top",
-    borderTopColor: "rgba(0, 0, 0, 0.65)",
-    borderBottomColor: "rgba(255, 255, 255, 0.07)",
-    boxShadow:
-      "inset 0 2px 5px rgba(0, 0, 0, 0.34), inset 0 -1px 0 rgba(255, 255, 255, 0.035)",
+    borderTopColor: Colors.border,
+    borderBottomColor: Colors.border,
+
   },
   errorBox: {
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Colors.error,
     backgroundColor: Colors.errorSoft,
-    padding: 12,
+    padding: Space.sm,
   },
-  errorText: { color: "#FCA5A5", fontSize: 14, fontWeight: "800" },
+  errorText: { color: Colors.error, fontSize: FontSize.label, fontWeight: "500" },
   examplesTitle: {
     marginTop: 6,
     color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.7,
     textTransform: "uppercase",
   },
@@ -194,18 +196,18 @@ const styles = StyleSheet.create({
   example: {
     minHeight: 48,
     justifyContent: "center",
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     paddingHorizontal: 14,
-    ...Effects.controlRaised,
+
   },
-  exampleText: { color: Colors.text, fontSize: 16, fontWeight: "800" },
-  help: { color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
+  exampleText: { color: Colors.text, fontSize: FontSize.body, fontWeight: "500" },
+  help: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 19 },
   pressed: {
     opacity: 0.72,
     transform: [{ scale: 0.99 }],
-    ...Effects.pressed,
+
   },
-});
+}));

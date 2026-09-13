@@ -1,9 +1,9 @@
+import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-
-import { Colors, Effects } from "../../theme";
 
 type Props = {
   accessibilityLabel: string;
@@ -20,6 +20,8 @@ export function FillQuantityControl({
   onChange,
   value,
 }: Props) {
+  const styles = useStyles();
+
   const [editorOpen, setEditorOpen] = useState(false);
   const [draft, setDraft] = useState(String(value));
   const [replaceOnNextDigit, setReplaceOnNextDigit] = useState(true);
@@ -205,25 +207,25 @@ export function FillQuantityControl({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   control: {
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
     overflow: "hidden",
   },
   stepButton: { alignItems: "center", height: 48, justifyContent: "center", width: 37 },
   stepButtonDisabled: { opacity: 0.35 },
-  stepText: { color: Colors.primary, fontSize: 20, fontWeight: "900" },
+  stepText: { color: Colors.primary, fontSize: FontSize.section, fontWeight: "500" },
   valueButton: { alignItems: "center", justifyContent: "center", minWidth: 42 },
-  valueText: { color: Colors.text, fontSize: 18, fontWeight: "900", lineHeight: 20 },
-  valueLabel: { color: Colors.textSubtle, fontSize: 7, fontWeight: "900", letterSpacing: 0.7 },
+  valueText: { color: Colors.text, fontSize: FontSize.subtitle, fontWeight: "500", lineHeight: 20 },
+  valueLabel: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 0.7 },
   modalSafe: { flex: 1, justifyContent: "flex-end" },
   scrim: {
-    backgroundColor: "rgba(0,0,0,0.70)",
+    backgroundColor: Colors.overlay,
     bottom: 0,
     left: 0,
     position: "absolute",
@@ -233,12 +235,12 @@ const styles = StyleSheet.create({
   sheet: {
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     borderWidth: 1,
     paddingBottom: 22,
-    paddingHorizontal: 16,
-    ...Effects.surfaceRaised,
+    paddingHorizontal: Space.md,
+
   },
   handle: {
     alignSelf: "center",
@@ -253,60 +255,60 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingBottom: 14,
-    paddingTop: 12,
+    paddingTop: Space.sm,
   },
-  eyebrow: { color: Colors.primary, fontSize: 8, fontWeight: "900", letterSpacing: 1 },
-  title: { color: Colors.text, fontSize: 22, fontWeight: "900", marginTop: 2 },
-  closeButton: { alignItems: "center", backgroundColor: Colors.surface2, borderRadius: 11, height: 40, justifyContent: "center", width: 40 },
-  closeText: { color: Colors.textMuted, fontSize: 25, fontWeight: "700", lineHeight: 26 },
+  eyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
+  title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500", marginTop: 2 },
+  closeButton: { alignItems: "center", backgroundColor: Colors.surface2, borderRadius: Radius.control, height: 40, justifyContent: "center", width: 40 },
+  closeText: { color: Colors.textMuted, fontSize: FontSize.title, fontWeight: "500", lineHeight: 26 },
   display: {
     alignItems: "center",
     backgroundColor: Colors.bg,
     borderColor: Colors.primaryMuted,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     height: 64,
     justifyContent: "center",
   },
-  displayValue: { color: Colors.text, fontSize: 34, fontWeight: "900" },
+  displayValue: { color: Colors.text, fontSize: FontSize.screen, fontWeight: "500" },
   displayEmpty: { color: Colors.textSubtle },
-  keypad: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  keypad: { flexDirection: "row", flexWrap: "wrap", gap: Space.xs, marginTop: 10 },
   numberKey: {
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 48,
     justifyContent: "center",
     width: "31.8%",
-    ...Effects.controlRaised,
+
   },
   actionKey: {
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.borderStrong,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 48,
     justifyContent: "center",
     width: "31.8%",
-    ...Effects.controlRaised,
+
   },
-  numberKeyText: { color: Colors.text, fontSize: 20, fontWeight: "900" },
-  clearKeyText: { color: Colors.error, fontSize: 12, fontWeight: "900" },
-  backspaceKeyText: { color: Colors.primary, fontSize: 20, fontWeight: "900" },
+  numberKeyText: { color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
+  clearKeyText: { color: Colors.error, fontSize: FontSize.caption, fontWeight: "500" },
+  backspaceKeyText: { color: Colors.primary, fontSize: FontSize.section, fontWeight: "500" },
   doneButton: {
     alignItems: "center",
     backgroundColor: Colors.primary,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     justifyContent: "center",
     marginTop: 10,
     minHeight: 48,
-    ...Effects.primaryRaised,
+
   },
   doneButtonDisabled: { opacity: 0.35 },
-  doneText: { color: Colors.inverseText, fontSize: 12, fontWeight: "900" },
-  hint: { color: Colors.textMuted, fontSize: 10, marginTop: 8, textAlign: "center" },
-  pressed: { opacity: 0.76, transform: [{ scale: 0.985 }], ...Effects.pressed },
-});
+  doneText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
+  hint: { color: Colors.textMuted, fontSize: FontSize.caption, marginTop: Space.xs, textAlign: "center" },
+  pressed: { opacity: 0.76, transform: [{ scale: 0.985 }],  },
+}));

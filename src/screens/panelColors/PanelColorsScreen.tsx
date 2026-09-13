@@ -1,3 +1,4 @@
+import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -29,7 +30,7 @@ import {
   loadPanelColorPreferences,
   savePanelColorPreferences,
 } from "../../utils/storage/panelColorPreferences";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type OpenSheet = "advanced" | "palette" | null;
 type PanelType = "single-phase" | "three-phase";
@@ -96,6 +97,9 @@ function getPaletteCaption(scheme: PanelColorScheme) {
 }
 
 export default function PanelColorsScreen() {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const { height, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const keyHeight = Math.max(44, Math.min(68, (height - insets.top - insets.bottom - 480) / 5));
@@ -469,7 +473,7 @@ export default function PanelColorsScreen() {
                     backgroundColor: phaseColor.hex,
                     borderColor:
                       phaseColor.name.toLowerCase() === "black"
-                        ? "#6B747E"
+                        ? Colors.textMuted
                         : phaseColor.hex,
                   },
                 ]}
@@ -710,6 +714,8 @@ function StorageStatus({ busy, loading, error, info, onRetry, onUndo }: {
   busy: boolean; loading: boolean; error: string; info: string;
   onRetry: () => void; onUndo?: () => void;
 }) {
+  const styles = useStyles();
+
   if (!busy && !loading && !error && !info && !onUndo) return null;
   return (
     <View style={styles.storageNotice}>
@@ -728,6 +734,8 @@ function StorageStatus({ busy, loading, error, info, onRetry, onUndo }: {
 }
 
 function SupportedLayout({ scheme }: { scheme: PanelColorScheme }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.layoutGuide}>
       <Text style={styles.optionTitle}>Supported numbering</Text>
@@ -754,6 +762,8 @@ function PanelChoiceBar({
   onPalette: () => void;
   scheme: PanelColorScheme;
 }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.panelChoiceRow}>
       <Pressable
@@ -789,6 +799,8 @@ function PanelChoiceBar({
 }
 
 function PhaseSwatches({ scheme }: { scheme: PanelColorScheme }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.paletteSwatches}>
       {scheme.phaseOrder.map((phase) => {
@@ -821,6 +833,8 @@ function PaletteModal({
   onSelect: (scheme: PanelColorScheme) => void;
   selectedSchemeId: string;
 }) {
+  const styles = useStyles();
+
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
@@ -893,6 +907,8 @@ function PaletteOption({
   onPress: () => void;
   scheme: PanelColorScheme;
 }) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityLabel={`${scheme.name}, ${getPaletteCaption(scheme)}`}
@@ -931,6 +947,8 @@ function AdvancedModal({
   schemes: PanelColorScheme[];
   selectedScheme: PanelColorScheme;
 }) {
+  const styles = useStyles();
+
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
@@ -1004,6 +1022,8 @@ function SheetHeader({
   onClose: () => void;
   title: string;
 }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.sheetHeader}>
       <View>
@@ -1018,6 +1038,8 @@ function SheetHeader({
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -1044,6 +1066,9 @@ function CustomSchemeModal({
   onClose: () => void;
   onSave: () => void;
 }) {
+  const styles = useStyles();
+
+
   function field<K extends keyof CustomDraft>(key: K, value: CustomDraft[K]) {
     onChange({ ...draft, [key]: value });
   }
@@ -1180,6 +1205,8 @@ function ChoiceSection({ label, onSelect, options, value }: {
   options: { label: string; value: string }[];
   value: string;
 }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.choiceSection}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -1211,6 +1238,8 @@ function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], val
   unavailableOptions?: string[];
   value: string;
 }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.colorChoiceSection}>
       <View style={styles.colorChoiceHeader}>
@@ -1252,6 +1281,8 @@ function ManagePresetsModal({ busy, status, isOpen, onClose, onDelete, onEdit, s
   onEdit: (scheme: PanelColorScheme) => void;
   schemes: PanelColorScheme[];
 }) {
+  const styles = useStyles();
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen" visible={isOpen}>
       <SafeAreaProvider style={styles.editorSafe}>
@@ -1303,6 +1334,8 @@ function DeletePresetModal({ busy, status, onCancel, onConfirm, scheme }: {
   onConfirm: () => void;
   scheme: PanelColorScheme | null;
 }) {
+  const styles = useStyles();
+
   return (
     <Modal animationType="fade" onRequestClose={onCancel} transparent visible={!!scheme}>
       <View style={styles.confirmBackdrop}>
@@ -1338,6 +1371,9 @@ function DraftField({
   showDone?: boolean;
   value: string;
 }) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const hasValue = !!value.trim();
 
   return (
@@ -1361,9 +1397,9 @@ function DraftField({
         onChangeText={onChangeText}
         onSubmitEditing={() => Keyboard.dismiss()}
         placeholder={placeholder}
-        placeholderTextColor="#707B87"
+        placeholderTextColor={Colors.textMuted}
         returnKeyType="done"
-        selectionColor="#E0A526"
+        selectionColor={Colors.primary}
         style={styles.fieldInput}
         value={value}
       />

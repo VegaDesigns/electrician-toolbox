@@ -7,4 +7,13 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    files: ['app/**/*.{ts,tsx}', 'src/screens/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: 'Literal[value=/^(#[0-9a-fA-F]{3,8}|rgba?\\()/]',
+        message: 'Use a semantic theme color. Physical reference colors belong in ReferenceColors or the domain catalog.',
+      }],
+    },
+  },
 ]);

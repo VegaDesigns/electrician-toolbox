@@ -1,8 +1,9 @@
+import { Space , FontSize, Radius, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import React from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, Effects } from "../../theme";
 import { formatFeetInches, type Precision } from "../../utils/calc/measure";
 import type { ResultFormatKey, ResultOption } from "./CalcDisplay";
 
@@ -27,6 +28,8 @@ export default function WorkpadSettingsSheet({
   selectedResultKey,
   visible,
 }: Props) {
+  const styles = useStyles();
+
   return (
     <Modal
       animationType="slide"
@@ -162,12 +165,12 @@ function getPrecisionAccessibilityLabel(value: Precision): string {
   return "Round to one thirty-second inch";
 }
 
-const styles = StyleSheet.create({
-  exampleLabel: { color: Colors.textMuted, fontSize: 10, letterSpacing: 1, marginTop: 14 },
-  exampleValue: { color: Colors.text, fontSize: 19, fontWeight: "600", marginTop: 5, fontVariant: ["tabular-nums"] },
+const useStyles = defineStyles(({ colors: Colors }) => ({
+  exampleLabel: { color: Colors.textMuted, fontSize: FontSize.caption, letterSpacing: 1, marginTop: 14 },
+  exampleValue: { color: Colors.text, fontSize: FontSize.subtitle, fontWeight: "600", marginTop: 5, fontVariant: ["tabular-nums"] },
   safe: { flex: 1, justifyContent: "flex-end" },
   scrim: {
-    backgroundColor: "rgba(0,0,0,0.70)",
+    backgroundColor: Colors.overlay,
     bottom: 0,
     left: 0,
     position: "absolute",
@@ -178,12 +181,12 @@ const styles = StyleSheet.create({
     maxHeight: "90%",
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     borderWidth: 1,
     paddingBottom: 18,
-    paddingHorizontal: 16,
-    ...Effects.surfaceRaised,
+    paddingHorizontal: Space.md,
+
   },
   handle: {
     alignSelf: "center",
@@ -197,36 +200,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingBottom: 16,
+    paddingBottom: Space.md,
     paddingTop: 11,
   },
-  eyebrow: { color: Colors.primary, fontSize: 8, fontWeight: "900", letterSpacing: 1 },
-  title: { color: Colors.text, fontSize: 23, fontWeight: "900", marginTop: 2 },
+  eyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
+  title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.title, fontWeight: "500", marginTop: 2 },
   doneButton: {
     minHeight: 44,
     justifyContent: "center",
     backgroundColor: Colors.primary,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    ...Effects.primaryRaised,
+
   },
-  doneButtonText: { color: Colors.inverseText, fontSize: 12, fontWeight: "900" },
+  doneButtonText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
   settingBlock: {
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
-    borderRadius: 15,
+    borderRadius: Radius.card,
     borderWidth: 1,
     marginBottom: 10,
     padding: 13,
-    ...Effects.recessed,
+
   },
-  settingTitle: { color: Colors.text, fontSize: 14, fontWeight: "900" },
-  settingHint: { color: Colors.textMuted, fontSize: 12, lineHeight: 18, marginTop: 3 },
+  settingTitle: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500" },
+  settingHint: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 18, marginTop: 3 },
   segmented: {
     backgroundColor: Colors.bg,
     borderColor: Colors.border,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexDirection: "row",
     flexWrap: "wrap",
@@ -236,16 +239,16 @@ const styles = StyleSheet.create({
   },
   segment: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: Radius.small,
     flexBasis: "30%",
     flexGrow: 1,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 5,
   },
-  segmentSelected: { backgroundColor: Colors.primary, ...Effects.primaryRaised },
-  segmentText: { color: Colors.textMuted, fontSize: 13, fontWeight: "800" },
-  segmentTextSelected: { color: Colors.inverseText, fontWeight: "900" },
+  segmentSelected: { backgroundColor: Colors.primary,  },
+  segmentText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
+  segmentTextSelected: { color: Colors.inverseText, fontWeight: "500" },
   formatGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -255,41 +258,41 @@ const styles = StyleSheet.create({
   formatOption: {
     backgroundColor: Colors.bg,
     borderColor: Colors.border,
-    borderRadius: 10,
+    borderRadius: Radius.control,
     borderWidth: 1,
     flexBasis: "48%",
     flexGrow: 1,
     minHeight: 54,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: Space.xs,
   },
   formatOptionSelected: {
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primary,
-    ...Effects.controlRaised,
+
   },
   formatLabel: {
     color: Colors.textSubtle,
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.45,
     textTransform: "none",
   },
   formatLabelSelected: { color: Colors.primary },
   formatValue: {
     color: Colors.text,
-    fontSize: 15,
-    fontWeight: "900",
+    fontSize: FontSize.label,
+    fontWeight: "500",
     marginTop: 3,
   },
   formatNote: {
     color: Colors.textSubtle,
-    fontSize: 11,
-    marginTop: 8,
+    fontSize: FontSize.caption,
+    marginTop: Space.xs,
     textAlign: "center",
   },
   savedNote: { alignItems: "center", flexDirection: "row", gap: 7, paddingHorizontal: 3, paddingTop: 2 },
   savedDot: { backgroundColor: Colors.primary, borderRadius: 4, height: 6, width: 6 },
-  savedText: { color: Colors.textSubtle, fontSize: 11, fontWeight: "700" },
-  pressed: { opacity: 0.78, transform: [{ scale: 0.985 }], ...Effects.pressed },
-});
+  savedText: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500" },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.985 }],  },
+}));

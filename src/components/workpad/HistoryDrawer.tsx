@@ -1,3 +1,5 @@
+import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import React from "react";
 import {
   Modal,
@@ -9,7 +11,6 @@ import {
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, Effects } from "../../theme";
 import type { CalcHistoryItem } from "../../utils/storage/calcHistory";
 
 type Props = {
@@ -35,6 +36,8 @@ export default function HistoryDrawer({
   onSelectItem,
   onToggleFavorite,
 }: Props) {
+  const styles = useStyles();
+
   const savedItems = items.filter((item) => item.isFavorite);
   const recentItems = items.filter((item) => !item.isFavorite);
 
@@ -209,11 +212,11 @@ function formatHistoryTime(createdAt: number): string {
   });
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.70)",
+    backgroundColor: Colors.overlay,
   },
 
   backdrop: {
@@ -222,22 +225,22 @@ const styles = StyleSheet.create({
 
   sheet: {
     maxHeight: "78%",
-    paddingHorizontal: 16,
+    paddingHorizontal: Space.md,
     paddingTop: 10,
     paddingBottom: 18,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Effects.surfaceRaised,
+
   },
 
   handle: {
     alignSelf: "center",
     width: 42,
     height: 5,
-    borderRadius: 999,
+    borderRadius: Radius.round,
     backgroundColor: Colors.border,
     marginBottom: 14,
   },
@@ -246,29 +249,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 12,
+    gap: Space.sm,
+    marginBottom: Space.sm,
   },
 
-  title: {
+  title: { fontFamily: Fonts.heading,
     color: Colors.text,
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   subtitle: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 2,
   },
 
   closeButton: {
     minHeight: 44,
     justifyContent: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 11,
+    paddingHorizontal: Space.sm,
+    paddingVertical: Space.xs,
+    borderRadius: Radius.control,
     backgroundColor: Colors.primary,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -276,8 +279,8 @@ const styles = StyleSheet.create({
 
   closeText: {
     color: Colors.inverseText,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   emptyBox: {
@@ -287,14 +290,14 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: FontSize.subtitle,
+    fontWeight: "500",
   },
 
   emptyText: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     marginTop: 6,
     textAlign: "center",
   },
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    paddingBottom: 12,
+    paddingBottom: Space.sm,
   },
 
   section: {
@@ -315,8 +318,8 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     color: Colors.textSubtle,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.7,
     marginBottom: 2,
@@ -326,8 +329,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    padding: 12,
-    borderRadius: 18,
+    padding: Space.sm,
+    borderRadius: Radius.large,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -340,22 +343,22 @@ const styles = StyleSheet.create({
 
   expression: {
     color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   result: {
     color: Colors.text,
-    fontSize: 24,
-    fontWeight: "900",
+    fontSize: FontSize.title,
+    fontWeight: "500",
     marginTop: 3,
   },
 
   timestamp: {
     color: Colors.textSubtle,
-    fontSize: 11,
-    fontWeight: "700",
-    marginTop: 4,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
+    marginTop: Space.xxs,
   },
 
   actionsColumn: {
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
     minWidth: 62,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    borderRadius: 12,
+    borderRadius: Radius.control,
     backgroundColor: Colors.bg,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -383,8 +386,8 @@ const styles = StyleSheet.create({
 
   favoriteText: {
     color: Colors.textMuted,
-    fontSize: 17,
-    fontWeight: "900",
+    fontSize: FontSize.body,
+    fontWeight: "500",
   },
 
   favoriteTextActive: {
@@ -395,8 +398,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingVertical: Space.xs,
+    borderRadius: Radius.control,
     backgroundColor: Colors.errorSoft,
     borderWidth: 1,
     borderColor: Colors.error,
@@ -404,15 +407,15 @@ const styles = StyleSheet.create({
   },
 
   deleteText: {
-    color: "#FCA5A5",
-    fontSize: 11,
-    fontWeight: "900",
+    color: Colors.error,
+    fontSize: FontSize.caption,
+    fontWeight: "500",
   },
 
   clearButton: {
-    marginTop: 4,
+    marginTop: Space.xxs,
     paddingVertical: 13,
-    borderRadius: 16,
+    borderRadius: Radius.card,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -420,18 +423,18 @@ const styles = StyleSheet.create({
   },
 
   clearText: {
-    color: "#FCA5A5",
-    fontSize: 14,
-    fontWeight: "900",
+    color: Colors.error,
+    fontSize: FontSize.label,
+    fontWeight: "500",
   },
 
   pressed: {
     opacity: 0.75,
     transform: [{ scale: 0.98 }],
   },
-  errorText: { color: Colors.error, fontSize: 13, paddingVertical: 8 },
-  undoRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.primarySoft, borderRadius: 12, paddingLeft: 12, marginTop: 8 },
-  undoText: { color: Colors.text, fontSize: 13, flex: 1 },
+  errorText: { color: Colors.error, fontSize: FontSize.caption, paddingVertical: Space.xs },
+  undoRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.primarySoft, borderRadius: Radius.control, paddingLeft: Space.sm, marginTop: Space.xs },
+  undoText: { color: Colors.text, fontSize: FontSize.caption, flex: 1 },
   undoButton: { minHeight: 44, minWidth: 64, alignItems: "center", justifyContent: "center" },
-  undoAction: { color: Colors.primary, fontSize: 14, fontWeight: "800" },
-});
+  undoAction: { color: Colors.primary, fontSize: FontSize.label, fontWeight: "500" },
+}));

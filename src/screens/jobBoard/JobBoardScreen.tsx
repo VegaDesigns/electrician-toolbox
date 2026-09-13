@@ -1,3 +1,5 @@
+import { Space } from "../../theme/tokens";
+import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -38,7 +40,7 @@ import {
 } from "../../utils/jobBoard/jobBoard";
 import { loadJobBoard, saveJobBoard } from "../../utils/storage/jobBoardStorage";
 import { formatJobList, formatMaterialRun } from "../../utils/jobBoard/shareList";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type BoardView = "today" | "materials" | "jobs" | "done";
 
@@ -77,6 +79,9 @@ function itemMeta(item: WorkItem, jobs: Job[]) {
 }
 
 export default function JobBoardScreen() {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [data, setBoardData] = useState<JobBoardData>({ jobs: [], items: [] });
   const dataRef = useRef(data);
   const saveQueue = useRef(Promise.resolve());
@@ -415,7 +420,7 @@ export default function JobBoardScreen() {
                   onChangeText={setQuickTitle}
                   onSubmitEditing={addQuickItem}
                   placeholder={quickPlaceholder(quickKind)}
-                  placeholderTextColor="#65717D"
+                  placeholderTextColor={Colors.textMuted}
                   returnKeyType="done"
                   style={styles.quickInput}
                   value={quickTitle}
@@ -485,7 +490,7 @@ export default function JobBoardScreen() {
             {data.jobs.map((job) => <ChoiceButton key={job.id} label={job.name} selected={materialJobId === job.id} onPress={() => setMaterialJobId(job.id)} />)}
           </View></ScrollView>
           <View style={styles.quickCard}>
-            <TextInput accessibilityLabel="Material name" placeholder="Material to pick up" placeholderTextColor="#98A2AD"
+            <TextInput accessibilityLabel="Material name" placeholder="Material to pick up" placeholderTextColor={Colors.textMuted}
               style={styles.quickInput} value={materialName} onChangeText={setMaterialName} />
             <View style={styles.quickInputRow}>
               <View style={{ flex: 1 }}><QuantityPicker quantity={materialQuantity} unit={materialUnit} onChange={(quantity, unit) => { setMaterialQuantity(quantity); setMaterialUnit(unit); }} /></View>
@@ -521,7 +526,7 @@ export default function JobBoardScreen() {
                   onChangeText={setNewJobName}
                   onSubmitEditing={addJob}
                   placeholder="Job or project name"
-                  placeholderTextColor="#65717D"
+                  placeholderTextColor={Colors.textMuted}
                   returnKeyType="done"
                   style={styles.jobInput}
                   value={newJobName}
@@ -636,7 +641,7 @@ export default function JobBoardScreen() {
                     multiline
                     onChangeText={(title) => setDraft({ ...draft, title })}
                     placeholder="What needs doing?"
-                    placeholderTextColor="#65717D"
+                    placeholderTextColor={Colors.textMuted}
                     style={styles.titleInput}
                     value={draft.title}
                   />
@@ -684,7 +689,7 @@ export default function JobBoardScreen() {
                       <TextInput
                         onChangeText={(location) => setDraft({ ...draft, location })}
                         placeholder="Floor, room, panel or area"
-                        placeholderTextColor="#65717D"
+                        placeholderTextColor={Colors.textMuted}
                         style={styles.fieldInput}
                         value={draft.location}
                       />
@@ -732,7 +737,7 @@ export default function JobBoardScreen() {
 
                   </DetailSection>
                   <DetailSection title="Waiting on" summary={draft.waitingOn}>
-                    <TextInput accessibilityLabel="Waiting on" placeholder="Devices, access, another trade…" placeholderTextColor="#98A2AD"
+                    <TextInput accessibilityLabel="Waiting on" placeholder="Devices, access, another trade…" placeholderTextColor={Colors.textMuted}
                       style={styles.fieldInput} value={draft.waitingOn ?? ""} onChangeText={(waitingOn) => setDraft({ ...draft, waitingOn })} />
                     {draft.waitingOn ? <Pressable accessibilityRole="button" onPress={() => setDraft({ ...draft, waitingOn: "" })} style={styles.completedLink}><Text style={styles.completedLinkText}>Clear — ready to continue</Text></Pressable> : null}
                   </DetailSection>
@@ -742,7 +747,7 @@ export default function JobBoardScreen() {
                         multiline
                         onChangeText={(notes) => setDraft({ ...draft, notes })}
                         placeholder="Measurements, instructions, or what to watch for"
-                        placeholderTextColor="#65717D"
+                        placeholderTextColor={Colors.textMuted}
                         style={[styles.fieldInput, styles.notesInput]}
                         textAlignVertical="top"
                         value={draft.notes}
@@ -825,8 +830,10 @@ export default function JobBoardScreen() {
 }
 
 function QuantityPicker({ quantity, unit, onChange }: { quantity: number; unit: string; onChange: (quantity: number, unit: string) => void }) {
+  const styles = useStyles();
+
   const [text, setText] = useState(String(quantity));
-  return <View style={{ gap: 6, marginVertical: 8 }}>
+  return <View style={{ gap: 6, marginVertical: Space.xs }}>
     <View style={styles.choiceRow}>
       <Pressable accessibilityRole="button" accessibilityLabel="Decrease quantity" onPress={() => { const next = Math.max(1, quantity - 1); setText(String(next)); onChange(next, unit); }} style={styles.stepperButton}><Text style={styles.stepperText}>−</Text></Pressable>
       <TextInput accessibilityLabel="Quantity" keyboardType="number-pad" selectTextOnFocus style={styles.quantityInput} value={text}
@@ -839,12 +846,15 @@ function QuantityPicker({ quantity, unit, onChange }: { quantity: number; unit: 
 }
 
 function JobQuickAdd({ onAdd }: { onAdd: (kind: WorkItemKind, title: string, quantity: number, unit: string) => void }) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [kind, setKind] = useState<WorkItemKind>("task");
   const [title, setTitle] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("ea");
   return <View style={styles.quickCard}>
-    <View style={styles.quickInputRow}><TextInput accessibilityLabel="Add to this job" placeholder="Add to this job…" placeholderTextColor="#98A2AD" value={title} onChangeText={setTitle} style={styles.quickInput} />
+    <View style={styles.quickInputRow}><TextInput accessibilityLabel="Add to this job" placeholder="Add to this job…" placeholderTextColor={Colors.textMuted} value={title} onChangeText={setTitle} style={styles.quickInput} />
       <Pressable accessibilityRole="button" disabled={!title.trim()} onPress={() => { onAdd(kind, title.trim(), quantity, unit); setTitle(""); Keyboard.dismiss(); }} style={[styles.addButton, !title.trim() && styles.addButtonDisabled]}><Text style={styles.addButtonText}>Add</Text></Pressable></View>
     <View style={styles.kindRow}>{KINDS.map((choice) => <ChoiceButton key={choice} label={KIND_LABELS[choice]} selected={kind === choice} onPress={() => setKind(choice)} />)}</View>
     {kind === "material" ? <QuantityPicker quantity={quantity} unit={unit} onChange={(next, nextUnit) => { setQuantity(next); setUnit(nextUnit); }} /> : null}
@@ -852,6 +862,8 @@ function JobQuickAdd({ onAdd }: { onAdd: (kind: WorkItemKind, title: string, qua
 }
 
 function DetailSection({ title, summary, children }: { title: string; summary?: string; children: React.ReactNode }) {
+  const styles = useStyles();
+
   const [open, setOpen] = useState(false);
   return <View>
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={styles.detailsToggle}>
@@ -881,6 +893,8 @@ function WorkItemRow({
   onOpen: () => void;
   onToggle: () => void;
 }) {
+  const styles = useStyles();
+
   const remaining = item.materials.filter((line) => !line.collected).length;
   const metadata = [item.kind === "note" ? "Note" : null, itemMeta(item, jobs),
     item.status === "open" && item.waitingOn ? `Waiting on: ${item.waitingOn}` : null,
@@ -913,6 +927,8 @@ function MaterialsView({
   onToggleItem: (item: WorkItem) => void;
   onToggleNested: (itemId: string, lineId: string) => void;
 }) {
+  const styles = useStyles();
+
   const progress = materialProgress(data.items);
   const standalone = data.items.filter(({ kind }) => kind === "material");
   const nested = data.items.flatMap((item) => item.materials.map((line) => ({ item, line })));
@@ -963,6 +979,8 @@ function MaterialsView({
 }
 
 function MaterialRow({ item, line, jobs, onToggle }: { item: WorkItem; line: MaterialLine; jobs: Job[]; onToggle: () => void }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.materialRow}>
       <Pressable onPress={onToggle} style={[styles.checkButton, line.collected && styles.checkButtonDone]}>
@@ -977,6 +995,8 @@ function MaterialRow({ item, line, jobs, onToggle }: { item: WorkItem; line: Mat
 }
 
 function ChoiceButton({ label, onPress, selected }: { label: string; onPress: () => void; selected: boolean }) {
+  const styles = useStyles();
+
   return (
     <Pressable onPress={onPress} style={[styles.choiceButton, selected && styles.choiceButtonSelected]}>
       <Text style={[styles.choiceButtonText, selected && styles.choiceTextSelected]}>{label}</Text>
@@ -997,13 +1017,16 @@ function InlineAdd({
   placeholder: string;
   value: string;
 }) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   return (
     <View style={styles.inlineAdd}>
       <TextInput
         onChangeText={onChange}
         onSubmitEditing={onAdd}
         placeholder={placeholder}
-        placeholderTextColor="#65717D"
+        placeholderTextColor={Colors.textMuted}
         returnKeyType="done"
         style={styles.inlineAddInput}
         value={value}

@@ -1,13 +1,15 @@
+import { Space , Radius, FontSize } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-
-import { Colors, Effects } from "../../theme";
+import { Pressable, Text, View } from "react-native";
 
 type FillMode = "box" | "conduit";
 
 export function FillModeSwitch({ mode }: { mode: FillMode }) {
+  const styles = useStyles();
+
   function choose(nextMode: FillMode) {
     if (nextMode === mode) return;
     Haptics.selectionAsync().catch(() => {});
@@ -48,37 +50,37 @@ export function FillModeSwitch({ mode }: { mode: FillMode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = defineStyles(({ colors: Colors }) => ({
   track: {
     alignSelf: "center",
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
-    borderRadius: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 4,
+    gap: Space.xxs,
     maxWidth: 528,
-    padding: 4,
+    padding: Space.xxs,
     width: "100%",
-    ...Effects.recessed,
+
   },
   option: {
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: Radius.control,
     flex: 1,
     minHeight: 38,
     justifyContent: "center",
   },
   optionSelected: {
     backgroundColor: Colors.primary,
-    ...Effects.primaryRaised,
+
   },
   optionText: {
     color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: FontSize.caption,
+    fontWeight: "500",
     letterSpacing: 0.3,
   },
   optionTextSelected: { color: Colors.inverseText },
   pressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
-});
+}));

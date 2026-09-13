@@ -1,3 +1,4 @@
+import { ReferenceColors, useAppTheme } from "../../theme";
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import Svg, {
@@ -13,8 +14,7 @@ import Svg, {
 } from "react-native-svg";
 import { PreviewControls, GuideNavigation } from "./PreviewControls";
 import { useGuideMotion } from "./useGuideMotion";
-import { Colors as C } from "../../theme";
-import { previewStyles as styles } from "./previewStyles";
+import { usePreviewStyles as useStyles } from "./previewStyles";
 import {
   inches,
   isRounded,
@@ -49,11 +49,13 @@ function Label({
   children: string;
   muted?: boolean;
 }) {
+  const { theme: { colors: Colors } } = useAppTheme();
+
   return (
     <SvgText
       x={x}
       y={y}
-      fill={muted ? C.textMuted : C.primary}
+      fill={muted ? Colors.textMuted : Colors.primary}
       fontFamily="Arial"
       fontSize={13}
       fontWeight="600"
@@ -76,7 +78,9 @@ function Dimension({
   label: string;
   muted?: boolean;
 }) {
-  const color = muted ? C.borderStrong : C.primary;
+  const { theme: { colors: Colors } } = useAppTheme();
+
+  const color = muted ? Colors.borderStrong : Colors.primary;
   return (
     <G>
       <Line x1={x1} x2={x2} y1={y} y2={y} stroke={color} />
@@ -109,6 +113,9 @@ export function StubPreview({
   onCopy: () => void;
   onHelp: () => void;
 }) {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [step, setStep] = useState<Step>("mark"),
     [guided, setGuided] = useState(false);
   const [amount] = useGuideMotion([Number(finished)]);
@@ -150,13 +157,13 @@ export function StubPreview({
         >
           <Defs>
             <LinearGradient id="stub-floor" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#141B22" />
-              <Stop offset="1" stopColor="#0E1318" />
+              <Stop offset="0" stopColor={Colors.diagramBackground} />
+              <Stop offset="1" stopColor={Colors.surface2} />
             </LinearGradient>
             <LinearGradient id="stub-rim" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#F1F4F5" />
-              <Stop offset="0.45" stopColor="#8799A7" />
-              <Stop offset="1" stopColor="#354552" />
+              <Stop offset="0" stopColor={ReferenceColors.colorF1F4F5} />
+              <Stop offset="0.45" stopColor={ReferenceColors.color8799A7} />
+              <Stop offset="1" stopColor={ReferenceColors.color354552} />
             </LinearGradient>
           </Defs>
           <Rect width={400} height={290} rx={14} fill="url(#stub-floor)" />
@@ -167,7 +174,7 @@ export function StubPreview({
               x2={x}
               y1={15}
               y2={275}
-              stroke="#91A3B2"
+              stroke={Colors.diagramGrid}
               strokeOpacity={0.035}
             />
           ))}
@@ -178,21 +185,21 @@ export function StubPreview({
               x2={385}
               y1={y}
               y2={y}
-              stroke="#91A3B2"
+              stroke={Colors.diagramGrid}
               strokeOpacity={0.035}
             />
           ))}
           <G transform="translate(2 8)">
             <Path
               d={pipePath(amount)}
-              stroke="#000"
+              stroke={ReferenceColors.color000}
               strokeOpacity={0.23}
               strokeWidth={29}
               fill="none"
             />
             <Path
               d={pipePath(amount)}
-              stroke="#000"
+              stroke={ReferenceColors.color000}
               strokeOpacity={0.25}
               strokeWidth={21}
               fill="none"
@@ -200,20 +207,20 @@ export function StubPreview({
           </G>
           <Path
             d={pipePath(amount)}
-            stroke="#2B3944"
+            stroke={ReferenceColors.color2B3944}
             strokeWidth={20}
             fill="none"
           />
           {[
-            [-8, "#657A8C"],
-            [-6, "#A0AFBA"],
-            [-4, "#DCE3E7"],
-            [-2, "#B9C6CF"],
-            [0, "#8E9FAB"],
-            [2, "#758995"],
-            [4, "#5B707F"],
-            [6, "#425967"],
-            [8, "#293D4A"],
+            [-8, ReferenceColors.color657A8C],
+            [-6, ReferenceColors.colorA0AFBA],
+            [-4, ReferenceColors.colorDCE3E7],
+            [-2, ReferenceColors.colorB9C6CF],
+            [0, ReferenceColors.color8E9FAB],
+            [2, ReferenceColors.color758995],
+            [4, ReferenceColors.color5B707F],
+            [6, ReferenceColors.color425967],
+            [8, ReferenceColors.color293D4A],
           ].map(([o, color]) => (
             <Path
               key={o}
@@ -232,7 +239,7 @@ export function StubPreview({
                 y1={p.y + Math.cos(p.a) * 6}
                 x2={p.x + Math.sin(p.a) * 5 + Math.cos(p.a) * 2}
                 y2={p.y - Math.cos(p.a) * 5 + Math.sin(p.a) * 2}
-                stroke={i % 3 ? "#DEE5E9" : "#182F3E"}
+                stroke={i % 3 ? ReferenceColors.colorDEE5E9 : ReferenceColors.color182F3E}
                 strokeOpacity={0.055}
               />
             );
@@ -243,10 +250,10 @@ export function StubPreview({
               transform={`rotate(${(p.a * 180) / Math.PI} ${p.x} ${p.y})`}
             >
               <Ellipse cx={p.x} cy={p.y} rx={4} ry={10} fill="url(#stub-rim)" />
-              <Ellipse cx={p.x} cy={p.y} rx={2.4} ry={7.5} fill="#0B141B" />
+              <Ellipse cx={p.x} cy={p.y} rx={2.4} ry={7.5} fill={ReferenceColors.color0B141B} />
               <Path
                 d={`M${p.x - 1} ${p.y - 6} Q${p.x + 2} ${p.y} ${p.x - 1} ${p.y + 6}`}
-                stroke="#5B6F7D"
+                stroke={ReferenceColors.color5B6F7D}
                 strokeWidth={0.8}
                 fill="none"
               />
@@ -258,13 +265,13 @@ export function StubPreview({
             >
               <Path
                 d={`M${mark.x} ${mark.y - 10} Q${mark.x + 3} ${mark.y} ${mark.x} ${mark.y + 10}`}
-                stroke="#101820"
+                stroke={ReferenceColors.color101820}
                 strokeWidth={5}
                 fill="none"
               />
               <Path
                 d={`M${mark.x} ${mark.y - 10} Q${mark.x + 3} ${mark.y} ${mark.x} ${mark.y + 10}`}
-                stroke={C.primary}
+                stroke={Colors.primary}
                 strokeWidth={2}
                 fill="none"
               />
@@ -282,7 +289,7 @@ export function StubPreview({
                 x2={50}
                 y1={100}
                 y2={156}
-                stroke={C.borderStrong}
+                stroke={Colors.borderStrong}
                 strokeDasharray="3 4"
               />
               <Line
@@ -290,7 +297,7 @@ export function StubPreview({
                 x2={290}
                 y1={100}
                 y2={184}
-                stroke={step === "measure" ? C.primary : C.borderStrong}
+                stroke={step === "measure" ? Colors.primary : Colors.borderStrong}
                 strokeDasharray="3 4"
               />
               <Dimension
@@ -310,12 +317,12 @@ export function StubPreview({
                     x2={markX}
                     y1={186}
                     y2={214}
-                    stroke={C.primary}
+                    stroke={Colors.primary}
                     strokeDasharray="2 3"
                   />
                   <Path
                     d={`M290 221 H${markX} l7 -5 m-7 5 l7 5`}
-                    stroke={C.primary}
+                    stroke={Colors.primary}
                     fill="none"
                   />
                   <Label
@@ -337,7 +344,7 @@ export function StubPreview({
               </Label>
               <Path
                 d={`M${tip.x - 12} ${tip.y} H126 V${end.y + 10} H210 M126 ${tip.y} l-3 5 m3 -5 l3 5 M126 ${end.y + 10} l-3 -5 m3 5 l3 -5`}
-                stroke={C.primary}
+                stroke={Colors.primary}
                 fill="none"
               />
               <Label x={101} y={(tip.y + end.y + 10) / 2 + 4}>
@@ -345,7 +352,7 @@ export function StubPreview({
               </Label>
               <Path
                 d="M194 137 A34 34 0 0 1 228 171"
-                stroke={C.primary}
+                stroke={Colors.primary}
                 strokeWidth={1.5}
                 fill="none"
               />

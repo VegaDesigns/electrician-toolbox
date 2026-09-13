@@ -5,6 +5,11 @@ Version 0.9.1 is an internal field-test milestone, not a public store release.
 
 ## Included tools
 
+This branch trials the Studio appearance system. Open the top-right home menu to
+choose Forest, Ocean, Clay, Iris, or Graphite in Light, Dark, or System appearance.
+Follow [the shared style guide](docs/STYLE_GUIDE.md) for UI changes and
+[the trial checklist](docs/STUDIO_THEME_TEST_PLAN.md) before merging.
+
 - Workpad: measurement math, fractions, contextual unit conversion, precision settings, and recent/saved history.
 - Panel Colors: explicit circuit submission, phase/color results, nearby circuits, and job-specific presets.
 - Jobsite Lists: separate jobs, materials with quantities, notes, edit history, timed Undo, and swipe actions.

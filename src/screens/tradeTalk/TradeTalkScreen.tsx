@@ -1,3 +1,4 @@
+import { useAppTheme } from "../../theme";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -28,7 +29,7 @@ import {
   loadTradeTalkPreferences,
   saveTradeTalkPreferences,
 } from "../../utils/storage/tradeTalkPreferences";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type CategoryFilter = "all" | "slang" | TradeTalkCategory;
 
@@ -100,6 +101,9 @@ function filterEntries(filter: CategoryFilter): TradeTalkEntry[] {
 }
 
 export default function TradeTalkScreen() {
+  const styles = useStyles();
+  const { theme: { colors: Colors } } = useAppTheme();
+
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CategoryFilter>("all");
   const [selectedEntry, setSelectedEntry] = useState<TradeTalkEntry | null>(null);
@@ -207,7 +211,7 @@ export default function TradeTalkScreen() {
             onChangeText={setQuery}
             onSubmitEditing={() => Keyboard.dismiss()}
             placeholder="Try “battleship” or “1900 box”"
-            placeholderTextColor="#65717D"
+            placeholderTextColor={Colors.textMuted}
             returnKeyType="search"
             style={styles.searchInput}
             value={query}
@@ -387,6 +391,8 @@ export default function TradeTalkScreen() {
 }
 
 function EntrySection({ entries, eyebrow, favoriteIds, onOpen, title }: { entries: TradeTalkEntry[]; eyebrow: string; favoriteIds: string[]; onOpen: (entry: TradeTalkEntry) => void; title: string }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.savedSection}>
       <Text style={styles.sectionEyebrow}>{eyebrow}</Text>
@@ -401,6 +407,8 @@ function EntrySection({ entries, eyebrow, favoriteIds, onOpen, title }: { entrie
 }
 
 function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorite: boolean; onPress: () => void }) {
+  const styles = useStyles();
+
   return (
     <Pressable
       accessibilityHint={`Opens the definition for ${entry.term}`}
@@ -422,6 +430,8 @@ function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorit
 }
 
 function KindBadge({ kind }: { kind: TradeTalkKind }) {
+  const styles = useStyles();
+
   const letters: Record<TradeTalkKind, string> = { formal: "A", slang: "S", brand: "B", regional: "R" };
   return (
     <View style={[styles.kindBadge, kind === "formal" && styles.kindBadgeFormal, kind === "regional" && styles.kindBadgeRegional]}>
@@ -431,6 +441,8 @@ function KindBadge({ kind }: { kind: TradeTalkKind }) {
 }
 
 function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: TradeTalkEntry | null; favorite: boolean; onClose: () => void; onToggleFavorite: () => void }) {
+  const styles = useStyles();
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} transparent visible={entry !== null}>
       <SafeAreaProvider>
@@ -507,6 +519,8 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
 }
 
 function DetailBlock({ label, text }: { label: string; text: string }) {
+  const styles = useStyles();
+
   return (
     <View style={styles.detailBlock}>
       <Text style={styles.detailLabel}>{label.toUpperCase()}</Text>

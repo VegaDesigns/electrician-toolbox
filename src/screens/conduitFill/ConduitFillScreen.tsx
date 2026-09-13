@@ -17,7 +17,7 @@ import {
   WIRE_SIZES,
   type WireSize,
 } from "../../utils/conduitFill/conduitFill";
-import { styles } from "./styles";
+import { useStyles } from "./styles";
 
 type WireRow = {
   id: number;
@@ -38,6 +38,8 @@ function displayWireSize(size: WireSize) {
 }
 
 export default function ConduitFillScreen() {
+  const styles = useStyles();
+
   const [conduitType, setConduitType] = useState<ConduitType>("emt");
   const [conduitSize, setConduitSize] = useState<ConduitSize>("3/4");
   const [showOtherConduits, setShowOtherConduits] = useState(false);

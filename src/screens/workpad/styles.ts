@@ -1,7 +1,8 @@
+import { Space, Layout , FontSize, Radius, Fonts } from "../../theme/tokens";
+import { defineStyles } from "../../theme";
 import { StyleSheet } from "react-native";
-import { Colors, Effects } from "../../theme";
 
-export const styles = StyleSheet.create({
+export const useStyles = defineStyles(({ colors: Colors }) => ({
   safe: {
     flex: 1,
     backgroundColor: Colors.bg,
@@ -10,39 +11,39 @@ export const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     width: "100%",
-    maxWidth: 520,
+    maxWidth: Layout.contentWidth,
     alignSelf: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: Space.md,
     paddingTop: 10,
-    paddingBottom: 12,
+    paddingBottom: Space.sm,
     gap: 10,
   },
 
   containerCompact: {
     gap: 7,
-    paddingTop: 4,
+    paddingTop: Space.xxs,
     paddingBottom: 6,
   },
 
   headerRow: {
     width: "100%",
-    maxWidth: 520,
+    maxWidth: Layout.contentWidth,
     alignSelf: "center",
     minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: Space.xs,
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.xs,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
   },
 
-  title: {
+  title: { fontFamily: Fonts.heading,
     color: Colors.text,
     flex: 1,
-    fontSize: 21,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     letterSpacing: 0.2,
   },
 
@@ -50,18 +51,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 44,
     justifyContent: "center",
     width: 44,
-    ...Effects.controlRaised,
+
   },
 
   homeButtonText: {
     color: Colors.textMuted,
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
   },
 
   historyButton: {
@@ -69,11 +70,11 @@ export const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     width: 44,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     backgroundColor: Colors.surface3,
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Effects.controlRaised,
+
   },
 
   historyIcon: {
@@ -85,7 +86,7 @@ export const styles = StyleSheet.create({
 
   historyClockFace: {
     borderColor: Colors.textMuted,
-    borderRadius: 11,
+    borderRadius: Radius.control,
     borderWidth: 1.6,
     height: 22,
     position: "relative",
@@ -128,24 +129,24 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface3,
     borderColor: Colors.border,
-    borderRadius: 13,
+    borderRadius: Radius.control,
     borderWidth: 1,
     height: 44,
     justifyContent: "center",
     width: 44,
-    ...Effects.controlRaised,
+
   },
 
   settingsButtonText: {
     color: Colors.textMuted,
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: FontSize.section,
+    fontWeight: "500",
     lineHeight: 24,
   },
 
   pressed: {
     opacity: 0.75,
     transform: [{ scale: 0.99 }],
-    ...Effects.pressed,
+
   },
-});
+}));

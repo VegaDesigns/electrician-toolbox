@@ -9,7 +9,7 @@ import {
 import { bendPresentation, OtherBend } from "../../utils/bending/presentation";
 import { PreviewControls, GuideNavigation } from "./PreviewControls";
 import { BendDiagram } from "./BendDiagram";
-import { previewStyles as styles } from "./previewStyles";
+import { usePreviewStyles as useStyles } from "./previewStyles";
 
 export function BendPreview({
   bend,
@@ -30,6 +30,8 @@ export function BendPreview({
   onCopy: () => void;
   onHelp: () => void;
 }) {
+  const styles = useStyles();
+
   const [guided, setGuided] = useState(false);
   const [step, setStep] = useState(0);
   const content = bendPresentation(bend, result, precision);

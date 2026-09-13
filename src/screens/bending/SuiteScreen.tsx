@@ -1,3 +1,4 @@
+import { Space } from "../../theme/tokens";
 import React, { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -33,7 +34,7 @@ import {
 import { fitForDraft } from "../../utils/bending/feasibility";
 import { BendPreview } from "./BendPreview";
 import { StubPreview } from "./StubPreview";
-import { styles as s } from "./suiteStyles";
+import { useStyles as useS } from "./suiteStyles";
 
 const KEY = "bending-suite-v1";
 const sizes = [
@@ -70,6 +71,8 @@ function Button({
   selected?: boolean;
   primary?: boolean;
 }) {
+  const s = useS();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -96,6 +99,8 @@ function Button({
   );
 }
 export default function SuiteScreen() {
+  const s = useS();
+
   const insets = useSafeAreaInsets();
   const [bend, setBend] = useState<Bend>("stub"),
     [drafts, setDrafts] = useState(newDrafts),
@@ -292,7 +297,7 @@ export default function SuiteScreen() {
   if (!ready)
     return (
       <SafeAreaView style={s.safe}>
-        <Text style={[s.muted, { padding: 24 }]}>
+        <Text style={[s.muted, { padding: Space.lg }]}>
           Loading your bender setup…
         </Text>
       </SafeAreaView>
@@ -414,7 +419,7 @@ bend ⌄</Text>
           )}
         </View>
         {fit && fit.issues.length > 0 && <View style={[s.fitWarning, !strongFitWarning && s.fitReminder]} accessibilityRole="alert">
-          {fit.issues.map(issue => <View key={issue.title} style={{ gap: 4 }}>
+          {fit.issues.map(issue => <View key={issue.title} style={{ gap: Space.xxs }}>
             <Text style={s.label}>{issue.title}</Text><Text style={s.fitBody}>{issue.message}</Text>
           </View>)}
           {strongFitWarning && <Text style={s.muted}>Reference shoe only. Match your actual bender; clearance can require more room.</Text>}
@@ -450,7 +455,7 @@ bend ⌄</Text>
               onHelp={() => setSheet("help")}
             />
           ) : (
-            <View style={{ minHeight: 280, justifyContent: "center", gap: 16 }}>
+            <View style={{ minHeight: 280, justifyContent: "center", gap: Space.md }}>
               <Text accessibilityRole="alert" style={s.error}>
                 {calc.error ?? fit?.issues.find(i => i.blocksLayout)?.message}
               </Text>
@@ -624,7 +629,7 @@ bend ⌄</Text>
                       {referenceError}
                     </Text>
                   ) : null}
-                  {fit && <View style={{ gap: 8 }}>
+                  {fit && <View style={{ gap: Space.xs }}>
                     <Text style={s.eyebrow}>BENDER FIT CHECK</Text>
                     <Text style={s.muted}>Checks use an illustrative {f(fit.referenceRadius)} centerline radius from the Greenlee Site-Rite manual for this EMT size. This is not your identified shoe. Two equal round bends need at least 2 × radius × (1 − cos(angle)) of height before any straight section fits between them. The app compares height to that geometric bound, not the multiplier mark distance to an arc length.</Text>
                     <Text style={s.muted}>A warning is not a universal rejection. No warning is not a guarantee: hook engagement, bend radius, springback, pipe length and obstacle clearance still require your actual tool. Close marks under 4″ and tip marks under 1″ trigger conservative reminders, not manufacturer minimums. Numeric layouts that round to zero or merge marks are withheld.</Text>
