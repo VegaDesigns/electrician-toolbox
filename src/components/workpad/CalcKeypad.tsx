@@ -1,12 +1,8 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize } from "../../theme/tokens";
 import { useAppTheme, defineStyles } from "../../theme";
 import React, { useRef, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Text, TextInput, View } from "react-native";
 import type { CalcKey } from "../../utils/calc/engine";
 
 type Props = {

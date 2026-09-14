@@ -1,17 +1,10 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Keyboard,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Keyboard, Modal, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -442,7 +435,7 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
     <Modal animationType="slide" onRequestClose={onClose} transparent visible={entry !== null}>
       <SafeAreaProvider>
         <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
-          <Pressable style={styles.modalScrim} onPress={onClose} />
+          <Pressable style={styles.modalScrim} onPress={onClose} feedback="none" />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             {entry ? (

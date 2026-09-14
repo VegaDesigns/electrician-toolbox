@@ -1,6 +1,7 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { ReferenceColors, useAppTheme } from "../../theme";
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Svg, {
   Defs,
   Ellipse,

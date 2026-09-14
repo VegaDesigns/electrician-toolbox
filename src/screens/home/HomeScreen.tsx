@@ -1,7 +1,8 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useStyles } from "./styles";

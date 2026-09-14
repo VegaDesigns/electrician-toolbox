@@ -1,8 +1,9 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
@@ -128,7 +129,7 @@ export function FillQuantityControl({
               accessibilityLabel="Cancel quantity entry"
               accessibilityRole="button"
               onPress={() => setEditorOpen(false)}
-              style={styles.scrim}
+              style={styles.scrim} feedback="none"
             />
             <View style={styles.sheet}>
               <View style={styles.handle} />

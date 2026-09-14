@@ -1,9 +1,10 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 type FillMode = "box" | "conduit";
 

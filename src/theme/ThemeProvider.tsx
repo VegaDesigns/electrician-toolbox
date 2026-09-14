@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Appearance, Platform, StyleSheet, useColorScheme, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, Appearance, Platform, StyleSheet, useColorScheme, View } from "react-native";
 import * as SystemUI from "expo-system-ui";
 import { themeCatalog } from "./color";
 import { createAppearanceStore, defaultAppearance, resolveMode, type AppearancePreferences } from "./preferences";
@@ -12,16 +12,24 @@ function makeTheme(preferences: AppearancePreferences, system: string | null | u
   return { colors, mode };
 }
 export type AppTheme = ReturnType<typeof makeTheme>;
-type ThemeContextValue = { theme: AppTheme; preferences: AppearancePreferences; setAppearance: (next: Partial<Pick<AppearancePreferences, "themeId" | "mode">>) => void; error: string | null; retrySave: () => void; };
+type ThemeContextValue = { theme: AppTheme; reduceMotion: boolean; preferences: AppearancePreferences; setAppearance: (next: Partial<Pick<AppearancePreferences, "themeId" | "mode">>) => void; error: string | null; retrySave: () => void; };
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
   const [preferences, setPreferences] = useState(defaultAppearance);
   const current = useRef(defaultAppearance);
   const [ready, setReady] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const revision = useRef(0);
   const theme = useMemo(() => makeTheme(preferences, system), [preferences, system]);
+  useEffect(() => {
+    let active = true;
+    let changed = false;
+    const listener = AccessibilityInfo.addEventListener("reduceMotionChanged", value => { changed = true; setReduceMotion(value); });
+    AccessibilityInfo.isReduceMotionEnabled().then(value => { if (active && !changed) setReduceMotion(value); }).catch(() => {});
+    return () => { active = false; listener.remove(); };
+  }, []);
   useEffect(() => {
     let active = true;
     const timer = setTimeout(() => { if (!active) return; active = false; setError("Appearance settings took too long to load. Choose a theme to save a new preference."); setReady(true); }, 5000);
@@ -49,7 +57,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const value = { ...current.current, ...next }; current.current = value; setPreferences(value); persist(value);
   }, [persist]);
   const retrySave = useCallback(() => persist(current.current), [persist]);
-  const value = useMemo(() => ({ theme, preferences, setAppearance, error, retrySave }), [theme, preferences, setAppearance, error, retrySave]);
+  const value = useMemo(() => ({ theme, reduceMotion, preferences, setAppearance, error, retrySave }), [theme, reduceMotion, preferences, setAppearance, error, retrySave]);
   return <ThemeContext.Provider value={value}>{ready ? children : <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.colors.bg }}><ActivityIndicator color={theme.colors.primary} accessibilityLabel="Loading appearance" /></View>}</ThemeContext.Provider>;
 }
 export function useAppTheme() {

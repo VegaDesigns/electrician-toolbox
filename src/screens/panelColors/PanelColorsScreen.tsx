@@ -1,20 +1,11 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  type LayoutChangeEvent,
-  Keyboard,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { type LayoutChangeEvent, Keyboard, Modal, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -833,7 +824,7 @@ function PaletteModal({
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
-        <Pressable accessibilityLabel="Close panel colors" onPress={onClose} style={styles.modalDismiss} />
+        <Pressable accessibilityLabel="Close panel colors" onPress={onClose} style={styles.modalDismiss} feedback="none" />
         <View style={styles.selectionSheet}>
           <SheetHeader eyebrow="QUICK SETUP" onClose={onClose} title="What colors do you see?" />
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -947,7 +938,7 @@ function AdvancedModal({
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
-        <Pressable accessibilityLabel="Close advanced settings" onPress={onClose} style={styles.modalDismiss} />
+        <Pressable accessibilityLabel="Close advanced settings" onPress={onClose} style={styles.modalDismiss} feedback="none" />
         <View style={[styles.selectionSheet, styles.advancedSheet]}>
           <SheetHeader eyebrow="ADVANCED" onClose={onClose} title="Panel details" />
 

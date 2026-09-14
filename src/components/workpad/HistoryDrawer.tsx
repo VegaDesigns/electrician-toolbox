@@ -1,14 +1,8 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
 import React from "react";
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import type { CalcHistoryItem } from "../../utils/storage/calcHistory";
@@ -116,7 +110,7 @@ export default function HistoryDrawer({
     >
       <SafeAreaProvider>
       <SafeAreaView edges={["top", "bottom"]} style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={onClose} feedback="none" />
 
         <View style={styles.sheet}>
           <View style={styles.handle} />

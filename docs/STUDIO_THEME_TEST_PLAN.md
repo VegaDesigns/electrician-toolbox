@@ -35,3 +35,7 @@ The experiment changes UI styling, appearance settings, and shared theme infrast
 - Existing tool storage entries stayed identical through theme changes. The `src/utils` domain tree has no changes on this branch.
 - Reviewed real application screenshots of all tools in Forest light and Home, Settings, and Workpad in Forest dark.
 - iOS/Android device testing and native builds were not performed. Use the native checklist above before merge/release.
+
+### Press feedback follow-up
+
+Browser checks verified neutral and primary button feedback across all ten theme combinations, stable button dimensions while pressed, cancellation and release, keyboard Space, rapid calculator entry, disabled buttons, and modal backdrop dismissal. Reduce Motion retains the visible indicator without scaling. All 106 automated tests and the production web export passed after the interaction update. All nine tool return buttons still navigate home. Device visual review remains part of the native checklist.

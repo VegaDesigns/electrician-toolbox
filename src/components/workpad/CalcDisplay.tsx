@@ -1,7 +1,8 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export type ResultFormatKey =
@@ -163,7 +164,7 @@ export default function CalcDisplay({
       <Modal transparent visible={detailsOpen} animationType="fade" onRequestClose={() => setDetailsOpen(false)}>
         <SafeAreaProvider>
           <SafeAreaView edges={["top", "bottom"]} style={styles.detailSafe}>
-            <Pressable accessibilityLabel="Close calculation details" onPress={() => setDetailsOpen(false)} style={styles.detailScrim} />
+            <Pressable accessibilityLabel="Close calculation details" onPress={() => setDetailsOpen(false)} style={styles.detailScrim} feedback="none" />
             <View style={styles.detailSheet}>
               <View style={styles.toolbar}>
                 <Text style={styles.detailTitle}>Calculation details</Text>

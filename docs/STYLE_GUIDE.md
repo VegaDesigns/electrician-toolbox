@@ -69,6 +69,8 @@ Never use the accent to communicate an electrical phase or a safety result. Pane
 
 **Feedback:** preserve pressed feedback, disabled states, accessibility names, and error explanations. Pair error text with the error surface, never `inverseText`. Keep essential information readable without shadows.
 
+Use `FeedbackPressable` for interactive controls. While held, neutral surfaces gain a soft theme highlight and accent border, with a 2% press-in effect. Primary, destructive, and physical reference fills retain their colors. Feedback ends on release or cancellation; actions keep their existing timing and haptics. Disabled controls do not react. Reduce Motion keeps the highlight and removes scaling. Modal scrims opt out with `feedback="none"`.
+
 **Sheets and navigation:** use the active screen background and semantic scrim, retain safe areas and scroll behavior, and provide a clear close/back action. Theme changes must not remount or reset a tool.
 
 ## Implementation pattern

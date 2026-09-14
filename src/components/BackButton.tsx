@@ -1,4 +1,5 @@
-import { Pressable, Text } from "react-native";
+import { FeedbackPressable as Pressable } from "./FeedbackPressable";
+import { Text } from "react-native";
 import { defineStyles, FontSize, Layout, Radius } from "../theme";
 
 type Props = {

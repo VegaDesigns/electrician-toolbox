@@ -1,16 +1,8 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , FontSize, Radius, Fonts } from "../../theme/tokens";
 import { useAppTheme, defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {

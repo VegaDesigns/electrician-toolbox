@@ -1,16 +1,9 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
-import {
-  Keyboard,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Keyboard, Modal, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { FillModeSwitch } from "../../components/fillGuide/FillModeSwitch";
@@ -738,7 +731,7 @@ export default function BoxFillScreen() {
       >
         <SafeAreaProvider>
           <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
-            <Pressable style={styles.modalScrim} onPress={() => setBoxBuilderPicker(null)} />
+            <Pressable style={styles.modalScrim} onPress={() => setBoxBuilderPicker(null)} feedback="none" />
             <View style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
@@ -880,7 +873,7 @@ export default function BoxFillScreen() {
       >
         <SafeAreaProvider>
           <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
-            <Pressable style={styles.modalScrim} onPress={() => setPicker(null)} />
+            <Pressable style={styles.modalScrim} onPress={() => setPicker(null)} feedback="none" />
             <View style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>

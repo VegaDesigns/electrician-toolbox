@@ -1,5 +1,6 @@
+import { FeedbackPressable as Pressable } from "../src/components/FeedbackPressable";
 import { router } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { defineStyles, Fonts, FontSize, Layout, Radius, Space, themeCatalog, themeNames, useAppTheme } from "../src/theme";
 import { themeIds, type AppearanceMode } from "../src/theme/preferences";

@@ -1,7 +1,8 @@
+import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , FontSize, Radius, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
 import React from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { formatFeetInches, type Precision } from "../../utils/calc/measure";
@@ -43,7 +44,7 @@ export default function WorkpadSettingsSheet({
             accessibilityLabel="Close Workpad settings"
             accessibilityRole="button"
             onPress={onClose}
-            style={styles.scrim}
+            style={styles.scrim} feedback="none"
           />
           <View style={styles.sheet}>
             <View style={styles.handle} />

@@ -1,8 +1,9 @@
+import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -429,7 +430,7 @@ function SelectionSheet(props: SelectionSheetProps) {
     <Modal animationType="slide" onRequestClose={props.onClose} transparent visible={props.kind !== null}>
       <SafeAreaProvider>
         <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
-          <Pressable style={styles.modalScrim} onPress={props.onClose} />
+          <Pressable style={styles.modalScrim} onPress={props.onClose} feedback="none" />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
