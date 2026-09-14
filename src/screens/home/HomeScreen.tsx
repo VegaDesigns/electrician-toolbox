@@ -1,8 +1,9 @@
+import { AppIcon } from "../../components/AppIcon";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useStyles } from "./styles";
@@ -40,6 +41,7 @@ function ToolIcon({ accent, icon }: Pick<ToolTileProps, "accent" | "icon">) {
 
 function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTileProps) {
   const styles = useStyles();
+  const { fontScale, width } = useWindowDimensions();
 
   return (
     <Pressable
@@ -52,6 +54,7 @@ function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTilePr
       }}
       style={({ pressed }) => [
         styles.toolTile,
+        (fontScale > 1.2 || width < 350) && styles.toolTileWide,
         pressed && styles.pressed,
       ]}
     >
@@ -63,7 +66,7 @@ function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTilePr
       <View style={styles.toolCopy}>
         {status ? <Text style={styles.statusText}>{status}</Text> : null}
         <Text style={styles.toolTitle}>{title}</Text>
-        <Text numberOfLines={2} style={styles.toolSubtitle}>{subtitle}</Text>
+        <Text style={styles.toolSubtitle}>{subtitle}</Text>
       </View>
     </Pressable>
   );
@@ -89,7 +92,7 @@ export default function HomeScreen() {
             <Text style={styles.headline}>What do you need?</Text>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Open app settings" onPress={() => router.push("/settings")} style={({ pressed }) => [styles.menu, pressed && styles.pressed]}>
-            <View style={styles.menuLine} /><View style={styles.menuLine} /><View style={styles.menuLine} />
+            <AppIcon name="menu" />
           </Pressable>
         </View>
 
@@ -116,7 +119,7 @@ export default function HomeScreen() {
             accent="blue"
             icon="✓"
             onPress={() => router.push("/job-board")}
-            subtitle="Notes, materials, punch and tasks"
+            subtitle="Job notes and material lists"
             title="Jobsite Lists"
           />
 

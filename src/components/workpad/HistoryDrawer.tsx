@@ -261,7 +261,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   closeButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: Space.sm,
     paddingVertical: Space.xs,
@@ -361,7 +361,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   favoriteButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     minWidth: 62,
     paddingHorizontal: 10,
@@ -389,7 +389,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   deleteButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: Space.xs,
@@ -406,7 +406,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     fontWeight: "500",
   },
 
-  clearButton: {
+  clearButton: { minHeight: 48,
     marginTop: Space.xxs,
     paddingVertical: 13,
     borderRadius: Radius.card,
@@ -429,6 +429,6 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   errorText: { color: Colors.error, fontSize: FontSize.caption, paddingVertical: Space.xs },
   undoRow: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.primarySoft, borderRadius: Radius.control, paddingLeft: Space.sm, marginTop: Space.xs },
   undoText: { color: Colors.text, fontSize: FontSize.caption, flex: 1 },
-  undoButton: { minHeight: 44, minWidth: 64, alignItems: "center", justifyContent: "center" },
+  undoButton: { minHeight: 48, minWidth: 64, alignItems: "center", justifyContent: "center" },
   undoAction: { color: Colors.primary, fontSize: FontSize.label, fontWeight: "500" },
 }));

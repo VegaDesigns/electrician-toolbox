@@ -10,10 +10,10 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   placeholderDot: { backgroundColor: Colors.borderStrong, width: 8, height: 8, borderRadius: 4, marginTop: 5 },
   editorFields: { gap: Space.md },
   resultBody: { flex: 1, alignItems: "center", justifyContent: "center", width: "100%", paddingBottom: 26 },
-  resultActions: { position: "absolute", bottom: 0, left: 8, right: 8, height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  resultAction: { minWidth: 60, minHeight: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: 10 },
+  resultActions: { position: "absolute", bottom: 0, left: 8, right: 8, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  resultAction: { minWidth: 60, minHeight: 48, justifyContent: "center", alignItems: "center", paddingHorizontal: 10 },
   resultActionText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
-  copyAction: { minHeight: 44, minWidth: 64, justifyContent: "center", alignItems: "center", borderRadius: Radius.control, paddingHorizontal: Space.sm },
+  copyAction: { minHeight: 48, minWidth: 64, justifyContent: "center", alignItems: "center", borderRadius: Radius.control, paddingHorizontal: Space.sm },
   copyActionText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   actionDisabled: { opacity: 0.35 },
   expectedLabel: { color: Colors.textMuted, fontSize: FontSize.caption, letterSpacing: 1, marginTop: 5 },
@@ -319,7 +319,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   returnButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     backgroundColor: Colors.primarySoft,
     borderColor: Colors.primaryMuted,
@@ -476,7 +476,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     flexDirection: "row",
     gap: Space.xs,
     justifyContent: "center",
-    minHeight: 46,
+    minHeight: 48,
     paddingHorizontal: Space.md,
 
   },
@@ -576,7 +576,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.border,
     borderRadius: Radius.card,
     borderWidth: 1,
-    height: 44,
+    height: 48,
     justifyContent: "center",
     minWidth: 60,
     paddingHorizontal: 10,
@@ -630,7 +630,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     justifyContent: "space-between",
   },
 
-  manageLink: {
+  manageLink: { minHeight: 48,
     paddingHorizontal: 5,
     paddingVertical: 7,
   },
@@ -797,7 +797,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     justifyContent: "center",
     marginTop: Space.xs,
-    minHeight: 46,
+    minHeight: 48,
   },
 
   managePresetButtonText: {
@@ -823,7 +823,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     width: "100%",
   },
 
-  cancelButton: {
+  cancelButton: { minHeight: 48,
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
     borderRadius: Radius.control,
@@ -897,7 +897,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderRadius: Radius.control,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 25,
+    minHeight: 48,
     paddingHorizontal: 9,
   },
 
@@ -981,7 +981,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flexDirection: "row",
     gap: 7,
-    minHeight: 43,
+    minHeight: 48,
     paddingHorizontal: Space.sm,
   },
 
@@ -1041,7 +1041,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flexDirection: "row",
     gap: 6,
-    minHeight: 39,
+    minHeight: 48,
     paddingHorizontal: 9,
   },
 
@@ -1213,7 +1213,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 42,
+    minHeight: 48,
   },
 
   editPresetButtonText: {
@@ -1230,7 +1230,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 42,
+    minHeight: 48,
   },
 
   deletePresetButtonText: {
@@ -1293,7 +1293,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 46,
+    minHeight: 48,
   },
 
   confirmCancelText: {
@@ -1310,7 +1310,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 46,
+    minHeight: 48,
   },
 
   confirmDeleteText: {

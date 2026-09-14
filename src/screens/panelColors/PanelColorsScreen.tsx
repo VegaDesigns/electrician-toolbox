@@ -1,9 +1,10 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { returnHome } from "../../utils/navigation";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type LayoutChangeEvent, Keyboard, Modal, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -391,18 +392,18 @@ export default function PanelColorsScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           disabled={storageBusy}
           onPress={() => {
             pulse();
-            router.replace("/");
+            returnHome();
           }} />
 
         <View style={styles.headerCopy}>
           <Text style={styles.headerTitle}>Panel Colors</Text>
         </View>
-      </View>
+      </ScreenHeader>
 
       <ScrollView
         bounces={false}

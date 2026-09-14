@@ -1,10 +1,14 @@
-import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
+import { IconButton } from "../../components/IconButton";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { returnHome } from "../../utils/navigation";
+import { useStoredValue } from "../../hooks/useStoredValue";
+import { workpadPreferences } from "../../state/preferenceStores";
+import { StorageStatus } from "../../components/StorageStatus";
 import { BackButton } from "../../components/BackButton";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { ScrollView, Text, useWindowDimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CalcDisplay, {
@@ -50,29 +54,10 @@ import {
   toggleCalcHistoryFavorite,
   type CalcHistoryItem,
 } from "../../utils/storage/calcHistory";
-import {
-  DEFAULT_WORKPAD_PREFERENCES,
-  loadWorkpadPreferences,
-  saveWorkpadPreferences,
-} from "../../utils/storage/preferences";
 
 import { useStyles } from "./styles";
 
 type FractionPick = { label: string; value: number };
-
-function HistoryIcon() {
-  const styles = useStyles();
-
-  return (
-    <View aria-hidden style={styles.historyIcon}>
-      <View style={styles.historyClockFace}>
-        <View style={styles.historyClockHour} />
-        <View style={styles.historyClockMinute} />
-        <View style={styles.historyClockCenter} />
-      </View>
-    </View>
-  );
-}
 
 function formatCleanDecimal(n: number, maxDecimals = 6): string {
   if (!Number.isFinite(n)) return "0";
@@ -162,10 +147,9 @@ export default function WorkpadScreen() {
   const [recalledPrecision, setRecalledPrecision] = useState<Precision | null>(null);
   const [cleanedExpression, setCleanedExpression] = useState("");
   const [copyLabel, setCopyLabel] = useState("Copy answer");
-  const [precision, setPrecision] = useState<Precision>(
-    DEFAULT_WORKPAD_PREFERENCES.precision,
-  );
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const stored = useStoredValue(workpadPreferences);
+  const { precision } = stored.value;
+  const setPrecision = (precision: Precision) => { void stored.setValue({ precision }); };
   const [selectedResultKey, setSelectedResultKey] =
     useState<ResultFormatKey>("ft-in");
 
@@ -252,20 +236,6 @@ export default function WorkpadScreen() {
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    loadWorkpadPreferences()
-      .then((preferences) => {
-        setPrecision(preferences.precision);
-      })
-      .finally(() => setPreferencesLoaded(true));
-  }, []);
-
-  useEffect(() => {
-    if (!preferencesLoaded) return;
-
-    saveWorkpadPreferences({ precision }).catch(() => {});
-  }, [precision, preferencesLoaded]);
 
   useEffect(() => {
     if (!hasResult || !result || state.lastExpression.trim().length === 0) {
@@ -663,45 +633,21 @@ export default function WorkpadScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.headerRow}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             Haptics.selectionAsync().catch(() => {});
-            router.replace("/");
+            returnHome();
           }} />
 
         <Text style={styles.title}>Workpad</Text>
 
-        <Pressable
-          accessibilityLabel="Open calculation history"
-          accessibilityRole="button"
-          onPress={() => setIsHistoryOpen(true)}
-          style={({ pressed }) => [
-            styles.historyButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <HistoryIcon />
-        </Pressable>
+        <IconButton icon="history" label="Open calculation history" onPress={() => setIsHistoryOpen(true)} />
+        <IconButton icon="settings" label="Open Workpad settings" disabled={!stored.ready} onPress={() => { Haptics.selectionAsync().catch(() => {}); setIsSettingsOpen(true); }} />
+      </ScreenHeader>
 
-        <Pressable
-          accessibilityHint="Changes measurement precision and rounding"
-          accessibilityLabel="Open Workpad settings"
-          accessibilityRole="button"
-          onPress={() => {
-            Haptics.selectionAsync().catch(() => {});
-            setIsSettingsOpen(true);
-          }}
-          style={({ pressed }) => [
-            styles.settingsButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.settingsButtonText}>⚙︎</Text>
-        </Pressable>
-      </View>
-
-      <ScrollView
+      <StorageStatus state={stored} onRetry={stored.retry} label="Workpad settings" />
+      {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={[
           styles.container,
@@ -738,7 +684,7 @@ export default function WorkpadScreen() {
           onKeyPress={onKeyPress}
           onPickFraction={onPickFraction}
         />
-      </ScrollView>
+      </ScrollView>}
 
       <HistoryDrawer
         undoCount={removedHistory.length}

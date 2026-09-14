@@ -1,8 +1,12 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { returnHome } from "../../utils/navigation";
+import { useStoredValue } from "../../hooks/useStoredValue";
+import { wireGuidePreferences } from "../../state/preferenceStores";
+import { StorageStatus } from "../../components/StorageStatus";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,10 +23,6 @@ import {
   type LugRating,
   type WireSize,
 } from "../../utils/wireGuide/ampacity";
-import {
-  loadWireGuidePreferences,
-  saveWireGuidePreferences,
-} from "../../utils/storage/wireGuidePreferences";
 import { useStyles } from "./styles";
 
 type SheetKind = "size" | "lug" | "ambient" | "conductors" | null;
@@ -48,39 +48,16 @@ function reasonLabel(reason: LimitingReason, effectiveLugRating: string): string
 export default function WireGuideScreen() {
   const styles = useStyles();
 
-  const [material, setMaterial] = useState<ConductorMaterial>("copper");
-  const [size, setSize] = useState<WireSize>("12");
-  const [lugRating, setLugRating] = useState<LugRating>("unknown");
-  const [ambientBand, setAmbientBand] = useState<AmbientBand>("78-86");
-  const [conductorCountBand, setConductorCountBand] = useState<ConductorCountBand>("1-3");
+  const stored = useStoredValue(wireGuidePreferences);
+  const { material, size, lugRating, ambientBand, conductorCountBand } = stored.value;
+  const setMaterial = (material: ConductorMaterial) => { void stored.setValue(v => ({ ...v, material, size: getAmpacityRows(material).some(row => row.size === v.size) ? v.size : "12" })); };
+  const setSize = (size: WireSize) => { void stored.setValue(v => ({ ...v, size })); };
+  const setLugRating = (lugRating: LugRating) => { void stored.setValue(v => ({ ...v, lugRating })); };
+  const setAmbientBand = (ambientBand: AmbientBand) => { void stored.setValue(v => ({ ...v, ambientBand })); };
+  const setConductorCountBand = (conductorCountBand: ConductorCountBand) => { void stored.setValue(v => ({ ...v, conductorCountBand })); };
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-
-  useEffect(() => {
-    loadWireGuidePreferences()
-      .then((saved) => {
-        setMaterial(saved.material);
-        setSize(saved.size);
-        setLugRating(saved.lugRating);
-        setAmbientBand(saved.ambientBand);
-        setConductorCountBand(saved.conductorCountBand);
-      })
-      .finally(() => setPreferencesLoaded(true));
-  }, []);
-
-  useEffect(() => {
-    if (!preferencesLoaded) return;
-    saveWireGuidePreferences({
-      ambientBand,
-      conductorCountBand,
-      lugRating,
-      material,
-      size,
-    }).catch(() => {});
-  }, [ambientBand, conductorCountBand, lugRating, material, preferencesLoaded, size]);
-
   const result = useMemo(
     () => calculateAmpacity(material, size, { ambientBand, conductorCountBand, lugRating }),
     [ambientBand, conductorCountBand, lugRating, material, size],
@@ -94,7 +71,6 @@ export default function WireGuideScreen() {
   function chooseMaterial(nextMaterial: ConductorMaterial) {
     pulse();
     setMaterial(nextMaterial);
-    if (!getAmpacityRows(nextMaterial).some((row) => row.size === size)) setSize("12");
   }
 
   function chooseSize(nextSize: WireSize) {
@@ -116,19 +92,20 @@ export default function WireGuideScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
-            router.replace("/");
+            returnHome();
           }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>WIRE GUIDE</Text>
           <Text style={styles.headerTitle}>Ampacity</Text>
         </View>
-      </View>
+      </ScreenHeader>
 
-      <ScrollView
+      <StorageStatus state={stored} onRetry={stored.retry} label="Wire Guide settings" />
+      {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -337,7 +314,7 @@ export default function WireGuideScreen() {
             This checks conductor ampacity—it does not automatically choose a breaker. Continuous loads, equipment rules, cable type, installation method, local requirements, and job specifications can change the final design. Verify labels and conditions before installation.
           </Text>
         </View>
-      </ScrollView>
+      </ScrollView>}
 
       <SelectionSheet
         kind={sheet}

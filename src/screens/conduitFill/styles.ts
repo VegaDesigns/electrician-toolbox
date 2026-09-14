@@ -88,7 +88,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.border,
     borderRadius: Radius.control,
     borderWidth: 1,
-    minHeight: 42,
+    minHeight: 48,
     minWidth: 120,
     paddingHorizontal: 14,
     justifyContent: "center",
@@ -99,7 +99,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.border,
     borderRadius: Radius.control,
     borderWidth: 1,
-    minHeight: 42,
+    minHeight: 48,
     minWidth: 66,
     paddingHorizontal: 11,
     justifyContent: "center",
@@ -109,6 +109,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   divider: { backgroundColor: Colors.border, height: StyleSheet.hairlineWidth, marginTop: 20 },
   wireList: { gap: 9, marginTop: Space.sm },
   wireRow: {
+    flexWrap: "wrap",
     alignItems: "center",
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
@@ -121,6 +122,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   wireSizeButton: {
+    minWidth: 84,
     alignItems: "center",
     backgroundColor: Colors.surface2,
     borderColor: Colors.border,
@@ -139,9 +141,9 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     alignItems: "center",
     backgroundColor: Colors.errorSoft,
     borderRadius: Radius.control,
-    height: 42,
+    height: 48,
     justifyContent: "center",
-    width: 34,
+    width: 48,
   },
   removeButtonText: { color: Colors.error, fontSize: FontSize.section, fontWeight: "500", lineHeight: 23 },
   addWireButton: {
@@ -242,7 +244,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   sheetHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", padding: Space.md },
   sheetEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   sheetTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500", marginTop: 2 },
-  doneButton: { backgroundColor: Colors.action, borderRadius: Radius.control, paddingHorizontal: 14, paddingVertical: 9 },
+  doneButton: { minHeight: 48, backgroundColor: Colors.action, borderRadius: Radius.control, paddingHorizontal: 14, paddingVertical: 9 },
   doneButtonText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
   wireSizeGrid: { flexDirection: "row", flexWrap: "wrap", gap: Space.xs, paddingBottom: 18, paddingHorizontal: Space.md },
   wireSizeOption: {

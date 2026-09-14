@@ -81,7 +81,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   toolTile: {
-    aspectRatio: 1,
+    minHeight: 180,
     backgroundColor: Colors.surface,
     borderColor: Colors.border,
     borderRadius: Radius.large,
@@ -89,10 +89,11 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     flexBasis: "47%",
     flexGrow: 1,
     maxWidth: "48.5%",
-    overflow: "hidden",
     padding: 15,
 
   },
+
+  toolTileWide: { flexBasis: "100%", maxWidth: "100%" },
 
 toolTileBlue: {
     borderBottomColor: Colors.borderStrong,

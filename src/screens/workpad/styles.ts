@@ -49,9 +49,9 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   historyButton: {
     alignItems: "center",
-    height: 44,
+    height: 48,
     justifyContent: "center",
-    width: 44,
+    width: 48,
     borderRadius: Radius.control,
     backgroundColor: Colors.surface3,
     borderWidth: 1,
@@ -113,9 +113,9 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.border,
     borderRadius: Radius.control,
     borderWidth: 1,
-    height: 44,
+    height: 48,
     justifyContent: "center",
-    width: 44,
+    width: 48,
 
   },
 

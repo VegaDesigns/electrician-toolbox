@@ -143,11 +143,11 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   headerButton: {
     minWidth: 76,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
   },
   headerButtonText: { color: Colors.textMuted, fontSize: FontSize.label, fontWeight: "500" },
-  doneButton: { alignItems: "flex-end" },
+  doneButton: { minHeight: 48, alignItems: "flex-end" },
   doneText: { color: Colors.primary, fontSize: FontSize.label, fontWeight: "500" },
   title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.body, fontWeight: "500" },
   content: { padding: 20, gap: 14 },

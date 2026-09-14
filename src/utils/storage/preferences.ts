@@ -13,20 +13,17 @@ export const DEFAULT_WORKPAD_PREFERENCES: WorkpadPreferences = {
 };
 
 export async function loadWorkpadPreferences(): Promise<WorkpadPreferences> {
-  try {
-    const raw = await AsyncStorage.getItem(PREFERENCES_KEY);
-    if (!raw) return DEFAULT_WORKPAD_PREFERENCES;
+  const raw = await AsyncStorage.getItem(PREFERENCES_KEY);
+  if (raw === null) return DEFAULT_WORKPAD_PREFERENCES;
 
-    const parsed = JSON.parse(raw) as Partial<WorkpadPreferences>;
+  const parsed = JSON.parse(raw) as Partial<WorkpadPreferences>;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw Error("Unreadable preferences");
 
-    return {
-      precision: isPrecision(parsed.precision)
-        ? parsed.precision
-        : DEFAULT_WORKPAD_PREFERENCES.precision,
-    };
-  } catch {
-    return DEFAULT_WORKPAD_PREFERENCES;
-  }
+  return {
+    precision: isPrecision(parsed.precision)
+      ? parsed.precision
+      : DEFAULT_WORKPAD_PREFERENCES.precision,
+  };
 }
 
 export async function saveWorkpadPreferences(

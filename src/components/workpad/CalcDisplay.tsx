@@ -98,35 +98,31 @@ export default function CalcDisplay({
       </Pressable>
       </View>
 
-      <View style={[styles.valueArea, compact && styles.valueAreaCompact]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Edit current equation" onPress={onOpenSmartInput} style={[styles.valueArea, compact && styles.valueAreaCompact]}>
       <ScrollView horizontal ref={equationRef} style={[styles.equationScroll, compact && styles.equationScrollCompact]}
         contentContainerStyle={styles.equationContent} showsHorizontalScrollIndicator={false}
         onContentSizeChange={() => equationRef.current?.scrollToEnd({ animated: false })}>
-      <Pressable accessibilityLabel="Edit current equation" accessibilityRole="button" onPress={onOpenSmartInput}>
         <Text
           numberOfLines={1}
           style={[styles.topLine, !hasResult && !cleanExpression && styles.topLineHint]}
         >
           {topLine}
         </Text>
-      </Pressable>
       </ScrollView>
 
         {hasResult ? <FormattedMainValue value={mainDisplay} compact={compact} /> : (
           <ScrollView horizontal ref={entryRef} style={[styles.entryScroll, compact && styles.entryScrollCompact]}
             contentContainerStyle={styles.equationContent} showsHorizontalScrollIndicator={false}
             onContentSizeChange={() => entryRef.current?.scrollToEnd({ animated: false })}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Edit current equation" onPress={onOpenSmartInput}>
           <Text
             numberOfLines={1}
             style={[styles.mainValue, compact && styles.mainValueCompact]}
           >
             {mainDisplay}
           </Text>
-          </Pressable>
           </ScrollView>
         )}
-      </View>
+      </Pressable>
 
       <Pressable disabled={!error && !interpretation && !roundingNotice}
         accessibilityRole="button" accessibilityLabel="Read calculation details"
@@ -243,7 +239,7 @@ function parseFractionDisplay(value: string): {
 
 const useStyles = defineStyles(({ colors: Colors }) => ({
   display: {
-    height: 246,
+    height: 262,
     paddingHorizontal: Space.md,
     paddingVertical: Space.xs,
     borderRadius: Radius.pill,
@@ -257,7 +253,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     height: 96,
     paddingHorizontal: 2,
   },
-  displayCompact: { height: 222 },
+  displayCompact: { height: 238 },
   valueAreaCompact: { height: 72 },
   equationScrollCompact: { height: 24 },
   entryScrollCompact: { height: 48 },
@@ -306,7 +302,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   feedbackSlot: {
-    height: 44,
+    height: 48,
     flexDirection: "row",
     gap: 6,
     alignItems: "center",
@@ -358,7 +354,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   actionSlot: {
     alignItems: "center",
     flexDirection: "row",
-    height: 44,
+    height: 48,
     justifyContent: "space-between",
   },
 
@@ -368,7 +364,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.primaryMuted,
     borderRadius: Radius.control,
     borderWidth: 1,
-    height: 44,
+    height: 48,
     justifyContent: "center",
     minWidth: 52,
     paddingHorizontal: 10,
@@ -388,7 +384,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.primaryMuted,
     borderRadius: Radius.control,
     borderWidth: 1,
-    height: 44,
+    height: 48,
     justifyContent: "center",
     minWidth: 86,
     paddingHorizontal: 11,
@@ -406,8 +402,8 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     transform: [{ scale: 0.98 }],
 
   },
-  toolbar: { flexDirection: "row", height: 44, alignItems: "center", justifyContent: "space-between" },
-  editButton: { minHeight: 44, minWidth: 54, paddingHorizontal: Space.xs, justifyContent: "center", alignItems: "center" },
+  toolbar: { flexDirection: "row", height: 48, alignItems: "center", justifyContent: "space-between" },
+  editButton: { minHeight: 48, minWidth: 54, paddingHorizontal: Space.xs, justifyContent: "center", alignItems: "center" },
   editText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   equationScroll: { flexGrow: 0, height: 26 },
   entryScroll: { flexGrow: 0, height: 70 },

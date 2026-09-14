@@ -207,7 +207,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   eyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.title, fontWeight: "500", marginTop: 2 },
   doneButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     backgroundColor: Colors.action,
     borderRadius: Radius.control,

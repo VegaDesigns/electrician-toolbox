@@ -182,7 +182,9 @@ function commitBufferDefault(state: CalcState): CalcState {
 
   const display = state.buffer.trim();
 
-  if (state.mode === "number") {
+  const trailing = state.tokens.at(-1);
+  const scaling = trailing?.kind === "op" && (trailing.op === "*" || trailing.op === "/");
+  if (state.mode === "number" || scaling) {
     return {
       ...state,
       tokens: [
@@ -318,21 +320,6 @@ export function evaluateTokens(tokens: Token[]): {
     };
   }
 
-  const hasExplicitMeasure = tokens.some((t) => t.kind === "measure");
-  const explicitMeasureCount = tokens.filter(
-    (t) => t.kind === "measure",
-  ).length;
-  const hasScalingOperator = tokens.some(
-    (t) => t.kind === "op" && (t.op === "*" || t.op === "/"),
-  );
-
-  if (hasScalingOperator && explicitMeasureCount > 1) {
-    return {
-      result: null,
-      error: "Multiply or divide a measurement by a plain number",
-    };
-  }
-
   const hasFractionInput = tokens.some(
     (t) =>
       t.kind === "number" &&
@@ -348,9 +335,7 @@ export function evaluateTokens(tokens: Token[]): {
   // 5 11/16 - 4 1/8 =
   // should return:
   // 1 9/16"
-  const isMeasureExpr = hasExplicitMeasure || hasFractionInput;
-
-  const values: number[] = [];
+  const values: { value: number; measure: boolean }[] = [];
   const ops: Op[] = [];
 
   function precedence(op: Op): number {
@@ -366,14 +351,13 @@ export function evaluateTokens(tokens: Token[]): {
       throw new Error("Invalid expression");
     }
 
-    if (op === "+") values.push(a + b);
-    if (op === "-") values.push(a - b);
-    if (op === "*") values.push(a * b);
-
-    if (op === "/") {
-      if (b === 0) throw new Error("Divide by zero");
-      values.push(a / b);
+    if ((op === "*" && a.measure && b.measure) || (op === "/" && b.measure)) {
+      throw new Error("Multiply or divide a measurement by a plain number");
     }
+    if (op === "/" && b.value === 0) throw new Error("Divide by zero");
+    const value = op === "+" ? a.value + b.value : op === "-" ? a.value - b.value
+      : op === "*" ? a.value * b.value : a.value / b.value;
+    values.push({ value, measure: a.measure || b.measure });
   }
 
   try {
@@ -400,11 +384,11 @@ export function evaluateTokens(tokens: Token[]): {
         }
 
         if (t.kind === "measure") {
-          values.push(t.inches);
+          values.push({ value: t.inches, measure: true });
         } else {
           // If this is measurement-style math, bare numbers/fractions
           // are treated as inches.
-          values.push(t.value);
+          values.push({ value: t.value, measure: false });
         }
 
         expectsValue = false;
@@ -421,18 +405,18 @@ export function evaluateTokens(tokens: Token[]): {
 
     const out = values.pop();
 
-    if (out === undefined || values.length > 0 || !Number.isFinite(out)) {
+    if (out === undefined || values.length > 0 || !Number.isFinite(out.value)) {
       return {
         result: null,
         error: "Invalid result",
       };
     }
 
-    if (isMeasureExpr) {
+    if (out.measure || hasFractionInput) {
       return {
         result: {
           kind: "measure",
-          inches: out,
+          inches: out.value,
         },
         error: null,
       };
@@ -441,7 +425,7 @@ export function evaluateTokens(tokens: Token[]): {
     return {
       result: {
         kind: "number",
-        value: out,
+        value: out.value,
       },
       error: null,
     };
@@ -567,6 +551,10 @@ export function pressKey(prev: CalcState, key: CalcKey): CalcState {
   }
 
   const op = opFromKey(key);
+
+  if ((op || key === "=") && state.buffer.trim() && parseBufferNumber(state.buffer) === null) {
+    return { ...state, error: "Check the number before calculating" };
+  }
 
   if (op) {
     state = ensureStartFromLastResult(state);

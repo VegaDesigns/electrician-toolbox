@@ -14,17 +14,14 @@ export const DEFAULT_TRADE_TALK_PREFERENCES: TradeTalkPreferences = {
 };
 
 export async function loadTradeTalkPreferences(): Promise<TradeTalkPreferences> {
-  try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_TRADE_TALK_PREFERENCES;
-    const parsed = JSON.parse(raw) as Partial<TradeTalkPreferences>;
-    return {
-      favoriteIds: stringArray(parsed.favoriteIds),
-      recentIds: stringArray(parsed.recentIds).slice(0, MAX_RECENT),
-    };
-  } catch {
-    return DEFAULT_TRADE_TALK_PREFERENCES;
-  }
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (raw === null) return DEFAULT_TRADE_TALK_PREFERENCES;
+  const parsed = JSON.parse(raw) as Partial<TradeTalkPreferences>;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw Error("Unreadable preferences");
+  return {
+    favoriteIds: stringArray(parsed.favoriteIds),
+    recentIds: stringArray(parsed.recentIds).slice(0, MAX_RECENT),
+  };
 }
 
 export async function saveTradeTalkPreferences(preferences: TradeTalkPreferences): Promise<void> {

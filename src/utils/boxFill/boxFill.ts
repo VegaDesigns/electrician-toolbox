@@ -1,3 +1,4 @@
+// Scope, source-edition gaps, and review status: docs/ELECTRICAL_REFERENCE_REGISTER.md
 export type BoxFamily =
   | "four-square"
   | "four-eleven"

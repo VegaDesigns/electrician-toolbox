@@ -1,5 +1,17 @@
 # Electrician Toolbox — project-state handoff
 
+## Current repair checkpoint — September 14, 2026
+
+The Studio/Jobsite appearance milestone is accepted on main at `cd7fc24`. Current repairs are isolated on `fix/reliability-and-ux`, based on that commit. They have not been merged into main. The current checkout is `C:/Users/Cr_Ve/Documents/Codex/2026-09-13/i-am-looking-to-polish-up-2/work/electrician-toolbox`.
+
+The repair addresses keypad measurement scaling, signed zero-foot input, load/save recovery, previous-board access, list navigation/Undo/sharing, Fill Guide draft preservation, complete Trade Talk browsing, adaptable home cards, shared headers/icons/fields, and tap targets. The scope excludes Ohm's law, movable widgets, billing, and account sync.
+
+Use [the reliability test plan](RELIABILITY_TEST_PLAN.md) for the current checks, remaining upstream dependency advisories, and phone acceptance. The current suite contains 131 tests. Compatible Expo SDK 57 patch versions are applied. [The style guide](STYLE_GUIDE.md) is the visual source of truth; [the electrical reference register](ELECTRICAL_REFERENCE_REGISTER.md) records scope and source-edition gaps honestly.
+
+The old internal build receipt below remains historical: it does not contain the current repairs or theme milestone. A new installed native build/runtime decision is still needed before distributing these dependency changes.
+
+## Historical September 8 build receipt
+
 As of September 8, 2026. Bending release code is committed and pushed. Internal iPhone field-test build 0.9.1 (6) finished successfully and is ready to install; see the release receipt for its exact source.
 
 ## 1. Start here

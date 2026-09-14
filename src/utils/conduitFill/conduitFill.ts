@@ -1,3 +1,4 @@
+// Scope, source-edition gaps, and review status: docs/ELECTRICAL_REFERENCE_REGISTER.md
 export type ConduitType = "emt" | "pvc40" | "rmc" | "imc" | "pvc80";
 
 export type ConduitSize =
@@ -240,7 +241,16 @@ export function getMaxAdditionalConductors(
       ...wires,
       { quantity: additional + 1, size: additionalSize },
     ];
-    if (!calculateConduitFill(conduitType, conduitSize, candidate).fits) break;
+    if (!calculateConduitFill(conduitType, conduitSize, candidate).fits) {
+      // The allowance rises from 31% to 40% at three conductors. Check that
+      // transition before concluding that no larger count can fit.
+      if (calculateConduitFill(conduitType, conduitSize, candidate).conductorCount === 2 &&
+          calculateConduitFill(conduitType, conduitSize, [...wires, { quantity: additional + 2, size: additionalSize }]).fits) {
+        additional += 2;
+        continue;
+      }
+      break;
+    }
     additional += 1;
   }
 

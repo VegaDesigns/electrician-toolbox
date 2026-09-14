@@ -1,3 +1,4 @@
+// Scope, source-edition gaps, and review status: docs/ELECTRICAL_REFERENCE_REGISTER.md
 export type ConductorMaterial = "copper" | "aluminum";
 export type LugRating = "unknown" | "60" | "75" | "90";
 

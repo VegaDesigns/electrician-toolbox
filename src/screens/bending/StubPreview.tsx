@@ -130,7 +130,7 @@ export function StubPreview({
   const instruction = !guided
     ? finished
       ? "Check the outside height and resting angle after springback."
-      : "Arrow on the amber mark; hook toward the short end."
+      : "Arrow on the highlighted mark; hook toward the short end."
     : step === "bend"
       ? "Arrow on the mark, hook toward the short end. Bend to a resting 90° after springback."
       : finished

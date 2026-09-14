@@ -1,5 +1,6 @@
+import { IconButton } from "../src/components/IconButton";
+import { returnHome } from "../src/utils/navigation";
 import { FeedbackPressable as Pressable } from "../src/components/FeedbackPressable";
-import { router } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { defineStyles, Fonts, FontSize, Layout, Radius, Space, themeCatalog, themeDescriptions, themeNames, useAppTheme } from "../src/theme";
@@ -16,7 +17,7 @@ export default function SettingsScreen() {
     <ScrollView contentContainerStyle={s.container}>
       <View style={s.header}>
         <Text accessibilityRole="header" style={s.title}>Settings</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close settings" onPress={() => router.canGoBack() ? router.back() : router.replace("/")} style={({ pressed }) => [s.close, pressed && s.pressed]}><Text style={s.closeText}>✕</Text></Pressable>
+        <IconButton icon="close" label="Close settings" onPress={returnHome} />
       </View>
       <Text accessibilityRole="header" style={s.heading}>Make it yours.</Text>
       <Text style={s.description}>One look, across every tool. Your choice is saved on this device.</Text>

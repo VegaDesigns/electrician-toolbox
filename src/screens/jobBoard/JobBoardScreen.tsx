@@ -1,10 +1,11 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { router } from "expo-router";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { Space } from "../../theme/tokens";
 import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, Share, Text, TextInput, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -350,17 +351,17 @@ export default function JobBoardScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
-        <BackButton accessibilityLabel="Return to toolbox home"
-          onPress={() => router.replace("/")} />
+      <ScreenHeader>
+        <BackButton accessibilityLabel="Back to Jobsite Lists"
+          onPress={() => router.dismissTo("/job-board")} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Jobsite Lists</Text>
+          <Text style={styles.headerTitle}>Previous Job Board</Text>
         </View>
         <View style={styles.openBadge}>
           <Text style={styles.openBadgeNumber}>{openItems.length}</Text>
           <Text style={styles.openBadgeLabel}>OPEN</Text>
         </View>
-      </View>
+      </ScreenHeader>
 
       <View style={styles.boardStatus}>
         {shareFeedback ? <Text style={styles.sectionHint}>{shareFeedback}</Text> : null}

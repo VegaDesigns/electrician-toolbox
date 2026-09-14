@@ -71,9 +71,9 @@ Never use the accent to communicate an electrical phase or a safety result. Pane
 
 ## Component rules
 
-**Home:** keep one calm card treatment across tool categories. The top-right hamburger opens Settings. Preserve phase swatches inside the Panel Colors icon.
+**Home:** keep one calm card treatment across tool categories. Cards grow with their text; do not set a fixed aspect ratio or truncate descriptions. Use one column below 350 pixels or when system font scale exceeds 1.2. The top-right hamburger opens Settings. Preserve phase swatches inside the Panel Colors icon.
 
-**Return navigation:** use `src/components/BackButton.tsx` in every tool header. It shows only `←` in the same 48-point control. Keep the screen-reader label descriptive and preserve each screen's navigation handler and disabled/save guard. Do not add visible “Home” or “Toolbox” labels or use a house icon.
+**Return navigation:** use `src/components/BackButton.tsx` in every tool header. It uses the shared arrow icon in the same 48-point control. Use `returnHome()` to unwind to the existing home route, with a direct-link fallback. Keep the screen-reader label descriptive. A load failure must not disable the exit; protect unsaved edits with an explicit leave decision. Do not add visible “Home” or “Toolbox” labels or use a house icon.
 
 **Calculator:** use an open display, quiet number keys, filled neutral utility keys, softly accented operators, and one solid primary equals action. Clear is a neutral utility action. Avoid bevels, inset shadows, gloss, and gradients on interface controls.
 
@@ -86,6 +86,19 @@ Never use the accent to communicate an electrical phase or a safety result. Pane
 Use `FeedbackPressable` for interactive controls. While held, neutral surfaces gain a soft theme highlight and accent border, with a 2% press-in effect. Primary, destructive, and physical reference fills retain their colors. Feedback ends on release or cancellation; actions keep their existing timing and haptics. Disabled controls do not react. Reduce Motion keeps the highlight and removes scaling. Modal scrims opt out with `feedback="none"`.
 
 **Sheets and navigation:** use the active screen background and semantic scrim, retain safe areas and scroll behavior, and provide a clear close/back action. Theme changes must not remount or reset a tool.
+
+Shared components are the preferred starting point for new screens:
+
+| Component | Responsibility |
+| --- | --- |
+| `ScreenHeader` | Centered tool header, common spacing and maximum width |
+| `BackButton`, `IconButton`, `AppIcon` | Consistent 48-point navigation/actions and SVG strokes |
+| `SheetHeader` | Sheet title, eyebrow, and accessible close action |
+| `FormField` | Theme-aware text entry with a minimum 48-point target |
+| `FillQuantityControl` | Shared quantity stepper and direct-entry sheet |
+| `StorageStatus` | Consistent loading, saving, and retry feedback |
+
+Use the shared controls as specialized screens are updated. Math symbols and electrical illustrations retain their domain meaning. Instructions should refer to a “highlighted mark,” not a particular theme color.
 
 ## Implementation pattern
 
@@ -111,7 +124,7 @@ For inline SVG strokes, input placeholders, or dynamic swatches, get `theme.colo
 
 Appearance is stored only at `electrician-toolbox:appearance:v1`. Invalid or unknown stored values fall back safely. Writes are serialized so rapid selection saves the last choice. A failed save displays recovery feedback. No tool history, saved panel setup, list, measurement, or calculation setting is rewritten by the theme system.
 
-All eleven themes are available in this experiment. Account settings are a clearly labeled future area; authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
+All eleven themes are currently available. Account settings are a clearly labeled future area; authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
 
 Native launch screens follow the system light/dark setting with Forest launch colors. They cannot read a saved color family before JavaScript starts. The saved theme appears after preferences load. Native configuration changes require a new native build to take effect.
 

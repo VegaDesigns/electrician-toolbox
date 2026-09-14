@@ -1,46 +1,28 @@
+import { useSessionField } from "../../hooks/useSessionField";
+import { materialListDraft } from "../../state/materialListDraft";
+import { FormField } from "../../components/FormField";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { useLeaveGuard } from "../../hooks/useLeaveGuard";
+import { useStoredValue } from "../../hooks/useStoredValue";
+import { materialListsStore } from "../../state/preferenceStores";
+import { StorageStatus } from "../../components/StorageStatus";
+import { formatMaterialList } from "../../utils/jobBoard/materialListShare";
+import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
+import { returnHome } from "../../utils/navigation";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { Space, Layout , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { useAppTheme, defineStyles } from "../../theme";
-import React, { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { useStyles as useFillStyles } from "../conduitFill/styles";
 import { editLine, restoreLine, materialParts, materialText, type ListLine, type MaterialList, type MaterialLists } from "../../utils/jobBoard/materialLists";
-import { loadMaterialLists, saveMaterialLists } from "../../utils/storage/materialListsStorage";
 
 function newId() { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 type Removed = { kind: "item"; listId: string; line: ListLine; index: number } | { kind: "list"; list: MaterialList; index: number };
-
-function TimedUndo({ label, undo, expire, blocked }: { label: string; undo: () => void; expire: () => void; blocked: boolean }) {
-  const s = useLocalStyles();
-  const { theme: { colors: Colors } } = useAppTheme();
-
-  const [left, setLeft] = useState(1);
-  const [duration, setDuration] = useState<number | null>(null);
-  const pause = useRef(false);
-  useEffect(() => {
-    let active = true;
-    AccessibilityInfo.isScreenReaderEnabled().then(async (enabled) => {
-      const base = enabled ? 20000 : 6000;
-      const time = Platform.OS === "android" ? await AccessibilityInfo.getRecommendedTimeoutMillis(base) : base;
-      if (active) setDuration(time);
-    }).catch(() => { if (active) setDuration(20000); });
-    return () => { active = false; };
-  }, []);
-  useEffect(() => {
-    if (!duration || blocked) return;
-    const timer = setInterval(() => { if (!pause.current) setLeft((value) => Math.max(0, value - 50 / duration)); }, 50);
-    return () => clearInterval(timer);
-  }, [duration, blocked]);
-  useEffect(() => { if (left === 0) expire(); }, [left, expire]);
-  return <View style={{ opacity: Math.min(1, left * 12) }} onTouchStart={() => { pause.current = true; }} onTouchEnd={() => { pause.current = false; }} onPointerEnter={() => { pause.current = true; }} onPointerLeave={() => { pause.current = false; }}>
-    <View style={s.undoBar}><Text accessibilityLiveRegion="polite" style={s.muted}>{label}</Text><Pressable accessibilityRole="button" disabled={blocked} onFocus={() => { pause.current = true; }} onBlur={() => { pause.current = false; }} onPress={undo} style={s.smallButton}><Text style={s.link}>Undo</Text></Pressable></View>
-    <View style={{ height: 2, backgroundColor: Colors.border }}><View style={{ height: 2, width: `${left * 100}%`, backgroundColor: Colors.action }} /></View>
-  </View>;
-}
 
 function SwipeList({ list, open, action }: { list: MaterialList; open: () => void; action: (type: "finish" | "delete") => void }) {
   const s = useLocalStyles();
@@ -90,57 +72,35 @@ export default function MaterialListsScreen() {
   const fillStyles = useFillStyles();
   const { theme: { colors: Colors } } = useAppTheme();
 
-  const [data, setData] = useState<MaterialLists>({ lists: [] });
-  const current = useRef(data);
-  const queue = useRef(Promise.resolve());
-  const revision = useRef(0);
-  const [loaded, setLoaded] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const stored = useStoredValue(materialListsStore);
+  const { value: data, ready: loaded, saving, error } = stored;
+  const [shareStatus, setShareStatus] = useState("");
+  const [selectedId, setSelectedId] = useSessionField(materialListDraft, "selectedId");
   const [completedView, setCompletedView] = useState(false);
-  const [entry, setEntry] = useState("");
-  const [adding, setAdding] = useState<"material" | "note" | null>(null);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
+  const [entry, setEntry] = useSessionField(materialListDraft, "entry");
+  const [adding, setAdding] = useSessionField(materialListDraft, "adding");
+  const [editing, setEditing] = useSessionField(materialListDraft, "editing");
+  const [editText, setEditText] = useSessionField(materialListDraft, "editText");
   const [showOlderEdits, setShowOlderEdits] = useState(false);
-  const [quantity, setQuantity] = useState("0");
+  const [quantity, setQuantity] = useSessionField(materialListDraft, "quantity");
   const [historyId, setHistoryId] = useState<string | null>(null);
   const [finishPrompt, setFinishPrompt] = useState(false);
-  const [manage, setManage] = useState<"options" | "rename" | "delete" | null>(null);
-  const [nameDraft, setNameDraft] = useState("");
+  const [manage, setManage] = useSessionField(materialListDraft, "manage");
+  const [nameDraft, setNameDraft] = useSessionField(materialListDraft, "nameDraft");
   const [removed, setRemoved] = useState<Removed[]>([]);
   const selected = data.lists.find((list) => list.id === selectedId);
   const historyLine = selected?.lines.find((line) => line.id === historyId);
   const pendingDraft = !!adding || !!editing;
 
-  function load() {
-    loadMaterialLists().then((stored) => { current.current = stored; setData(stored); setLoaded(true); setError(""); })
-      .catch(() => setError("Couldn't open your saved lists. Tap Retry."));
-  }
-  useEffect(() => { load(); }, []);
-
-  function persist(next: MaterialLists): Promise<boolean> {
-    if (!loaded) return Promise.resolve(false);
-    current.current = next; setData(next); setSaving(true); setError("");
-    const version = ++revision.current;
-    const task = queue.current.then(async () => {
-      try { await saveMaterialLists(next); return true; }
-      catch { if (version === revision.current) setError("Changes aren't saved. Keep this screen open and tap Retry."); return false; }
-      finally { if (version === revision.current) setSaving(false); }
-    });
-    queue.current = task.then(() => {});
-    return task;
-  }
+  const leaveGuard = useLeaveGuard(stored.dirty || pendingDraft || manage === "rename");
+  function persist(next: MaterialLists) { return stored.setValue(next); }
   function changeList(id: string, change: (list: MaterialList) => MaterialList) {
-    return persist({ lists: current.current.lists.map((list) => list.id === id ? change(list) : list) });
+    return persist({ lists: materialListsStore.getSnapshot().value.lists.map((list) => list.id === id ? change(list) : list) });
   }
   function openList(list: MaterialList) { setSelectedId(list.id); setEntry(""); setAdding(null); setEditing(null); }
   function createList() {
-    // Creation runs only from the New list button event.
-    // eslint-disable-next-line react-hooks/purity
     const list: MaterialList = { id: newId(), title: "", lines: [], completed: false, createdAt: Date.now() };
-    void persist({ lists: [list, ...current.current.lists] });
+    void persist({ lists: [list, ...materialListsStore.getSnapshot().value.lists] });
     openList(list);
   }
   function addLines() {
@@ -164,15 +124,15 @@ export default function MaterialListsScreen() {
   }
   function removeList() {
     if (!selected) return;
-    setRemoved((items) => [...items, { kind: "list", list: selected, index: current.current.lists.findIndex((list) => list.id === selected.id) }]);
-    void persist({ lists: current.current.lists.filter((list) => list.id !== selected.id) });
+    setRemoved((items) => [...items, { kind: "list", list: selected, index: materialListsStore.getSnapshot().value.lists.findIndex((list) => list.id === selected.id) }]);
+    void persist({ lists: materialListsStore.getSnapshot().value.lists.filter((list) => list.id !== selected.id) });
     setManage(null); setSelectedId(null);
   }
   function undoRemoval() {
     const last = removed[removed.length - 1];
     if (!last) return;
     if (last.kind === "list") {
-      const lists = [...current.current.lists];
+      const lists = [...materialListsStore.getSnapshot().value.lists];
       lists.splice(last.index, 0, last.list);
       void persist({ lists });
     } else {
@@ -194,11 +154,21 @@ export default function MaterialListsScreen() {
       setFinishPrompt(false); setSelectedId(null); setCompletedView(false);
     }
   }
+  async function shareList(copy: boolean) {
+    if (!selected) return;
+    setShareStatus("");
+    try {
+      const message = formatMaterialList(selected);
+      if (copy) { await Clipboard.setStringAsync(message); setShareStatus("List copied."); }
+      else { await Share.share({ title: selected.title.trim() || "Jobsite list", message }); }
+      setManage(null);
+    } catch { setManage(null); setShareStatus("Couldn't share this list. Open List options to try again or copy it."); }
+  }
   const materials = selected?.lines.filter((line) => line.kind !== "note") ?? [];
   const remaining = materials.filter((line) => !line.done).length;
   const unchecked = materials.filter((line) => !line.done).length;
   const shownLists = data.lists.filter((list) => list.completed === completedView);
-  const canLeave = !saving && !error && !pendingDraft;
+  const canLeave = !saving && !(loaded && error) && !pendingDraft;
   const editedLine = selected?.lines.find((line) => line.id === editing);
   const isNoteEntry = adding === "note" || editedLine?.kind === "note";
   function closeEntry() { setAdding(null); setEditing(null); setEntry(""); Keyboard.dismiss(); }
@@ -207,18 +177,16 @@ export default function MaterialListsScreen() {
 
   return <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.safe}>
-      <View style={s.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel={selected ? "Back to lists" : "Return to toolbox home"}
-          disabled={!canLeave}
-          onPress={() => selected ? setSelectedId(null) : router.replace("/")} />
+          onPress={() => selected ? leaveGuard.requestLeave(() => materialListDraft.reset()) : returnHome()} />
         <View style={s.lineBody}><Text style={s.eyebrow}>JOBSITE LISTS</Text><Text style={s.heading}>{selected ? "Job" : "Your lists"}</Text></View>
         {selected ? <Pressable accessibilityRole="button" accessibilityLabel="List options" disabled={!canLeave} onPress={() => setManage("options")} style={[s.optionsButton, !canLeave && s.disabled]}><Text style={s.buttonText}>•••</Text></Pressable> : null}
-      </View>
-      {error || !loaded ? <View style={s.status}>
-        {error ? <><Text style={s.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => loaded ? void persist(current.current) : load()} style={s.smallButton}><Text style={s.buttonText}>Retry</Text></Pressable></>
-          : <Text style={s.muted}>Loading…</Text>}
-      </View> : null}
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content} pointerEvents={loaded ? "auto" : "none"}>
+      </ScreenHeader>
+      <StorageStatus state={stored} onRetry={stored.retry} label="Jobsite lists" />
+      {!selected ? <Pressable accessibilityRole="button" onPress={() => leaveGuard.requestLeave(() => router.push("/previous-job-board"))} style={s.smallButton}><Text style={s.link}>Previous Job Board →</Text></Pressable> : null}
+      {shareStatus ? <Text accessibilityLiveRegion="polite" style={s.status}>{shareStatus}</Text> : null}
+      {loaded && <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
         {!selected ? <>
           {!completedView ? <Pressable accessibilityRole="button" onPress={createList} style={s.primary}><Text style={s.primaryText}>+ New list</Text></Pressable> : null}
           <View style={s.sectionHeader}><Text style={s.title}>{completedView ? "Completed" : "Active lists"}</Text>
@@ -260,8 +228,8 @@ export default function MaterialListsScreen() {
             </View>
           </> : <Pressable accessibilityRole="button" onPress={() => { void changeList(selected.id, (list) => ({ ...list, completed: false })); }} style={s.primary}><Text style={s.primaryText}>Reopen list</Text></Pressable>}
         </>}
-      </ScrollView>
-      <Modal transparent animationType="slide" visible={!!adding || !!editing} onRequestClose={closeEntry}>
+      </ScrollView>}
+      <Modal transparent animationType="slide" visible={loaded && (!!adding || !!editing)} onRequestClose={closeEntry}>
         <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={s.entryModalSafe}>
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.entryKeyboard}>
             {adding || editing ? <View style={[fillStyles.sheet, s.entrySheet]}>
@@ -281,10 +249,10 @@ export default function MaterialListsScreen() {
                 </View> : null}
                 {!isNoteEntry ? <><Text style={s.muted}>Quantity {Number(quantity) === 0 ? "· No quantity" : ""}</Text><View style={[s.actions, { flexWrap: "nowrap" }]}>
                   <Pressable accessibilityRole="button" accessibilityLabel="Decrease quantity" onPress={() => setQuantity(String(Math.max(0, Number(quantity) - 1)))} style={s.cancelButton}><Text style={s.buttonText}>−</Text></Pressable>
-                  <TextInput accessibilityLabel="Quantity" keyboardType="number-pad" selectTextOnFocus value={quantity} onChangeText={(value) => setQuantity(value.replace(/\D/g, "").slice(0, 6))} style={[s.modalInput, { flex: 1, minWidth: 0, textAlign: "center" }]} />
+                  <FormField accessibilityLabel="Quantity" keyboardType="number-pad" selectTextOnFocus value={quantity} onChangeText={(value) => setQuantity(value.replace(/\D/g, "").slice(0, 6))} style={[s.modalInput, { flex: 1, minWidth: 0, textAlign: "center" }]} />
                   <Pressable accessibilityRole="button" accessibilityLabel="Increase quantity" onPress={() => setQuantity(String(Math.min(999999, Number(quantity) + 1)))} style={s.cancelButton}><Text style={s.buttonText}>+</Text></Pressable>
                 </View></> : null}
-                <TextInput key={`${editing ?? adding}`} accessibilityLabel={isNoteEntry ? "Note text" : "Material text"} autoFocus multiline={isNoteEntry} blurOnSubmit returnKeyType="done" submitBehavior="submit" onSubmitEditing={editing ? saveEdit : addLines} placeholder={isNoteEntry ? "What should you remember?" : "Couplings"} placeholderTextColor={Colors.textMuted} value={editing ? editText : entry} onChangeText={editing ? setEditText : setEntry} style={[s.modalInput, isNoteEntry && s.noteInput]} />
+                <FormField key={`${editing ?? adding}`} accessibilityLabel={isNoteEntry ? "Note text" : "Material text"} autoFocus multiline={isNoteEntry} blurOnSubmit returnKeyType="done" submitBehavior="submit" onSubmitEditing={editing ? saveEdit : addLines} placeholder={isNoteEntry ? "What should you remember?" : "Couplings"} placeholderTextColor={Colors.textMuted} value={editing ? editText : entry} onChangeText={editing ? setEditText : setEntry} style={[s.modalInput, isNoteEntry && s.noteInput]} />
                 <View style={s.actions}><Pressable accessibilityRole="button" disabled={!(editing ? editText : entry).trim()} onPress={editing ? saveEdit : addLines} style={[s.primary, s.grow, !(editing ? editText : entry).trim() && s.disabled]}><Text style={s.primaryText}>{editing ? "Save" : "Add"}</Text></Pressable>
                   <Pressable accessibilityRole="button" onPress={closeEntry} style={[s.cancelButton, s.grow]}><Text style={s.buttonText}>Cancel</Text></Pressable></View>
               </ScrollView>
@@ -292,16 +260,18 @@ export default function MaterialListsScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView></SafeAreaProvider>
       </Modal>
-      {removed.length ? <TimedUndo key={`${removed.length}-${removed[removed.length - 1].kind === "item" ? (removed[removed.length - 1] as Extract<Removed, {kind: "item"}>).line.id : "list"}`} label={removed[removed.length - 1].kind === "item" ? "Item removed" : "List removed"} undo={undoRemoval} expire={() => setRemoved([])} blocked={saving || !!error || pendingDraft || !!manage} /> : null}
+      {removed.length ? <View style={s.undoBar}><Text accessibilityLiveRegion="polite" style={s.muted}>{removed.at(-1)?.kind === "item" ? "Item removed" : "List removed"}</Text><Pressable accessibilityRole="button" disabled={saving || !!error || pendingDraft || !!manage} onPress={undoRemoval} style={s.smallButton}><Text style={s.link}>Undo</Text></Pressable></View> : null}
       <Modal transparent animationType="fade" visible={!!manage} onRequestClose={() => setManage(null)}>
         <SafeAreaProvider><SafeAreaView style={s.scrim} edges={["top", "bottom"]}><KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.manageWrap}>
           <View style={s.sheet}><ScrollView keyboardShouldPersistTaps="handled">
             {manage === "options" ? <><Text style={s.title}>List options</Text>
+              <Pressable accessibilityRole="button" onPress={() => { void shareList(true); }} style={s.smallButton}><Text style={s.buttonText}>Copy list</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => { void shareList(false); }} style={s.smallButton}><Text style={s.buttonText}>Share list</Text></Pressable>
               {!selected?.completed ? <Pressable accessibilityRole="button" onPress={() => { setManage(null); setFinishPrompt(true); }} style={s.smallButton}><Text style={s.buttonText}>Mark completed</Text></Pressable> : null}
               <Pressable accessibilityRole="button" onPress={() => { setNameDraft(selected?.title ?? ""); setManage("rename"); }} style={s.smallButton}><Text style={s.buttonText}>Rename list</Text></Pressable>
               <Pressable accessibilityRole="button" onPress={() => setManage("delete")} style={s.smallButton}><Text style={s.error}>Delete list</Text></Pressable>
             </> : manage === "rename" ? <><Text style={s.title}>Name your list</Text>
-              <TextInput accessibilityLabel="List name" autoFocus value={nameDraft} onChangeText={setNameDraft} placeholder="Hallway materials" placeholderTextColor={Colors.textMuted} style={s.editInput} returnKeyType="done" onSubmitEditing={renameList} />
+              <FormField accessibilityLabel="List name" autoFocus value={nameDraft} onChangeText={setNameDraft} placeholder="Hallway materials" placeholderTextColor={Colors.textMuted} style={s.editInput} returnKeyType="done" onSubmitEditing={renameList} />
               <Pressable accessibilityRole="button" onPress={renameList} style={s.primary}><Text style={s.primaryText}>Save name</Text></Pressable>
             </> : manage === "delete" ? <><Text style={s.title}>Delete this list?</Text><Text style={s.historyText}>{selected?.title.trim() || "Untitled list"}</Text><Text style={s.muted}>This removes the list and all its items. Undo is available until you leave Jobsite Lists or reload the app.</Text>
               <Pressable accessibilityRole="button" onPress={removeList} style={s.secondary}><Text style={s.error}>Delete list</Text></Pressable>
@@ -320,12 +290,13 @@ export default function MaterialListsScreen() {
                 if (selected) void changeList(selected.id, (list) => ({ ...list, lines: list.lines.map((line) => line.id === historyLine.id ? restoreLine(line) : line) })); setHistoryId(null);
               }} style={s.primary}><Text style={s.primaryText}>Restore previous wording</Text></Pressable> : null}
             </> : <><Text style={s.title}>Mark this list completed?</Text><Text style={s.muted}>{unchecked ? `${unchecked} notes or materials still unchecked. They will remain in the completed list.` : "Move this list to Completed? You can reopen it later."}</Text>
-              {error ? <Text style={s.error}>{error}</Text> : null}
+              {error ? <Text style={s.error}>Could not save. Close this dialog and retry saving.</Text> : null}
               <Pressable accessibilityRole="button" disabled={saving} onPress={() => { void finish(); }} style={s.primary}><Text style={s.primaryText}>Mark completed</Text></Pressable></>}
             <Pressable accessibilityRole="button" onPress={() => { setHistoryId(null); setFinishPrompt(false); }} style={s.cancelButton}><Text style={s.buttonText}>{historyLine ? "Close" : "Cancel"}</Text></Pressable>
           </ScrollView></View>
         </SafeAreaView></SafeAreaProvider>
       </Modal>
+      {leaveGuard.dialog}
     </KeyboardAvoidingView>
   </SafeAreaView>;
 }
@@ -355,7 +326,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   cancelButton: { minHeight: 48, minWidth: 90, paddingHorizontal: 14, marginVertical: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface3 },
   groupLabel: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1, padding: 10 },
   header: { flexDirection: "row", alignItems: "center", gap: Space.sm, paddingHorizontal: Space.md, paddingVertical: Space.xs, minHeight: 58, width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
-  optionsButton: { width: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,  },
+  optionsButton: { width: 48, minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,  },
   heading: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
   eyebrow: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
   status: { minHeight: 28, paddingHorizontal: Space.md, maxWidth: Layout.contentWidth, width: "100%", alignSelf: "center" },
@@ -364,7 +335,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   muted: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 19 },
   error: { color: Colors.error, fontSize: FontSize.caption, lineHeight: 19 },
   buttonText: { color: Colors.text, fontSize: FontSize.label, fontWeight: "600" },
-  smallButton: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: Space.xs },
+  smallButton: { minHeight: 48, minWidth: 48, justifyContent: "center", paddingHorizontal: Space.xs },
   primary: { backgroundColor: Colors.action, minHeight: 48, borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.primaryMuted, alignItems: "center", justifyContent: "center", paddingHorizontal: Space.md, marginVertical: Space.xxs,  },
   primaryText: { color: Colors.inverseText, fontSize: FontSize.label, fontWeight: "500" },
   secondary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface2,  },
@@ -388,14 +359,14 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   undoBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: Space.md, borderTopWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface2 },
   manageWrap: { width: "100%", alignItems: "center", justifyContent: "center", flex: 1 },
   line: { flexDirection: "row", alignItems: "flex-start", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, paddingVertical: 6, gap: 6 },
-  checkTarget: { width: 44, minHeight: 48, alignItems: "center", justifyContent: "center" },
+  checkTarget: { width: 48, minHeight: 48, alignItems: "center", justifyContent: "center" },
   check: { width: 26, height: 26, borderWidth: 1.5, borderColor: Colors.borderStrong, borderRadius: Radius.small, alignItems: "center", justifyContent: "center" },
   checked: { backgroundColor: Colors.action, borderColor: Colors.primary,  },
   checkText: { color: Colors.inverseText, fontSize: FontSize.subtitle, fontWeight: "500" },
   pressed: { opacity: 0.6 },
   lineBody: { flex: 1, minWidth: 0 },
   lineContent: { flexDirection: "row", alignItems: "flex-start", gap: Space.xxs },
-  lineTextTarget: { flex: 1, minWidth: 0, minHeight: 48, justifyContent: "center", paddingVertical: 10 },
+  lineTextTarget: { flex: 1, minWidth: 48, minHeight: 48, justifyContent: "center", paddingVertical: 10 },
   lineText: { color: Colors.text, fontSize: FontSize.body, lineHeight: 25 },
   doneText: { color: Colors.textMuted, textDecorationLine: "line-through" },
   editBadge: { minHeight: 48, minWidth: 44, justifyContent: "center", alignItems: "center", paddingHorizontal: Space.xxs },
@@ -407,7 +378,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   entry: { color: Colors.text, fontSize: FontSize.body, lineHeight: 25, height: 52, textAlignVertical: "top", paddingVertical: Space.sm, paddingHorizontal: Space.xxs },
   entryExpanded: { height: 112 },
   entryHint: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 18, paddingHorizontal: Space.xxs, marginBottom: Space.xs },
-  addButton: { minWidth: 110 },
+  addButton: { minHeight: 48, minWidth: 110 },
   scrim: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "center", padding: 20 },
   sheet: { backgroundColor: Colors.surface, borderRadius: Radius.large, padding: 20, maxHeight: "85%", width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center" },
   historyText: { color: Colors.text, fontSize: FontSize.body, paddingVertical: 14 },

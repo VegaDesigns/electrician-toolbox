@@ -35,7 +35,7 @@ export function parseSmartExpression(input: string): SmartParseResult {
   const tokens: Token[] = [];
   const cleanedParts: string[] = [];
 
-  for (const part of split.parts) {
+  for (const [index, part] of split.parts.entries()) {
     if (part.kind === "op") {
       tokens.push({ kind: "op", op: part.op });
       cleanedParts.push(formatOperator(part.op));
@@ -52,7 +52,10 @@ export function parseSmartExpression(input: string): SmartParseResult {
     }
 
     tokens.push(parsed.token);
-    cleanedParts.push(parsed.cleaned);
+    const besideScaling = [split.parts[index - 1], split.parts[index + 1]]
+      .some(neighbor => neighbor?.kind === "op" && (neighbor.op === "*" || neighbor.op === "/"));
+    cleanedParts.push(besideScaling && parsed.token.kind === "number" && part.value.includes("/")
+      ? part.value.trim() : parsed.cleaned);
   }
 
   const evaluated = evaluateTokens(tokens);
@@ -151,7 +154,7 @@ function parseLiteral(
 
     if (feet === null || inches === null) return null;
 
-    const sign = feet < 0 ? -1 : 1;
+    const sign = feetMatch[1].trim().startsWith("-") ? -1 : 1;
     const totalInches = feet * 12 + sign * Math.abs(inches);
     const cleaned = formatCanonicalMeasurement(totalInches);
 
@@ -182,7 +185,7 @@ function parseLiteral(
   if (literal.includes("/")) {
     const cleaned = formatCanonicalMeasurement(bare);
     return {
-      token: { kind: "measure", inches: bare, display: cleaned },
+      token: { kind: "number", value: bare, display: literal },
       cleaned,
     };
   }

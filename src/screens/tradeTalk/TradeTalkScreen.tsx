@@ -1,9 +1,13 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { returnHome } from "../../utils/navigation";
+import { useStoredValue } from "../../hooks/useStoredValue";
+import { tradeTalkPreferences } from "../../state/preferenceStores";
+import { StorageStatus } from "../../components/StorageStatus";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Keyboard, Modal, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,12 +24,10 @@ import {
 } from "../../utils/tradeTalk/dictionary";
 import {
   addRecentTradeTalkEntry,
-  loadTradeTalkPreferences,
-  saveTradeTalkPreferences,
 } from "../../utils/storage/tradeTalkPreferences";
 import { useStyles } from "./styles";
 
-type CategoryFilter = "all" | "slang" | TradeTalkCategory;
+type CategoryFilter = "all" | "slang" | "favorites" | TradeTalkCategory;
 
 type QuizQuestion = {
   answers: string[];
@@ -63,6 +65,7 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 
 const FILTERS: { id: CategoryFilter; label: string }[] = [
   { id: "all", label: "All" },
+  { id: "favorites", label: "Favorites" },
   { id: "slang", label: "Slang" },
   { id: "tools", label: "Tools" },
   { id: "materials", label: "Materials" },
@@ -71,8 +74,6 @@ const FILTERS: { id: CategoryFilter; label: string }[] = [
   { id: "theory", label: "Theory" },
   { id: "jobsite", label: "Jobsite" },
 ];
-
-const FEATURED_IDS = ["battleship", "smurf-tube", "four-square", "beater", "home-run", "ticker"];
 
 function pulse(style: "selection" | "success" | "error" = "selection") {
   if (style === "success") {
@@ -86,7 +87,7 @@ function pulse(style: "selection" | "success" | "error" = "selection") {
 
 function filterEntries(filter: CategoryFilter): TradeTalkEntry[] {
   if (filter === "all") {
-    return FEATURED_IDS.map(getTradeTalkEntry).filter((entry): entry is TradeTalkEntry => !!entry);
+    return [...TRADE_TALK_ENTRIES].sort((a, b) => a.term.localeCompare(b.term));
   }
   if (filter === "slang") {
     return TRADE_TALK_ENTRIES.filter(({ kind }) => kind !== "formal");
@@ -101,30 +102,19 @@ export default function TradeTalkScreen() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CategoryFilter>("all");
   const [selectedEntry, setSelectedEntry] = useState<TradeTalkEntry | null>(null);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [recentIds, setRecentIds] = useState<string[]>([]);
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const stored = useStoredValue(tradeTalkPreferences);
+  const { favoriteIds, recentIds } = stored.value;
+  const setFavoriteIds = (change: (value: string[]) => string[]) => { void stored.setValue(v => ({ ...v, favoriteIds: change(v.favoriteIds) })); };
+  const setRecentIds = (change: (value: string[]) => string[]) => { void stored.setValue(v => ({ ...v, recentIds: change(v.recentIds) })); };
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [quizIndex, setQuizIndex] = useState(0);
-
-  useEffect(() => {
-    loadTradeTalkPreferences()
-      .then((saved) => {
-        setFavoriteIds(saved.favoriteIds);
-        setRecentIds(saved.recentIds);
-      })
-      .finally(() => setPreferencesLoaded(true));
-  }, []);
-
-  useEffect(() => {
-    if (!preferencesLoaded) return;
-    saveTradeTalkPreferences({ favoriteIds, recentIds }).catch(() => {});
-  }, [favoriteIds, preferencesLoaded, recentIds]);
 
   const dailyEntry = getDailyTradeTalkEntry();
   const quiz = QUIZ_QUESTIONS[quizIndex];
   const searchResults = useMemo(() => searchTradeTalk(query, { limit: 40 }), [query]);
-  const browseEntries = useMemo(() => filterEntries(filter), [filter]);
+  const browseEntries = useMemo(() => filter === "favorites"
+    ? TRADE_TALK_ENTRIES.filter(entry => favoriteIds.includes(entry.id))
+    : filterEntries(filter), [filter, favoriteIds]);
   const favoriteEntries = favoriteIds
     .map(getTradeTalkEntry)
     .filter((entry): entry is TradeTalkEntry => !!entry);
@@ -163,19 +153,20 @@ export default function TradeTalkScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
-            router.replace("/");
+            returnHome();
           }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>TRADE TALK</Text>
           <Text style={styles.headerTitle}>Speak electrician.</Text>
         </View>
-      </View>
+      </ScreenHeader>
 
-      <ScrollView
+      <StorageStatus state={stored} onRetry={stored.retry} label="Trade Talk favorites" />
+      {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
@@ -307,8 +298,8 @@ export default function TradeTalkScreen() {
               ) : null}
             </View>
 
-            {favoriteEntries.length ? (
-              <EntrySection entries={favoriteEntries.slice(0, 4)} eyebrow="YOUR TOOLBELT" onOpen={openEntry} title="Favorites" favoriteIds={favoriteIds} />
+            {favoriteEntries.length && filter !== "favorites" ? (
+              <EntrySection entries={favoriteEntries} eyebrow="YOUR TOOLBELT" onOpen={openEntry} title="Favorites" favoriteIds={favoriteIds} />
             ) : null}
 
             {recentEntries.length ? (
@@ -346,6 +337,7 @@ export default function TradeTalkScreen() {
                 </Pressable>
               ))}
             </ScrollView>
+            {filter === "favorites" && !browseEntries.length ? <Text style={styles.emptyHint}>Open a term and tap Save favorite to keep it here.</Text> : null}
             <View style={styles.entryList}>
               {browseEntries.map((entry) => (
                 <EntryRow
@@ -366,7 +358,7 @@ export default function TradeTalkScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </ScrollView>}
 
       <EntrySheet
         entry={selectedEntry}
@@ -399,6 +391,8 @@ function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorit
 
   return (
     <Pressable
+      testID={`trade-entry-${entry.id}`}
+      accessibilityLabel={entry.term}
       accessibilityHint={`Opens the definition for ${entry.term}`}
       accessibilityRole="button"
       onPress={onPress}

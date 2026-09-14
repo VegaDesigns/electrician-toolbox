@@ -10,7 +10,7 @@ export const usePreviewStyles = defineStyles(({ colors: Colors }) => ({
     borderColor: Colors.border,
   },
   guideButton: {
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     marginBottom: 6,
     paddingHorizontal: 2,
@@ -25,7 +25,7 @@ export const usePreviewStyles = defineStyles(({ colors: Colors }) => ({
     backgroundColor: Colors.bg,
     borderRadius: Radius.card,
   },
-  tab: {
+  tab: { minHeight: 48,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -64,7 +64,7 @@ export const usePreviewStyles = defineStyles(({ colors: Colors }) => ({
   summaryText: { flex: 1, minWidth: 0 },
   legend: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 17 },
   copy: {
-    minHeight: 44,
+    minHeight: 48,
     minWidth: 76,
     paddingHorizontal: 10,
     justifyContent: "center",
@@ -86,7 +86,7 @@ export const usePreviewStyles = defineStyles(({ colors: Colors }) => ({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  textButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: Space.xs },
+  textButton: { minHeight: 48, minWidth: 48, justifyContent: "center", paddingHorizontal: Space.xs },
   guideText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   helpText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "600" },
   hint: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 17, paddingTop: Space.xxs },

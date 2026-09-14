@@ -27,24 +27,21 @@ export const DEFAULT_WIRE_GUIDE_PREFERENCES: WireGuidePreferences = {
 };
 
 export async function loadWireGuidePreferences(): Promise<WireGuidePreferences> {
-  try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_WIRE_GUIDE_PREFERENCES;
-    const parsed = JSON.parse(raw) as Partial<WireGuidePreferences>;
-    const material = parsed.material === "aluminum" ? "aluminum" : "copper";
-    const size = getAmpacityRows(material).some(({ size: option }) => option === parsed.size)
-      ? parsed.size as WireSize
-      : "12";
-    return {
-      ambientBand: isAmbientBand(parsed.ambientBand) ? parsed.ambientBand : "78-86",
-      conductorCountBand: isConductorBand(parsed.conductorCountBand) ? parsed.conductorCountBand : "1-3",
-      lugRating: isLugRating(parsed.lugRating) ? parsed.lugRating : "unknown",
-      material,
-      size,
-    };
-  } catch {
-    return DEFAULT_WIRE_GUIDE_PREFERENCES;
-  }
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (raw === null) return DEFAULT_WIRE_GUIDE_PREFERENCES;
+  const parsed = JSON.parse(raw) as Partial<WireGuidePreferences>;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw Error("Unreadable preferences");
+  const material = parsed.material === "aluminum" ? "aluminum" : "copper";
+  const size = getAmpacityRows(material).some(({ size: option }) => option === parsed.size)
+    ? parsed.size as WireSize
+    : "12";
+  return {
+    ambientBand: isAmbientBand(parsed.ambientBand) ? parsed.ambientBand : "78-86",
+    conductorCountBand: isConductorBand(parsed.conductorCountBand) ? parsed.conductorCountBand : "1-3",
+    lugRating: isLugRating(parsed.lugRating) ? parsed.lugRating : "unknown",
+    material,
+    size,
+  };
 }
 
 export async function saveWireGuidePreferences(preferences: WireGuidePreferences): Promise<void> {

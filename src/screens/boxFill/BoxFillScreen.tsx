@@ -1,7 +1,11 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { boxDraft } from "../../state/fillDrafts";
+import { useSessionField } from "../../hooks/useSessionField";
+import { ResetDraftButton } from "../../components/fillGuide/ResetDraftButton";
+import { returnHome } from "../../utils/navigation";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import { Keyboard, Modal, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -18,13 +22,6 @@ import {
   STANDARD_BOXES,
 } from "../../utils/boxFill/boxFill";
 import { useStyles } from "./styles";
-
-type WireRow = {
-  id: number;
-  quantity: number;
-  role: BoxWireRole;
-  size: BoxWireSize;
-};
 
 type Picker =
   | { kind: "device-size" }
@@ -82,19 +79,17 @@ function addOnLabel(addOn: BoxAddOn) {
 export default function BoxFillScreen() {
   const styles = useStyles();
 
-  const [boxFamily, setBoxFamily] = useState<BoxFamily>("four-square");
-  const [depth, setDepth] = useState("2-1/8");
-  const [markedVolume, setMarkedVolume] = useState("");
+  const [boxFamily, setBoxFamily] = useSessionField(boxDraft, "boxFamily");
+  const [depth, setDepth] = useSessionField(boxDraft, "depth");
+  const [markedVolume, setMarkedVolume] = useSessionField(boxDraft, "markedVolume");
   const [boxBuilderPicker, setBoxBuilderPicker] = useState<BoxBuilderPicker>(null);
-  const [addOn, setAddOn] = useState<BoxAddOn>("none");
-  const [addOnVolume, setAddOnVolume] = useState("");
-  const [wires, setWires] = useState<WireRow[]>([
-    { id: 1, quantity: 3, role: "insulated", size: "12" },
-  ]);
-  const [nextRowId, setNextRowId] = useState(2);
-  const [deviceCount, setDeviceCount] = useState(0);
-  const [deviceWireSize, setDeviceWireSize] = useState<BoxWireSize>("12");
-  const [hasInternalClamp, setHasInternalClamp] = useState(false);
+  const [addOn, setAddOn] = useSessionField(boxDraft, "addOn");
+  const [addOnVolume, setAddOnVolume] = useSessionField(boxDraft, "addOnVolume");
+  const [wires, setWires] = useSessionField(boxDraft, "wires");
+  const [nextRowId, setNextRowId] = useSessionField(boxDraft, "nextRowId");
+  const [deviceCount, setDeviceCount] = useSessionField(boxDraft, "deviceCount");
+  const [deviceWireSize, setDeviceWireSize] = useSessionField(boxDraft, "deviceWireSize");
+  const [hasInternalClamp, setHasInternalClamp] = useSessionField(boxDraft, "hasInternalClamp");
   const [picker, setPicker] = useState<Picker>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showBoxHelp, setShowBoxHelp] = useState(false);
@@ -242,17 +237,18 @@ export default function BoxFillScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
-            router.replace("/");
+            returnHome();
           }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
           <Text style={styles.headerTitle}>Box Fill</Text>
         </View>
-      </View>
+        <ResetDraftButton label="Reset box calculation" onPress={() => { pulse(); boxDraft.reset(); }} />
+      </ScreenHeader>
 
       <View style={styles.modeSwitchWrap}>
         <FillModeSwitch mode="box" />

@@ -69,7 +69,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     alignItems: "center",
     borderRadius: Radius.control,
     flex: 1,
-    minHeight: 38,
+    minHeight: 48,
     justifyContent: "center",
   },
   optionSelected: {

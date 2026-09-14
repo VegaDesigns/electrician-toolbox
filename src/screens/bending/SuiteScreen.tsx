@@ -1,26 +1,30 @@
+import { FormField } from "../../components/FormField";
+import { IconButton } from "../../components/IconButton";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { returnHome } from "../../utils/navigation";
+import { useStoredValue } from "../../hooks/useStoredValue";
+import { benderPreferences } from "../../state/preferenceStores";
+import { StorageStatus } from "../../components/StorageStatus";
+import { BENDER_SIZES as sizes, type BenderSettings as Settings } from "../../utils/bending/setup";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import { Space } from "../../theme/tokens";
-import React, { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Linking, Modal, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { KeyboardAvoidingView, Linking, Modal, Platform, ScrollView, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
-import { router } from "expo-router";
 import {
   ANGLES,
   BENDS,
   Bend,
   Draft,
   Field,
-  Method,
   Precision,
   calculate,
   inches,
-  initialDraft,
   parseInches,
 } from "../../utils/bending/bending";
 import { fitForDraft } from "../../utils/bending/feasibility";
@@ -28,30 +32,6 @@ import { BendPreview } from "./BendPreview";
 import { StubPreview } from "./StubPreview";
 import { useStyles as useS } from "./suiteStyles";
 
-const KEY = "bending-suite-v1";
-const sizes = [
-  { name: "½″", deduct: 5 },
-  { name: "¾″", deduct: 6 },
-  { name: "1″", deduct: 8 },
-  { name: "1¼″", deduct: 11 },
-];
-type Settings = {
-  size: number;
-  deduction: number;
-  precision: Precision;
-  method: Method;
-};
-const defaults: Settings = {
-  size: 1,
-  deduction: 6,
-  precision: 16,
-  method: "field",
-};
-const newDrafts = () =>
-  Object.fromEntries(BENDS.map((b) => [b.id, initialDraft(b.id)])) as Record<
-    Bend,
-    Draft
-  >;
 function Button({
   label,
   onPress,
@@ -94,11 +74,11 @@ export default function SuiteScreen() {
   const s = useS();
 
   const insets = useSafeAreaInsets();
-  const [bend, setBend] = useState<Bend>("stub"),
-    [drafts, setDrafts] = useState(newDrafts),
-    [settings, setSettings] = useState(defaults),
-    [ready, setReady] = useState(false),
-    [storageError, setStorageError] = useState("");
+  const stored = useStoredValue(benderPreferences);
+  const { bend, drafts, settings } = stored.value;
+  const setBend = (bend: Bend) => { void stored.setValue(v => ({ ...v, bend })); };
+  const setSettings = (change: (value: Settings) => Settings) => { void stored.setValue(v => ({ ...v, settings: change(v.settings) })); };
+  const setDrafts = (change: (value: Record<Bend, Draft>) => Record<Bend, Draft>) => { void stored.setValue(v => ({ ...v, drafts: change(v.drafts) })); };
   const [finished, setFinished] = useState(false),
     [sheet, setSheet] = useState<
       "bends" | "settings" | "help" | "input" | null
@@ -109,7 +89,6 @@ export default function SuiteScreen() {
     [feedbackError, setFeedbackError] = useState(""),
     [referenceError, setReferenceError] = useState(""),
     [copied, setCopied] = useState(false);
-  const queue = useRef(Promise.resolve());
   const draft = drafts[bend],
     calc = calculate(
       bend,
@@ -124,75 +103,6 @@ export default function SuiteScreen() {
   const strongFitWarning = fit?.issues.some(i => i.blocksLayout || i.title === "Likely too tight for the bender" || i.title === "Tight back-to-back bends") ?? false;
   const layoutBlocked = fit?.issues.some(i => i.blocksLayout) ?? false;
   const f = (n: number) => inches(n, settings.precision);
-  useEffect(() => {
-    let active = true;
-    AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        if (!active || !raw) return;
-        const data = JSON.parse(raw);
-        if (data.settings) {
-          const v = data.settings;
-          setSettings({
-            size:
-              Number.isInteger(v.size) && v.size >= 0 && v.size < 4
-                ? v.size
-                : 1,
-            deduction:
-              typeof v.deduction === "number" &&
-              v.deduction > 0 &&
-              v.deduction <= 48
-                ? v.deduction
-                : 6,
-            precision: [8, 16, 32].includes(v.precision) ? v.precision : 16,
-            method: v.method === "geometry" ? "geometry" : "field",
-          });
-        }
-        if (BENDS.some((b) => b.id === data.bend)) setBend(data.bend);
-        if (data.drafts) {
-          const next = newDrafts();
-          for (const b of BENDS) {
-            const saved = data.drafts[b.id];
-            if (!saved) continue;
-            for (const key of [
-              "height",
-              "roll",
-              "bridge",
-              "span",
-              "location",
-            ] as Field[])
-              if (typeof saved[key] === "string" && saved[key].length < 40)
-                next[b.id][key] = saved[key];
-            if (ANGLES.includes(saved.angle)) next[b.id].angle = saved.angle;
-            if ([45, 60].includes(saved.center))
-              next[b.id].center = saved.center;
-          }
-          setDrafts(next);
-        }
-      })
-      .catch(() => {
-        if (active)
-          setStorageError(
-            "Previous setup could not be restored. Changes will not replace it until you retry.",
-          );
-      })
-      .finally(() => {
-        if (active) setReady(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  useEffect(() => {
-    if (!ready || storageError) return;
-    const payload = JSON.stringify({ settings, bend, drafts });
-    queue.current = queue.current
-      .then(() => AsyncStorage.setItem(KEY, payload))
-      .catch(() =>
-        setStorageError(
-          "Your setup could not be saved on this device. You can still calculate.",
-        ),
-      );
-  }, [ready, settings, bend, drafts, storageError]);
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 2200);
@@ -286,27 +196,20 @@ export default function SuiteScreen() {
       ),
     );
   }
-  if (!ready)
-    return (
-      <SafeAreaView style={s.safe}>
-        <Text style={[s.muted, { padding: Space.lg }]}>
-          Loading your bender setup…
-        </Text>
-      </SafeAreaView>
-    );
   return (
     <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
-      <View style={s.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
-          onPress={() => router.replace("/")} />
+          onPress={() => returnHome()} />
         <Pressable accessibilityRole="button" accessibilityLabel={`Change bend from header, currently ${b.title}`}
-          onPress={() => setSheet("bends")} style={[s.grow, { minHeight: 48, justifyContent: "center", gap: 3 }]}>
+          disabled={!stored.ready} onPress={() => setSheet("bends")} style={[s.grow, { minHeight: 48, justifyContent: "center", gap: 3 }]}>
           <Text style={s.headerTitle}>Bending Suite</Text>
           <Text style={s.label}>{b.title} ⌄</Text>
         </Pressable>
-        <Button label="⚙" onPress={() => setSheet("settings")} />
-      </View>
-      <ScrollView
+        <IconButton icon="settings" label="Bender settings" disabled={!stored.ready} onPress={() => setSheet("settings")} />
+      </ScreenHeader>
+      <StorageStatus state={stored} onRetry={stored.retry} label="Bender setup" />
+      {stored.ready && <ScrollView
         contentContainerStyle={s.body}
         keyboardShouldPersistTaps="handled"
       >
@@ -314,15 +217,6 @@ export default function SuiteScreen() {
           <Text accessibilityRole="alert" style={s.error}>
             {feedbackError}
           </Text>
-        ) : null}
-        {storageError ? (
-          <View style={s.card}>
-            <Text style={s.error}>{storageError}</Text>
-            <Button
-              label="Retry saving current setup"
-              onPress={() => setStorageError("")}
-            />
-          </View>
         ) : null}
         <Pressable
           accessibilityRole="button"
@@ -342,6 +236,7 @@ bend ⌄</Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => setSheet("settings")}
+          style={{ minHeight: 48, justifyContent: "center" }}
         >
           <Text style={s.muted}>
             {sizes[settings.size].name} EMT · Hand bender ⚙
@@ -456,7 +351,7 @@ bend ⌄</Text>
             </View>
           )}
         </View>}
-      </ScrollView>
+      </ScrollView>}
       <Modal
         visible={sheet !== null}
         transparent
@@ -532,7 +427,7 @@ bend ⌄</Text>
                         : "This sets absolute marks from the pipe end. Estimated shrink is not automatically added to your first mark."}
                     </Text>
                   )}
-                  <TextInput
+                  <FormField
                     autoFocus
                     selectTextOnFocus
                     accessibilityLabel={labels[editing]}

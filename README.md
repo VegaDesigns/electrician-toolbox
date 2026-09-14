@@ -5,21 +5,22 @@ Version 0.9.1 is an internal field-test milestone, not a public store release.
 
 ## Included tools
 
-This branch trials the Studio appearance system. Open the top-right home menu to
+The shared Studio appearance system is accepted on main. Open the top-right home menu to
 choose six bold Jobsite themes (Tool Red, Jobsite Yellow, Electric Blue, Hi-Vis Green,
 Caution Orange, Steel) or the original five Studio themes in Light, Dark, or System appearance.
 Follow [the shared style guide](docs/STYLE_GUIDE.md) for UI changes and
-[the trial checklist](docs/STUDIO_THEME_TEST_PLAN.md) before merging.
+[the appearance checklist](docs/STUDIO_THEME_TEST_PLAN.md). This repair branch adds
+[reliability and usability fixes](docs/RELIABILITY_TEST_PLAN.md) for review before merging.
 
 - Workpad: measurement math, fractions, contextual unit conversion, precision settings, and recent/saved history.
 - Panel Colors: explicit circuit submission, phase/color results, nearby circuits, and job-specific presets.
-- Jobsite Lists: separate jobs, materials with quantities, notes, edit history, timed Undo, and swipe actions.
-- Fill Guide: conduit and box fill with common selections, mixed conductor groups, and direct quantity entry.
+- Jobsite Lists: separate jobs, materials with quantities, notes, edit history, Undo while the screen is open, copy/share, and swipe actions. The previous Job Board has its own link.
+- Fill Guide: conduit and box fill with common selections, mixed conductor groups, direct quantity entry, and independent session drafts with Reset.
 - Wire Guide: conductor ampacity and adjustment guidance.
-- Trade Talk: electrical definitions and jobsite slang.
+- Trade Talk: the complete offline dictionary, favorites, electrical definitions, and jobsite slang.
 - Bending Suite: 90° stub-up, offset, rolling offset, three- and four-point saddles, back-to-back 90s, and box offset.
 
-Each tool has its own route behind the square-tile home. Calculations and domain
+Each tool has its own route behind the responsive card home. Calculations and domain
 models live in src/utils; feature UI lives in src/screens. Local preferences and
 saved work use AsyncStorage. Cloud sync and subscription billing are not implemented.
 
@@ -56,10 +57,11 @@ npm run check
 npm run doctor
 ```
 
-The first command runs ESLint, TypeScript and the automated tests (86 at this
-milestone). Expo Doctor also checks SDK/dependency alignment. The current locked
-SDK 57 versions have newer maintenance patches available; this warning is recorded
-in the handoff and is not hidden. Upgrade dependencies as a separate verified change.
+The first command runs ESLint, TypeScript and 131 automated tests. Expo Doctor
+checks SDK/dependency alignment; compatible SDK 57 maintenance patches are applied.
+Browser flow and layout checks are documented in [the reliability test plan](docs/RELIABILITY_TEST_PLAN.md).
+Remaining upstream npm audit advisories and native acceptance checks are recorded there.
+Calculation scope and source-tracking gaps are listed in [the electrical reference register](docs/ELECTRICAL_REFERENCE_REGISTER.md).
 
 ## Internal iPhone build
 

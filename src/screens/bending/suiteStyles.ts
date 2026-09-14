@@ -45,7 +45,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   button: {
-    minHeight: 46,
+    minHeight: 48,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: Radius.control,
@@ -83,7 +83,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   tab: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: Radius.control,
     justifyContent: "center",
     alignItems: "center",
@@ -110,7 +110,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control,
     backgroundColor: Colors.bg, paddingLeft: 14, paddingRight: 6, paddingVertical: 6,
   },
-  locationEdit: { minHeight: 44, minWidth: 52, justifyContent: "center", alignItems: "center" },
+  locationEdit: { minHeight: 48, minWidth: 52, justifyContent: "center", alignItems: "center" },
   locationIcon: { color: Colors.primary, fontSize: FontSize.subtitle, fontWeight: "500" },
   locationText: { color: Colors.text, fontSize: FontSize.caption, fontWeight: "500", flexShrink: 1 },
   warning: {

@@ -1,7 +1,11 @@
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { conduitDraft } from "../../state/fillDrafts";
+import { useSessionField } from "../../hooks/useSessionField";
+import { ResetDraftButton } from "../../components/fillGuide/ResetDraftButton";
+import { returnHome } from "../../utils/navigation";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -21,12 +25,6 @@ import {
 } from "../../utils/conduitFill/conduitFill";
 import { useStyles } from "./styles";
 
-type WireRow = {
-  id: number;
-  quantity: number;
-  size: WireSize;
-};
-
 const QUICK_CONDUITS: ConduitType[] = ["emt", "pvc40", "rmc"];
 const OTHER_CONDUITS: ConduitType[] = ["imc", "pvc80"];
 const QUICK_SIZES: ConduitSize[] = ["1/2", "3/4", "1"];
@@ -42,15 +40,13 @@ function displayWireSize(size: WireSize) {
 export default function ConduitFillScreen() {
   const styles = useStyles();
 
-  const [conduitType, setConduitType] = useState<ConduitType>("emt");
-  const [conduitSize, setConduitSize] = useState<ConduitSize>("3/4");
+  const [conduitType, setConduitType] = useSessionField(conduitDraft, "conduitType");
+  const [conduitSize, setConduitSize] = useSessionField(conduitDraft, "conduitSize");
   const [showOtherConduits, setShowOtherConduits] = useState(false);
   const [showOtherSizes, setShowOtherSizes] = useState(false);
   const [sizePickerRowId, setSizePickerRowId] = useState<number | null>(null);
-  const [nextRowId, setNextRowId] = useState(2);
-  const [wires, setWires] = useState<WireRow[]>([
-    { id: 1, quantity: 3, size: "12" },
-  ]);
+  const [nextRowId, setNextRowId] = useSessionField(conduitDraft, "nextRowId");
+  const [wires, setWires] = useSessionField(conduitDraft, "wires");
 
   const entries = wires.map(({ quantity, size }) => ({ quantity, size }));
   const result = useMemo(
@@ -124,17 +120,18 @@ export default function ConduitFillScreen() {
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
-      <View style={styles.header}>
+      <ScreenHeader>
         <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
-            router.replace("/");
+            returnHome();
           }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
           <Text style={styles.headerTitle}>Conduit Fill</Text>
         </View>
-      </View>
+        <ResetDraftButton label="Reset conduit calculation" onPress={() => { pulse(); conduitDraft.reset(); }} />
+      </ScreenHeader>
 
       <View style={styles.modeSwitchWrap}>
         <FillModeSwitch mode="conduit" />

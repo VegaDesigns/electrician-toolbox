@@ -1,3 +1,4 @@
+import { SheetHeader } from "../SheetHeader";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
@@ -133,20 +134,7 @@ export function FillQuantityControl({
             />
             <View style={styles.sheet}>
               <View style={styles.handle} />
-              <View style={styles.sheetHeader}>
-                <View>
-                  <Text style={styles.eyebrow}>WIRE QUANTITY</Text>
-                  <Text style={styles.title}>How many?</Text>
-                </View>
-                <Pressable
-                  accessibilityLabel="Cancel quantity entry"
-                  accessibilityRole="button"
-                  onPress={() => setEditorOpen(false)}
-                  style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
-                >
-                  <Text style={styles.closeText}>×</Text>
-                </Pressable>
-              </View>
+              <SheetHeader eyebrow="WIRE QUANTITY" title="How many?" closeLabel="Cancel quantity entry" onClose={() => setEditorOpen(false)} />
               <View accessibilityLabel={`${accessibilityLabel}, ${draft || "empty"}`} style={styles.display}>
                 <Text style={[styles.displayValue, !draft && styles.displayEmpty]}>{draft || "—"}</Text>
               </View>
@@ -218,10 +206,10 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     flexDirection: "row",
     overflow: "hidden",
   },
-  stepButton: { alignItems: "center", height: 48, justifyContent: "center", width: 37 },
+  stepButton: { alignItems: "center", height: 48, justifyContent: "center", width: 48 },
   stepButtonDisabled: { opacity: 0.35 },
   stepText: { color: Colors.primary, fontSize: FontSize.section, fontWeight: "500" },
-  valueButton: { alignItems: "center", justifyContent: "center", minWidth: 42 },
+  valueButton: { minHeight: 48, alignItems: "center", justifyContent: "center", minWidth: 48 },
   valueText: { color: Colors.text, fontSize: FontSize.subtitle, fontWeight: "500", lineHeight: 20 },
   valueLabel: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 0.7 },
   modalSafe: { flex: 1, justifyContent: "flex-end" },
@@ -260,7 +248,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   eyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   title: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500", marginTop: 2 },
-  closeButton: { alignItems: "center", backgroundColor: Colors.surface2, borderRadius: Radius.control, height: 40, justifyContent: "center", width: 40 },
+  closeButton: { alignItems: "center", backgroundColor: Colors.surface2, borderRadius: Radius.control, height: 48, justifyContent: "center", width: 48 },
   closeText: { color: Colors.textMuted, fontSize: FontSize.title, fontWeight: "500", lineHeight: 26 },
   display: {
     alignItems: "center",
