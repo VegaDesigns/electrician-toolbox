@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -123,17 +124,11 @@ export default function ConduitFillScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Return to toolbox home"
-          accessibilityRole="button"
+        <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
             router.replace("/");
-          }}
-          style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.homeButtonText}>← Home</Text>
-        </Pressable>
+          }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
           <Text style={styles.headerTitle}>Conduit Fill</Text>

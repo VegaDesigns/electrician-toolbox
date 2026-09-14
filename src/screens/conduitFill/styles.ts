@@ -14,16 +14,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     paddingVertical: 10,
     width: "100%",
   },
-  homeButton: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderRadius: Radius.control,
-    borderWidth: 1,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
 
-  },
-  homeButtonText: { color: Colors.text, fontSize: FontSize.caption, fontWeight: "500" },
   headerCopy: { flex: 1 },
   headerEyebrow: {
     color: Colors.primary,

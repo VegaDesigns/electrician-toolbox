@@ -10,8 +10,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   completedLinkText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "600" },
   safe: { backgroundColor: Colors.bg, flex: 1 },
   header: { alignItems: "center", alignSelf: "center", flexDirection: "row", gap: 11, maxWidth: Layout.contentWidth, paddingHorizontal: Space.md, paddingVertical: 10, width: "100%" },
-  homeButton: { backgroundColor: Colors.surface, borderColor: Colors.border, borderRadius: Radius.control, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10,  },
-  homeButtonText: { color: Colors.text, fontSize: FontSize.caption, fontWeight: "500" },
+
   headerCopy: { flex: 1 },
   headerEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
   headerTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },

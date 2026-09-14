@@ -11,9 +11,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     padding: Space.sm,
     gap: Space.sm,
   },
-  homeButton: { width: 52, minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3 },
-  homeIcon: { color: Colors.text, fontSize: FontSize.section, lineHeight: 24 },
-  homeLabel: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "600" },
+
   headerTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
   changeBend: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", textAlign: "center", lineHeight: 18 },
   fitWarning: { borderWidth: 1, borderColor: Colors.primaryMuted, borderRadius: Radius.card, padding: 14, gap: 10, backgroundColor: Colors.primarySoft },

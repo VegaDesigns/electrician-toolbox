@@ -59,6 +59,8 @@ Never use the accent to communicate an electrical phase or a safety result. Pane
 
 **Home:** keep one calm card treatment across tool categories. The top-right hamburger opens Settings. Preserve phase swatches inside the Panel Colors icon.
 
+**Return navigation:** use `src/components/BackButton.tsx` in every tool header. It shows only `←` in the same 48-point control. Keep the screen-reader label descriptive and preserve each screen's navigation handler and disabled/save guard. Do not add visible “Home” or “Toolbox” labels or use a house icon.
+
 **Calculator:** use an open display, quiet number keys, filled neutral utility keys, softly accented operators, and one solid primary equals action. Clear is a neutral utility action. Avoid bevels, inset shadows, gloss, and gradients on interface controls.
 
 **Cards and fields:** separate sections with space, surface color, and a fine border. Use clear labels, units, and descriptions. Preserve existing validation and keyboard behavior.

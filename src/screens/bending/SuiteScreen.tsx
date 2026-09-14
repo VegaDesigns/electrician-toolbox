@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import { Space } from "../../theme/tokens";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -305,10 +306,8 @@ export default function SuiteScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
       <View style={s.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Return to toolbox home"
-          onPress={() => router.replace("/")} style={({ pressed }) => [s.homeButton, { opacity: pressed ? 0.7 : 1 }]}>
-          <Text style={s.homeIcon}>⌂</Text><Text style={s.homeLabel}>Toolbox</Text>
-        </Pressable>
+        <BackButton accessibilityLabel="Return to toolbox home"
+          onPress={() => router.replace("/")} />
         <Pressable accessibilityRole="button" accessibilityLabel={`Change bend from header, currently ${b.title}`}
           onPress={() => setSheet("bends")} style={[s.grow, { minHeight: 48, justifyContent: "center", gap: 3 }]}>
           <Text style={s.headerTitle}>Bending Suite</Text>

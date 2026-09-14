@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -400,18 +401,12 @@ export default function PanelColorsScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel="Return to toolbox home"
           disabled={storageBusy}
-          accessibilityRole="button"
           onPress={() => {
             pulse();
             router.replace("/");
-          }}
-          style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.homeButtonText}>←</Text>
-        </Pressable>
+          }} />
 
         <View style={styles.headerCopy}>
           <Text style={styles.headerTitle}>Panel Colors</Text>
@@ -1067,7 +1062,6 @@ function CustomSchemeModal({
   onSave: () => void;
 }) {
   const styles = useStyles();
-
 
   function field<K extends keyof CustomDraft>(key: K, value: CustomDraft[K]) {
     onChange({ ...draft, [key]: value });

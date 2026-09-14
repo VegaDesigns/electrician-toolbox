@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import { Space } from "../../theme/tokens";
 import { useAppTheme } from "../../theme";
 import * as Clipboard from "expo-clipboard";
@@ -361,14 +362,8 @@ export default function JobBoardScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Return to toolbox home"
-          accessibilityRole="button"
-          onPress={() => router.replace("/")}
-          style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.homeButtonText}>← Home</Text>
-        </Pressable>
+        <BackButton accessibilityLabel="Return to toolbox home"
+          onPress={() => router.replace("/")} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerTitle}>Jobsite Lists</Text>
         </View>

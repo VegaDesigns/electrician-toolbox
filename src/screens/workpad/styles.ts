@@ -47,24 +47,6 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     letterSpacing: 0.2,
   },
 
-  homeButton: {
-    alignItems: "center",
-    backgroundColor: Colors.surface3,
-    borderColor: Colors.border,
-    borderRadius: Radius.control,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-
-  },
-
-  homeButtonText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.section,
-    fontWeight: "500",
-  },
-
   historyButton: {
     alignItems: "center",
     height: 44,

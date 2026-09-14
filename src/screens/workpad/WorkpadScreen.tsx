@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -662,20 +663,11 @@ export default function WorkpadScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.headerRow}>
-        <Pressable
-          accessibilityLabel="Return to toolbox home"
-          accessibilityRole="button"
+        <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             Haptics.selectionAsync().catch(() => {});
             router.replace("/");
-          }}
-          style={({ pressed }) => [
-            styles.homeButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.homeButtonText}>←</Text>
-        </Pressable>
+          }} />
 
         <Text style={styles.title}>Workpad</Text>
 

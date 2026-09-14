@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import { Space, Layout , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { useAppTheme, defineStyles } from "../../theme";
 import React, { useEffect, useRef, useState } from "react";
@@ -206,10 +207,11 @@ export default function MaterialListsScreen() {
   return <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.safe}>
       <View style={s.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel={selected ? "Back to lists" : "Return home"} disabled={!canLeave} style={[s.homeButton, !canLeave && s.disabled]}
-          onPress={() => selected ? setSelectedId(null) : router.replace("/")}><Text style={s.buttonText}>←</Text></Pressable>
+        <BackButton accessibilityLabel={selected ? "Back to lists" : "Return to toolbox home"}
+          disabled={!canLeave}
+          onPress={() => selected ? setSelectedId(null) : router.replace("/")} />
         <View style={s.lineBody}><Text style={s.eyebrow}>JOBSITE LISTS</Text><Text style={s.heading}>{selected ? "Job" : "Your lists"}</Text></View>
-        {selected ? <Pressable accessibilityRole="button" accessibilityLabel="List options" disabled={!canLeave} onPress={() => setManage("options")} style={[s.homeButton, !canLeave && s.disabled]}><Text style={s.buttonText}>•••</Text></Pressable> : null}
+        {selected ? <Pressable accessibilityRole="button" accessibilityLabel="List options" disabled={!canLeave} onPress={() => setManage("options")} style={[s.optionsButton, !canLeave && s.disabled]}><Text style={s.buttonText}>•••</Text></Pressable> : null}
       </View>
       {error || !loaded ? <View style={s.status}>
         {error ? <><Text style={s.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => loaded ? void persist(current.current) : load()} style={s.smallButton}><Text style={s.buttonText}>Retry</Text></Pressable></>
@@ -352,7 +354,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   cancelButton: { minHeight: 48, minWidth: 90, paddingHorizontal: 14, marginVertical: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface3 },
   groupLabel: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1, padding: 10 },
   header: { flexDirection: "row", alignItems: "center", gap: Space.sm, paddingHorizontal: Space.md, paddingVertical: Space.xs, minHeight: 58, width: "100%", maxWidth: Layout.contentWidth, alignSelf: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
-  homeButton: { width: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,  },
+  optionsButton: { width: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,  },
   heading: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
   eyebrow: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
   status: { minHeight: 28, paddingHorizontal: Space.md, maxWidth: Layout.contentWidth, width: "100%", alignSelf: "center" },

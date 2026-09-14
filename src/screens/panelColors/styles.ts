@@ -45,25 +45,6 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     width: "100%",
   },
 
-  homeButton: {
-    alignItems: "center",
-    backgroundColor: Colors.surface3,
-    borderColor: Colors.border,
-    borderRadius: Radius.control,
-    borderWidth: 1,
-    justifyContent: "center",
-    minHeight: 44,
-    width: 44,
-    paddingHorizontal: Space.sm,
-
-  },
-
-  homeButtonText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.section,
-    fontWeight: "500",
-  },
-
   headerCopy: {
     alignItems: "flex-start",
     flex: 1,

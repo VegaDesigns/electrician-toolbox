@@ -1,3 +1,4 @@
+import { BackButton } from "../../components/BackButton";
 import { useAppTheme } from "../../theme";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -170,17 +171,11 @@ export default function TradeTalkScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Return to toolbox home"
-          accessibilityRole="button"
+        <BackButton accessibilityLabel="Return to toolbox home"
           onPress={() => {
             pulse();
             router.replace("/");
-          }}
-          style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.homeButtonText}>← Home</Text>
-        </Pressable>
+          }} />
         <View style={styles.headerCopy}>
           <Text style={styles.headerEyebrow}>TRADE TALK</Text>
           <Text style={styles.headerTitle}>Speak electrician.</Text>
