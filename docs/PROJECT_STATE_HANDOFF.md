@@ -8,7 +8,9 @@ The repair addresses keypad measurement scaling, signed zero-foot input, load/sa
 
 Use [the reliability test plan](RELIABILITY_TEST_PLAN.md) for the current checks, remaining upstream dependency advisories, and phone acceptance. The current suite contains 131 tests. Compatible Expo SDK 57 patch versions are applied. [The style guide](STYLE_GUIDE.md) is the visual source of truth; [the electrical reference register](ELECTRICAL_REFERENCE_REGISTER.md) records scope and source-edition gaps honestly.
 
-The old internal build receipt below remains historical: it does not contain the current repairs or theme milestone. A new installed native build/runtime decision is still needed before distributing these dependency changes.
+The repair source is saved and pushed at `1a07fe8d3883e27041991168f3df049c5cb60cf4`. The user requested another installed iPhone build for field testing on September 14. Version 0.9.2 selects a new appVersion-policy update runtime for the native dependency maintenance changes. The existing `preview` profile, app identity, registered-device signing and remote build-number increment are retained.
+
+Release preparation changes only app/package version metadata and documentation. The preceding repair validation passed lint, TypeScript, 131 automated tests, 15 browser flows, 33 route/viewport checks and 110 themed-screen checks; Expo Doctor passed 21/21 and native JavaScript exports succeeded. Actual phone installation, native interactions and offline field acceptance remain device checks. The new EAS build receipt will be recorded here after completion. The older receipts below are historical and do not include these repairs or themes.
 
 ## Historical September 8 build receipt
 

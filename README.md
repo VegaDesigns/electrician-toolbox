@@ -1,7 +1,7 @@
 # Electrician Toolbox
 
 An offline-first React Native / Expo toolkit for helpers and experienced electricians.
-Version 0.9.1 is an internal field-test milestone, not a public store release.
+Version 0.9.2 is the themes and reliability internal field-test milestone.
 
 ## Included tools
 
@@ -75,9 +75,11 @@ npx eas-cli build --profile preview --platform ios
 The app identity is com.brokecoderlabs.electriciantoolbox. Install using the exact
 completed build link in the handoff; older links do not contain newer code.
 
-Version 0.9.1 separates this native SVG-enabled build from the older 0.9.0 update
-runtime. Future native dependency changes require another compatible build/runtime
-decision before publishing JavaScript updates. See [Expo runtime compatibility](https://docs.expo.dev/eas-update/runtime-versions/).
+Version 0.9.2 uses a new update runtime for the current Expo SDK 57 / React Native
+maintenance patches. Its internal iPhone build includes the Studio/Jobsite themes
+and reliability fixes. Install over the existing app to retain its local data.
+Future native dependency changes require another compatible build/runtime decision
+before publishing JavaScript updates. See [Expo runtime compatibility](https://docs.expo.dev/eas-update/runtime-versions/).
 
 Production and submission profiles exist, but field testing, release review,
 support/privacy information and store readiness must be completed before any
