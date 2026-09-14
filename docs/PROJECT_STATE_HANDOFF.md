@@ -10,7 +10,28 @@ Use [the reliability test plan](RELIABILITY_TEST_PLAN.md) for the current checks
 
 The repair source is saved and pushed at `1a07fe8d3883e27041991168f3df049c5cb60cf4`. The user requested another installed iPhone build for field testing on September 14. Version 0.9.2 selects a new appVersion-policy update runtime for the native dependency maintenance changes. The existing `preview` profile, app identity, registered-device signing and remote build-number increment are retained.
 
-Release preparation changes only app/package version metadata and documentation. The preceding repair validation passed lint, TypeScript, 131 automated tests, 15 browser flows, 33 route/viewport checks and 110 themed-screen checks; Expo Doctor passed 21/21 and native JavaScript exports succeeded. Actual phone installation, native interactions and offline field acceptance remain device checks. The new EAS build receipt will be recorded here after completion. The older receipts below are historical and do not include these repairs or themes.
+Release preparation changes only app/package version metadata and documentation. The preceding repair validation passed lint, TypeScript, 131 automated tests, 15 browser flows, 33 route/viewport checks and 110 themed-screen checks; Expo Doctor passed 21/21 and native JavaScript exports succeeded. Release metadata consistency and the resolved Expo configuration were checked before upload. Actual phone installation, native interactions and offline field acceptance remain device checks. The older September 8 receipts below are historical and do not include these repairs or themes.
+
+## Current iPhone field-test build — 0.9.2 (8)
+
+The requested internal iPhone build finished successfully on September 14, 2026. Install it using [the exact build page](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/aeb8979f-41a3-43fd-8fea-31b0d0eed15c), opened in Safari on the previously registered iPhone. Install over the existing Electrician Toolbox app to preserve its local data; do not delete the app first.
+
+| Item | Verified value |
+| --- | --- |
+| Build ID | `aeb8979f-41a3-43fd-8fea-31b0d0eed15c` |
+| EAS status | `FINISHED` |
+| App version / iOS build / runtime | `0.9.2` / `8` / `0.9.2` |
+| Source commit | [5ec92d36aa8c90ef8d558f693c088ece7e567089](https://github.com/VegaDesigns/electrician-toolbox/commit/5ec92d36aa8c90ef8d558f693c088ece7e567089) |
+| Branch | `fix/reliability-and-ux`, saved and pushed; main remains at `cd7fc24` |
+| Profile / channel / distribution | `preview` / `preview` / `INTERNAL`, physical iPhone |
+| App identity | `com.brokecoderlabs.electriciantoolbox` |
+| Signing | Existing remote ad hoc certificate and profile reused, including the registered iPhone |
+| Started / completed | September 14, 2026, 14:22:09 UTC / 14:28:15 UTC |
+| Installer verification | HTTP 200; IPA size 12,140,524 bytes, checked at 14:28:53 UTC |
+
+The uploaded source was clean and already pushed before the build. This receipt is a documentation follow-up; it does not change the built app. No store submission or JavaScript update publication was performed.
+
+On the phone, first confirm that existing lists, saved calculations and theme settings survive the update. Then test a cold launch in airplane mode, calculator input, list editing/Undo, Fill Guide drafts, navigation, native sharing and buttons. The completed build and downloadable artifact are verified; installation and field behavior remain the user's device acceptance.
 
 ## Historical September 8 build receipt
 
