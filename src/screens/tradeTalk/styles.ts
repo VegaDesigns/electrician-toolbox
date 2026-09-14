@@ -41,7 +41,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   heroBolt: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: Radius.control,
     height: 46,
     justifyContent: "center",
@@ -96,7 +96,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   dailyTopRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  dailyBadge: { backgroundColor: Colors.primary, borderRadius: 7, paddingHorizontal: Space.xs, paddingVertical: 5 },
+  dailyBadge: { backgroundColor: Colors.action, borderRadius: 7, paddingHorizontal: Space.xs, paddingVertical: 5 },
   dailyBadgeText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 0.8 },
   dailyArrow: { color: Colors.primary, fontSize: FontSize.subtitle, fontWeight: "500" },
   dailyTerm: { color: Colors.text, fontSize: FontSize.heading, fontWeight: "500", letterSpacing: -0.5, marginTop: Space.sm },
@@ -159,7 +159,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     paddingHorizontal: 13,
 
   },
-  filterChipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary,  },
+  filterChipSelected: { backgroundColor: Colors.action, borderColor: Colors.primary,  },
   filterChipText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   filterChipTextSelected: { color: Colors.inverseText },
   entryList: { gap: Space.xs, marginTop: 10 },
@@ -276,7 +276,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   sheetFavoriteSelected: { backgroundColor: Colors.primarySoft, borderColor: Colors.primaryMuted },
   sheetFavoriteText: { color: Colors.textMuted, fontSize: FontSize.section, lineHeight: 24 },
   sheetFavoriteTextSelected: { color: Colors.primary },
-  doneButton: { backgroundColor: Colors.primary, borderRadius: Radius.control, paddingHorizontal: Space.sm, paddingVertical: 11,  },
+  doneButton: { backgroundColor: Colors.action, borderRadius: Radius.control, paddingHorizontal: Space.sm, paddingVertical: 11,  },
   doneButtonText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
   sheetContent: { gap: 13, paddingBottom: Space.lg },
   officialCard: {

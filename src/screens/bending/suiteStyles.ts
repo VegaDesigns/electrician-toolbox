@@ -57,7 +57,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   selected: { backgroundColor: Colors.primarySoft, borderColor: Colors.primary },
-  primary: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  primary: { backgroundColor: Colors.action, borderColor: Colors.primary },
   text: { color: Colors.text, fontSize: FontSize.label, fontWeight: "600" },
   muted: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 18 },
   amber: { color: Colors.primary },

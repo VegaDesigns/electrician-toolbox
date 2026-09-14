@@ -40,7 +40,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   wireCore: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: 4,
     borderWidth: 1,
@@ -101,7 +101,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   otherSizeButton: { minWidth: 76 },
-  sizeButtonSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary,  },
+  sizeButtonSelected: { backgroundColor: Colors.action, borderColor: Colors.primary,  },
   sizeButtonText: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500" },
   sizeButtonTextSelected: { color: Colors.inverseText },
   otherSizeText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
@@ -186,7 +186,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  limitDot: { backgroundColor: Colors.primary, borderRadius: 4, height: 7, width: 7 },
+  limitDot: { backgroundColor: Colors.action, borderRadius: 4, height: 7, width: 7 },
   limitText: { color: Colors.text, fontSize: FontSize.caption, fontWeight: "500" },
   resultContext: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 14, marginTop: 10 },
   breakdownButton: {
@@ -233,7 +233,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   advancedHeaderCopy: { flex: 1 },
   advancedEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 0.9 },
   advancedTitle: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500", marginTop: 2 },
-  activeBadge: { backgroundColor: Colors.primary, borderRadius: 7, paddingHorizontal: 7, paddingVertical: Space.xxs },
+  activeBadge: { backgroundColor: Colors.action, borderRadius: 7, paddingHorizontal: 7, paddingVertical: Space.xxs },
   activeBadgeText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
   advancedCard: {
     backgroundColor: Colors.surface2,
@@ -302,7 +302,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   sheetEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   sheetTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500", marginTop: 2 },
   doneButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: Radius.control,
     minWidth: 58,
     paddingHorizontal: Space.sm,

@@ -469,7 +469,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   keyEnter: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: Radius.control,
     borderWidth: 1,
@@ -774,7 +774,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   addPresetButton: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: Radius.card,
     borderWidth: 1,
@@ -1147,7 +1147,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   saveButton: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: Radius.card,
     borderWidth: 1,

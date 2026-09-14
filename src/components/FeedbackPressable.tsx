@@ -14,7 +14,7 @@ export const FeedbackPressable = forwardRef<View, Props>(function FeedbackPressa
     if (!state.pressed || disabled || feedback === "none") return current;
     const resting = StyleSheet.flatten(typeof style === "function" ? style({ ...state, pressed: false }) : style) ?? {};
     const neutral = resting.backgroundColor == null || [colors.transparent, colors.bg, colors.surface, colors.surface2, colors.surface3].includes(String(resting.backgroundColor));
-    const ring = resting.backgroundColor === colors.primary ? colors.inverseText
+    const ring = resting.backgroundColor === colors.action ? colors.inverseText
       : resting.backgroundColor === colors.errorSoft ? colors.error : colors.primary;
     const indicator: ViewStyle = {
       // Keep primary, destructive, and physical reference fills intact.

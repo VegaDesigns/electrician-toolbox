@@ -1,7 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { APPEARANCE_KEY, createAppearanceStore, defaultAppearance, parseAppearance, resolveMode } from "./preferences";
+import { APPEARANCE_KEY, createAppearanceStore, defaultAppearance, parseAppearance, resolveMode, themeCollections, themeIds } from "./preferences";
 import { themeCatalog } from "./color";
+
+test("theme collections expose every selectable family exactly once", () => {
+  const ids = themeCollections.flatMap(collection => [...collection.themes]);
+  assert.equal(new Set(ids).size, themeIds.length);
+  assert.deepEqual([...ids].sort(), [...themeIds].sort());
+  assert.deepEqual(Object.keys(themeCatalog).sort(), [...themeIds].sort());
+});
+
+test("all Studio and Jobsite preferences survive validation in either appearance", () => {
+  for (const themeId of themeIds) for (const mode of ["light", "dark"] as const) {
+    const preference = { version: 1, themeId, mode };
+    assert.deepEqual(parseAppearance(JSON.stringify(preference)), preference);
+  }
+});
 
 test("missing, corrupt, or newer appearance data has a safe default", () => {
   for (const value of [null, "", "{", "null", "[]", '{"version":2,"themeId":"iris"}']) assert.deepEqual(parseAppearance(value), defaultAppearance);
@@ -42,7 +56,7 @@ function luminance(hex: string) { const c = hex.slice(1).match(/../g)!.map(x => 
 function contrast(a: string, b: string) { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
 for (const [id, modes] of Object.entries(themeCatalog)) for (const [mode, c] of Object.entries(modes)) {
   test(`${id} ${mode}: readable text and status combinations`, () => {
-    for (const fg of [c.text, c.textMuted]) for (const bg of [c.bg, c.surface, c.surface2, c.surface3]) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}`);
-    for (const [fg, bg] of [[c.inverseText, c.primary], [c.primary, c.primarySoft], [c.error, c.errorSoft], [c.success, c.successSoft], [c.warning, c.warningSoft]]) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}`);
+    for (const fg of [c.text, c.textMuted, c.primary]) for (const bg of [c.bg, c.surface, c.surface2, c.surface3]) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}`);
+    for (const [fg, bg] of [[c.inverseText, c.action], [c.primary, c.primarySoft], [c.error, c.errorSoft], [c.success, c.successSoft], [c.warning, c.warningSoft]]) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}`);
   });
 }

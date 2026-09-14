@@ -98,7 +98,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   historyClockCenter: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: 1.5,
     height: 3,
     left: 8.7,

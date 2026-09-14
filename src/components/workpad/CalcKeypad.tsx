@@ -442,7 +442,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   keyPrimary: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
 
   },
@@ -579,7 +579,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
 
   customAddKey: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: Radius.control,
     borderWidth: 1,

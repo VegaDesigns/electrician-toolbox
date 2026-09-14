@@ -6,7 +6,7 @@ This is the shared visual contract for the app. Studio uses warm, quiet surfaces
 
 | Source | Responsibility |
 | --- | --- |
-| `src/theme/color.ts` | Five paired palettes, semantic UI colors, fixed illustration colors |
+| `src/theme/color.ts` | Eleven paired palettes, semantic UI colors, fixed illustration colors |
 | `src/theme/tokens.ts` | Type scale, heading fonts, spacing, corner radii, content width |
 | `src/theme/ThemeProvider.tsx` | Live theme subscription, system appearance, loading and save feedback |
 | `src/theme/preferences.ts` | Validated, versioned preferences and serialized storage |
@@ -15,6 +15,19 @@ This is the shared visual contract for the app. Studio uses warm, quiet surfaces
 All screens, reusable controls, sheets, diagrams, and the retained previous Job Board subscribe to this foundation. Use `defineStyles` for styles and `useAppTheme` for inline colors. Do not export a fixed global `Colors` object or cache a palette outside a component. A local alias named `Colors` is fine when it comes from the current theme.
 
 ## Color families and appearance
+
+The picker groups six bold Jobsite themes above the five original Studio themes. The Jobsite collection takes its cues from tools, construction equipment, safety clothing, and metal finishes.
+
+| Jobsite family | Character |
+| --- | --- |
+| Tool Red | Saturated power red, graphite, and white |
+| Jobsite Yellow | Bright yellow controls against carbon-black or warm light surfaces |
+| Electric Blue | Strong cobalt with midnight navy |
+| Hi-Vis Green | Bright lime against deep charcoal-green |
+| Caution Orange | Safety orange and dark carbon |
+| Steel | Silver-blue controls with slate and cool metal neutrals |
+
+Original Studio collection:
 
 | Family | Character |
 | --- | --- |
@@ -34,8 +47,9 @@ Each family has its own light and dark palette. System follows the device appear
 | `primarySoft`, `keyOperator` | Selected surfaces and operator keys |
 | `text` | Main content and numbers |
 | `textMuted` / `textSubtle` | Descriptions and supporting labels |
-| `primary` | Main actions, links, selected borders and accents |
-| `inverseText` | Text **only on a solid primary fill** |
+| `primary` | Readable accent text, links, icons, and selected borders |
+| `action` | Solid button fills and bold decorative accents |
+| `inverseText` | Text **only on a solid `action` fill** |
 | `border` | Quiet separators and card edges |
 | `borderStrong` | Input boundaries and stronger separators |
 | `error` / `errorSoft` | Destructive or invalid states |
@@ -65,7 +79,7 @@ Never use the accent to communicate an electrical phase or a safety result. Pane
 
 **Cards and fields:** separate sections with space, surface color, and a fine border. Use clear labels, units, and descriptions. Preserve existing validation and keyboard behavior.
 
-**Selected controls:** use a primary border and soft accent fill, or a solid primary fill with `inverseText`. Include a checkmark or selection state, so selection is not conveyed by color alone.
+**Selected controls:** use a primary border and soft accent fill, or a solid `action` fill with `inverseText`. Include a checkmark or selection state, so selection is not conveyed by color alone. Bright fills and readable accent text are separate roles: yellow, lime, and orange must not be used as text on light surfaces.
 
 **Feedback:** preserve pressed feedback, disabled states, accessibility names, and error explanations. Pair error text with the error surface, never `inverseText`. Keep essential information readable without shadows.
 
@@ -97,7 +111,7 @@ For inline SVG strokes, input placeholders, or dynamic swatches, get `theme.colo
 
 Appearance is stored only at `electrician-toolbox:appearance:v1`. Invalid or unknown stored values fall back safely. Writes are serialized so rapid selection saves the last choice. A failed save displays recovery feedback. No tool history, saved panel setup, list, measurement, or calculation setting is rewritten by the theme system.
 
-All five themes are available in this experiment. Account settings are a clearly labeled future area; authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
+All eleven themes are available in this experiment. Account settings are a clearly labeled future area; authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
 
 Native launch screens follow the system light/dark setting with Forest launch colors. They cannot read a saved color family before JavaScript starts. The saved theme appears after preferences load. Native configuration changes require a new native build to take effect.
 
@@ -105,4 +119,4 @@ Native launch screens follow the system light/dark setting with Forest launch co
 
 `npm run check` runs lint, type checking, the existing tool tests, and appearance tests. Lint rejects hardcoded UI hex/RGB colors in screens, components, and routes. Theme tests verify readable text/status combinations at 4.5:1 or higher and cover invalid preferences, system resolution, ordered writes, and storage recovery.
 
-Review light and dark appearances, all five families, smaller screens, keyboard navigation, open sheets, and long content. Verify real iOS/Android behavior before merging or releasing; browser checks do not replace device testing. See `STUDIO_THEME_TEST_PLAN.md`.
+Review light and dark appearances, all eleven families, smaller screens, keyboard navigation, open sheets, and long content. Verify real iOS/Android behavior before merging or releasing; browser checks do not replace device testing. See `STUDIO_THEME_TEST_PLAN.md`.

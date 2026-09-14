@@ -1,4 +1,10 @@
-export const themeIds = ["forest", "ocean", "clay", "iris", "graphite"] as const;
+const studioThemes = ["forest", "ocean", "clay", "iris", "graphite"] as const;
+const jobsiteThemes = ["tool-red", "jobsite-yellow", "electric-blue", "hi-vis-green", "caution-orange", "steel"] as const;
+export const themeIds = [...studioThemes, ...jobsiteThemes] as const;
+export const themeCollections = [
+  { name: "Jobsite", themes: jobsiteThemes },
+  { name: "Studio", themes: studioThemes },
+] as const;
 export type ThemeId = (typeof themeIds)[number];
 export type AppearanceMode = "system" | "light" | "dark";
 export type ResolvedMode = Exclude<AppearanceMode, "system">;

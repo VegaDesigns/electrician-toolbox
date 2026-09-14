@@ -66,7 +66,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     paddingHorizontal: 7,
 
   },
-  choiceSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  choiceSelected: { backgroundColor: Colors.action, borderColor: Colors.primary },
   choiceText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500", textAlign: "center" },
   choiceTextSelected: { color: Colors.inverseText },
   sizeChoice: {
@@ -195,7 +195,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   meterFill: { backgroundColor: Colors.success, borderRadius: 7, height: "100%" },
   meterFillFail: { backgroundColor: Colors.error },
-  meterLimit: { backgroundColor: Colors.primary, height: "100%", position: "absolute", width: 2, zIndex: 2 },
+  meterLimit: { backgroundColor: Colors.action, height: "100%", position: "absolute", width: 2, zIndex: 2 },
   meterLabels: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   meterLabel: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   resultDetails: {
@@ -242,7 +242,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   sheetHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", padding: Space.md },
   sheetEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   sheetTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500", marginTop: 2 },
-  doneButton: { backgroundColor: Colors.primary, borderRadius: Radius.control, paddingHorizontal: 14, paddingVertical: 9 },
+  doneButton: { backgroundColor: Colors.action, borderRadius: Radius.control, paddingHorizontal: 14, paddingVertical: 9 },
   doneButtonText: { color: Colors.inverseText, fontSize: FontSize.caption, fontWeight: "500" },
   wireSizeGrid: { flexDirection: "row", flexWrap: "wrap", gap: Space.xs, paddingBottom: 18, paddingHorizontal: Space.md },
   wireSizeOption: {
@@ -255,7 +255,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     minHeight: 48,
     width: "30.8%",
   },
-  wireSizeOptionSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  wireSizeOptionSelected: { backgroundColor: Colors.action, borderColor: Colors.primary },
   wireSizeOptionText: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500" },
   wireSizeOptionTextSelected: { color: Colors.inverseText },
 }));

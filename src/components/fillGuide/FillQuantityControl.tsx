@@ -301,7 +301,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   backspaceKeyText: { color: Colors.primary, fontSize: FontSize.section, fontWeight: "500" },
   doneButton: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: Radius.control,
     justifyContent: "center",
     marginTop: 10,

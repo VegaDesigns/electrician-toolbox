@@ -2,8 +2,8 @@ import { FeedbackPressable as Pressable } from "../src/components/FeedbackPressa
 import { router } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { defineStyles, Fonts, FontSize, Layout, Radius, Space, themeCatalog, themeNames, useAppTheme } from "../src/theme";
-import { themeIds, type AppearanceMode } from "../src/theme/preferences";
+import { defineStyles, Fonts, FontSize, Layout, Radius, Space, themeCatalog, themeDescriptions, themeNames, useAppTheme } from "../src/theme";
+import { themeCollections, type AppearanceMode } from "../src/theme/preferences";
 
 const modes: { id: AppearanceMode; label: string }[] = [
   { id: "system", label: "System" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" },
@@ -27,15 +27,18 @@ export default function SettingsScreen() {
       <Text style={s.description}>{preferences.mode === "system" ? "Follows your device’s light or dark appearance." : `${preferences.mode === "dark" ? "Dark" : "Light"} appearance stays on until you change it.`}</Text>
       <Text style={s.label}>COLOR THEME</Text>
       <View accessibilityRole="radiogroup" accessibilityLabel="Color theme" style={s.themes}>
-        {themeIds.map(id => {
+        {themeCollections.map(collection => <View key={collection.name} style={s.collection}>
+          <Text accessibilityRole="header" style={s.collectionTitle}>{collection.name}</Text>
+          {collection.themes.map(id => {
           const colors = themeCatalog[id][theme.mode];
           const selected = preferences.themeId === id;
           return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={`${themeNames[id]} theme`} aria-checked={selected} accessibilityState={{ checked: selected }} onPress={() => setAppearance({ themeId: id })} style={({ pressed }) => [s.theme, selected && s.selected, pressed && s.pressed]}>
-            <View accessible={false} accessibilityElementsHidden style={s.swatches}>{[colors.bg, colors.surface2, colors.primary].map((color, i) => <View key={i} style={[s.swatch, { backgroundColor: color, borderColor: colors.border }]} />)}</View>
-            <Text style={[s.body, s.grow, selected && s.selectedText]}>{themeNames[id]}</Text>
+            <View accessible={false} accessibilityElementsHidden style={s.swatches}>{[colors.bg, colors.surface2, colors.action].map((color, i) => <View key={i} style={[s.swatch, { backgroundColor: color, borderColor: colors.border }]} />)}</View>
+            <View style={s.grow}><Text style={[s.body, selected && s.selectedText]}>{themeNames[id]}</Text><Text style={s.themeDescription}>{themeDescriptions[id]}</Text></View>
             <Text style={s.check}>{selected ? "✓" : ""}</Text>
           </Pressable>;
-        })}
+          })}
+        </View>)}
       </View>
       {error ? <View accessibilityRole="alert" style={s.error}><Text style={s.errorText}>{error}</Text><Pressable accessibilityRole="button" onPress={retrySave} style={s.retry}><Text style={s.errorText}>Save again</Text></Pressable></View> : null}
       <Text style={s.label}>ACCOUNT</Text>
@@ -60,6 +63,9 @@ const useStyles = defineStyles(({ colors: c }) => ({
   selected: { borderColor: c.primary, backgroundColor: c.primarySoft },
   selectedText: { color: c.primary },
   themes: { gap: Space.xs },
+  collection: { gap: Space.xs, marginBottom: Space.sm },
+  collectionTitle: { color: c.text, fontFamily: Fonts.heading, fontSize: FontSize.section, marginBottom: Space.xxs },
+  themeDescription: { color: c.textMuted, fontSize: FontSize.caption, lineHeight: 18, marginTop: Space.xxs },
   theme: { flexDirection: "row", alignItems: "center", gap: Space.md, backgroundColor: c.surface, borderColor: c.border, borderWidth: 1, borderRadius: Radius.card, padding: Space.sm, minHeight: 60 },
   swatches: { flexDirection: "row", gap: Space.xxs },
   swatch: { width: 22, height: 22, borderRadius: Radius.round, borderWidth: 1 },

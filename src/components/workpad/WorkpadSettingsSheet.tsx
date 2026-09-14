@@ -209,7 +209,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   doneButton: {
     minHeight: 44,
     justifyContent: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: Radius.control,
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -247,7 +247,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     minHeight: 44,
     paddingHorizontal: 5,
   },
-  segmentSelected: { backgroundColor: Colors.primary,  },
+  segmentSelected: { backgroundColor: Colors.action,  },
   segmentText: { color: Colors.textMuted, fontSize: FontSize.caption, fontWeight: "500" },
   segmentTextSelected: { color: Colors.inverseText, fontWeight: "500" },
   formatGrid: {
@@ -293,7 +293,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     textAlign: "center",
   },
   savedNote: { alignItems: "center", flexDirection: "row", gap: 7, paddingHorizontal: 3, paddingTop: 2 },
-  savedDot: { backgroundColor: Colors.primary, borderRadius: 4, height: 6, width: 6 },
+  savedDot: { backgroundColor: Colors.action, borderRadius: 4, height: 6, width: 6 },
   savedText: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500" },
   pressed: { opacity: 0.78, transform: [{ scale: 0.985 }],  },
 }));

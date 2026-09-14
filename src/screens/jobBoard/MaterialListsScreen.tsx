@@ -38,7 +38,7 @@ function TimedUndo({ label, undo, expire, blocked }: { label: string; undo: () =
   useEffect(() => { if (left === 0) expire(); }, [left, expire]);
   return <View style={{ opacity: Math.min(1, left * 12) }} onTouchStart={() => { pause.current = true; }} onTouchEnd={() => { pause.current = false; }} onPointerEnter={() => { pause.current = true; }} onPointerLeave={() => { pause.current = false; }}>
     <View style={s.undoBar}><Text accessibilityLiveRegion="polite" style={s.muted}>{label}</Text><Pressable accessibilityRole="button" disabled={blocked} onFocus={() => { pause.current = true; }} onBlur={() => { pause.current = false; }} onPress={undo} style={s.smallButton}><Text style={s.link}>Undo</Text></Pressable></View>
-    <View style={{ height: 2, backgroundColor: Colors.border }}><View style={{ height: 2, width: `${left * 100}%`, backgroundColor: Colors.primary }} /></View>
+    <View style={{ height: 2, backgroundColor: Colors.border }}><View style={{ height: 2, width: `${left * 100}%`, backgroundColor: Colors.action }} /></View>
   </View>;
 }
 
@@ -348,7 +348,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   noteMarker: { color: Colors.textMuted, fontSize: FontSize.body },
   removeIcon: { color: Colors.error, fontSize: FontSize.title },
   rowIcon: { width: 44, minHeight: 48, alignItems: "center", justifyContent: "center" },
-  editDot: { position: "absolute", width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary, top: 11, right: 9 },
+  editDot: { position: "absolute", width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.action, top: 11, right: 9 },
   previousPanel: { borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.control, padding: Space.sm, gap: Space.xxs },
   previousText: { color: Colors.text },
   grow: { flex: 1, minWidth: 120 },
@@ -365,7 +365,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   error: { color: Colors.error, fontSize: FontSize.caption, lineHeight: 19 },
   buttonText: { color: Colors.text, fontSize: FontSize.label, fontWeight: "600" },
   smallButton: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: Space.xs },
-  primary: { backgroundColor: Colors.primary, minHeight: 48, borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.primaryMuted, alignItems: "center", justifyContent: "center", paddingHorizontal: Space.md, marginVertical: Space.xxs,  },
+  primary: { backgroundColor: Colors.action, minHeight: 48, borderRadius: Radius.control, borderWidth: 1, borderColor: Colors.primaryMuted, alignItems: "center", justifyContent: "center", paddingHorizontal: Space.md, marginVertical: Space.xxs,  },
   primaryText: { color: Colors.inverseText, fontSize: FontSize.label, fontWeight: "500" },
   secondary: { minHeight: 48, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: Radius.control, backgroundColor: Colors.surface2,  },
   disabled: { opacity: 0.4 },
@@ -380,7 +380,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   countBadge: { backgroundColor: Colors.primarySoft, borderWidth: 1, borderColor: Colors.primaryMuted, borderRadius: Radius.small, paddingHorizontal: 9, paddingVertical: 5 },
   countText: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500" },
   progressTrack: { height: 4, borderRadius: 2, backgroundColor: Colors.bg, overflow: "hidden", marginTop: Space.xxs },
-  progressFill: { height: 4, borderRadius: 2, backgroundColor: Colors.primary },
+  progressFill: { height: 4, borderRadius: 2, backgroundColor: Colors.action },
   paper: { paddingHorizontal: 10, paddingVertical: Space.xxs, borderRadius: Radius.card, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,  },
   empty: { paddingVertical: 28, gap: Space.xs },
   name: { color: Colors.text, fontSize: FontSize.title, fontWeight: "600", paddingVertical: Space.xs },
@@ -390,7 +390,7 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   line: { flexDirection: "row", alignItems: "flex-start", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, paddingVertical: 6, gap: 6 },
   checkTarget: { width: 44, minHeight: 48, alignItems: "center", justifyContent: "center" },
   check: { width: 26, height: 26, borderWidth: 1.5, borderColor: Colors.borderStrong, borderRadius: Radius.small, alignItems: "center", justifyContent: "center" },
-  checked: { backgroundColor: Colors.primary, borderColor: Colors.primary,  },
+  checked: { backgroundColor: Colors.action, borderColor: Colors.primary,  },
   checkText: { color: Colors.inverseText, fontSize: FontSize.subtitle, fontWeight: "500" },
   pressed: { opacity: 0.6 },
   lineBody: { flex: 1, minWidth: 0 },

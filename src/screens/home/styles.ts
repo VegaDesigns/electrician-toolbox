@@ -29,7 +29,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   brandMark: {
     alignItems: "center",
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderColor: Colors.primary,
     borderRadius: Radius.card,
     borderWidth: 1,
@@ -205,7 +205,7 @@ toolTopRow: {
   },
 
   offlineDot: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderRadius: 4,
     height: 6,
     width: 6,

@@ -266,7 +266,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     paddingHorizontal: Space.sm,
     paddingVertical: Space.xs,
     borderRadius: Radius.control,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
     borderWidth: 1,
     borderColor: Colors.border,
   },

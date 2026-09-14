@@ -39,3 +39,14 @@ The experiment changes UI styling, appearance settings, and shared theme infrast
 ### Press feedback follow-up
 
 Browser checks verified neutral and primary button feedback across all ten theme combinations, stable button dimensions while pressed, cancellation and release, keyboard Space, rapid calculator entry, disabled buttons, and modal backdrop dismissal. Reduce Motion retains the visible indicator without scaling. All 106 automated tests and the production web export passed after the interaction update. All nine tool return buttons still navigate home. Device visual review remains part of the native checklist.
+
+### Jobsite collection follow-up
+
+Added Tool Red, Jobsite Yellow, Electric Blue, Hi-Vis Green, Caution Orange, and Steel in both appearances. The original five Studio families remain available. Shared `action` fills allow bright buttons with readable inverse text while `primary` keeps text and icons legible on neutral surfaces.
+
+- Lint, TypeScript, all 120 automated tests, and the production web export passed.
+- Verified text and action contrast for all 22 family/appearance combinations in automated palette tests.
+- Browser checks passed for all six new families in Light and Dark across ten app/tool routes (120 route checks), with no page errors or horizontal overflow.
+- Verified persistence after reload, System appearance following the browser, all eleven theme options at 320 pixels wide, and pressed action-button feedback without changing its fill.
+- Reviewed real Workpad screenshots for all twelve new combinations, assembled into light and dark comparison sheets.
+- Calculation/domain code remains unchanged. Native visual review is still required before merge/release.

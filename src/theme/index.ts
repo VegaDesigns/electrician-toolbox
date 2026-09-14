@@ -1,5 +1,5 @@
 // src/theme/index.ts
-export { themeCatalog, themeNames, ReferenceColors } from "./color";
+export { themeCatalog, themeNames, themeDescriptions, ReferenceColors } from "./color";
 export { ThemeProvider, useAppTheme, defineStyles } from "./ThemeProvider";
 export { Fonts, FontSize, Radius, Space, Layout } from "./tokens";
 export type { AppTheme } from "./ThemeProvider";

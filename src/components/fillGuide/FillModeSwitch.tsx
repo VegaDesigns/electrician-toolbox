@@ -73,7 +73,7 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
     justifyContent: "center",
   },
   optionSelected: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.action,
 
   },
   optionText: {
