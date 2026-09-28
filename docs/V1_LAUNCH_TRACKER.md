@@ -14,6 +14,11 @@ Updated September 28, 2026. Working product name: Electrician Toolbox. Intended 
 
 ## Release checkpoints
 
+Source checkpoint `f5ddff1` is saved and pushed. The authorized registered-device
+iPhone build **0.9.3 (9)** finished on September 28, 2026; see the exact installer
+and receipt in [the project handoff](PROJECT_STATE_HANDOFF.md). Native acceptance
+is still pending. No TestFlight upload or coworker invitation has been performed.
+
 | Checkpoint | State | Owner and evidence needed |
 | --- | --- | --- |
 | Current calculator and timed Undo fixes | Implemented before this pass | Owner checks rapid entry, caret edits, VoiceOver and timed removal on an actual iPhone |

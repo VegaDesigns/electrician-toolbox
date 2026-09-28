@@ -1,10 +1,25 @@
 # Electrician Toolbox — project-state handoff
 
-## Authorized 0.9.3 phone checkpoint — September 28, 2026
+## Current iPhone field-test build — 0.9.3 (9), September 28, 2026
 
 The owner approved saving/pushing the current work and creating a new **internal iPhone preview** for their already-registered phone. This supersedes the previous section's pending save/build status, not its open public-release gates. The source includes the calculator caret fixes, timed Undo, fraction-friendly bending entry and launch groundwork described below. Final pre-save checks passed: TypeScript, ESLint and all 175 automated tests; an independent file/config review found no release-hygiene blocker. App version/runtime is 0.9.3; remote iOS build numbering remains automatic.
 
-The requested build uses the existing `preview` profile, `preview` update channel and app identity `com.brokecoderlabs.electriciantoolbox`. Record the exact source commit, build ID, result and install link here after completion. Do not treat an older installer or Expo Go session as this new binary. Install over the existing app, not after deleting it; saved data and native backup acceptance must be checked on the phone.
+The requested build **finished successfully**. Open [the exact install/build page](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/807a8f1e-a1d5-43a7-8e73-4be2cbd853a1) in Safari on the already-registered iPhone. Install over the existing app, not after deleting it. Older installers and Expo Go sessions are not this binary. Saved data and native backup acceptance still need actual phone checks.
+
+| Receipt | Verified value |
+| --- | --- |
+| Build ID and result | `807a8f1e-a1d5-43a7-8e73-4be2cbd853a1` — `FINISHED` |
+| App version / iOS build | `0.9.3` / `9` |
+| Update runtime policy | `appVersion`, configured version `0.9.3` |
+| Built source | [f5ddff1c6dd4a68ea1eeca7129784129de2ff546](https://github.com/VegaDesigns/electrician-toolbox/commit/f5ddff1c6dd4a68ea1eeca7129784129de2ff546), saved and pushed before upload |
+| Branch | `fix/reliability-and-ux`; no merge to main |
+| Profile / distribution / configured channel | `preview` / `INTERNAL` / `preview` |
+| App identity | `com.brokecoderlabs.electriciantoolbox` |
+| Signing | Existing remote ad hoc certificate/profile reused for the previously registered iPhone |
+| Created / finished | September 28, 2026, 21:53:16 UTC / 21:59:07 UTC |
+| Installer availability | HTTP 200; 12,286,841 bytes, checked after completion |
+
+This receipt is a documentation-only follow-up to the built source. The working tree was clean at upload. No App Store Connect upload, public submission, coworker invitation or OTA update was performed. Next: install, check existing lists/presets/history, export to Files and test restore with disposable data, then collect real-device feedback. Do not close native backup or electrical review gates merely because the cloud build passed.
 
 Coworker distribution was requested as guidance only. Recommend a separate store-distribution `fieldtest` build and TestFlight external tester group after owner authorization, required contact/testing metadata and Apple beta review. Do not upload to App Store Connect or invite coworkers under this phone-build request. Internal ad hoc links work only for devices included in that build's provisioning profile.
 
@@ -99,7 +114,7 @@ The repair source is saved and pushed at `1a07fe8d3883e27041991168f3df049c5cb60c
 
 Release preparation changes only app/package version metadata and documentation. The preceding repair validation passed lint, TypeScript, 131 automated tests, 15 browser flows, 33 route/viewport checks and 110 themed-screen checks; Expo Doctor passed 21/21 and native JavaScript exports succeeded. Release metadata consistency and the resolved Expo configuration were checked before upload. Actual phone installation, native interactions and offline field acceptance remain device checks. The older September 8 receipts below are historical and do not include these repairs or themes.
 
-## Current iPhone field-test build — 0.9.2 (8)
+## Previous iPhone field-test build — 0.9.2 (8)
 
 The requested internal iPhone build finished successfully on September 14, 2026. Install it using [the exact build page](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/aeb8979f-41a3-43fd-8fea-31b0d0eed15c), opened in Safari on the previously registered iPhone. Install over the existing Electrician Toolbox app to preserve its local data; do not delete the app first.
 

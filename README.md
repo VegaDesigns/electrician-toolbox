@@ -105,11 +105,17 @@ npx eas-cli build --profile preview --platform ios
 The app identity is com.brokecoderlabs.electriciantoolbox. Install using the exact
 completed build link in the handoff; older links do not contain newer code.
 
+Latest verified installer: **0.9.3 (9)**, completed September 28, 2026, from pushed
+source `f5ddff1` on `fix/reliability-and-ux`.
+[Open this build page in Safari on the registered iPhone](https://expo.dev/accounts/brokecoderlabs/projects/electrician-toolbox/builds/807a8f1e-a1d5-43a7-8e73-4be2cbd853a1).
+The installer is available; installation, retained data and native backup behavior
+still require phone acceptance. This is not a coworker TestFlight invitation.
+
 Version 0.9.3 adds native document-picker, file-system and sharing packages. It selects
-a new update runtime under the existing appVersion policy. A fresh native build is
-required; an over-the-air update cannot add these modules to installed 0.9.2 (8).
-Do not delete the existing app as a routine update step. After approval, install the
-new compatible candidate over it and verify retained data. See
+a new update runtime under the existing appVersion policy. The fresh native build
+above includes them; an over-the-air update cannot add them to installed 0.9.2 (8).
+Do not delete the existing app as a routine update step. Install the new compatible
+candidate over it and verify retained data. See
 [Expo runtime compatibility](https://docs.expo.dev/eas-update/runtime-versions/).
 
 The new `fieldtest` profile prepares a store-distribution iPhone build on a separate
