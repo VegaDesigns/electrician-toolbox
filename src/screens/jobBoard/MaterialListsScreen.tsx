@@ -6,6 +6,7 @@ import { useLeaveGuard } from "../../hooks/useLeaveGuard";
 import { useStoredValue } from "../../hooks/useStoredValue";
 import { materialListsStore } from "../../state/preferenceStores";
 import { StorageStatus } from "../../components/StorageStatus";
+import { TimedUndoBar } from "../../components/TimedUndoBar";
 import { formatMaterialList } from "../../utils/jobBoard/materialListShare";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
@@ -88,6 +89,7 @@ export default function MaterialListsScreen() {
   const [manage, setManage] = useSessionField(materialListDraft, "manage");
   const [nameDraft, setNameDraft] = useSessionField(materialListDraft, "nameDraft");
   const [removed, setRemoved] = useState<Removed[]>([]);
+  const lastRemoval = removed.at(-1);
   const selected = data.lists.find((list) => list.id === selectedId);
   const historyLine = selected?.lines.find((line) => line.id === historyId);
   const pendingDraft = !!adding || !!editing;
@@ -260,7 +262,11 @@ export default function MaterialListsScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView></SafeAreaProvider>
       </Modal>
-      {removed.length ? <View style={s.undoBar}><Text accessibilityLiveRegion="polite" style={s.muted}>{removed.at(-1)?.kind === "item" ? "Item removed" : "List removed"}</Text><Pressable accessibilityRole="button" disabled={saving || !!error || pendingDraft || !!manage} onPress={undoRemoval} style={s.smallButton}><Text style={s.link}>Undo</Text></Pressable></View> : null}
+      {lastRemoval ? <TimedUndoBar
+        key={`${removed.length}:${lastRemoval.kind === "item" ? lastRemoval.line.id : lastRemoval.list.id}`}
+        message={lastRemoval.kind === "item" ? "Item removed" : "List removed"}
+        paused={saving || !!error || pendingDraft || !!manage || finishPrompt || !!historyLine}
+        onUndo={undoRemoval} onExpire={() => setRemoved([])} /> : null}
       <Modal transparent animationType="fade" visible={!!manage} onRequestClose={() => setManage(null)}>
         <SafeAreaProvider><SafeAreaView style={s.scrim} edges={["top", "bottom"]}><KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.manageWrap}>
           <View style={s.sheet}><ScrollView keyboardShouldPersistTaps="handled">
@@ -273,7 +279,7 @@ export default function MaterialListsScreen() {
             </> : manage === "rename" ? <><Text style={s.title}>Name your list</Text>
               <FormField accessibilityLabel="List name" autoFocus value={nameDraft} onChangeText={setNameDraft} placeholder="Hallway materials" placeholderTextColor={Colors.textMuted} style={s.editInput} returnKeyType="done" onSubmitEditing={renameList} />
               <Pressable accessibilityRole="button" onPress={renameList} style={s.primary}><Text style={s.primaryText}>Save name</Text></Pressable>
-            </> : manage === "delete" ? <><Text style={s.title}>Delete this list?</Text><Text style={s.historyText}>{selected?.title.trim() || "Untitled list"}</Text><Text style={s.muted}>This removes the list and all its items. Undo is available until you leave Jobsite Lists or reload the app.</Text>
+            </> : manage === "delete" ? <><Text style={s.title}>Delete this list?</Text><Text style={s.historyText}>{selected?.title.trim() || "Untitled list"}</Text><Text style={s.muted}>This removes the list and all its items. You can undo while the countdown bar is visible.</Text>
               <Pressable accessibilityRole="button" onPress={removeList} style={s.secondary}><Text style={s.error}>Delete list</Text></Pressable>
             </> : null}
             <Pressable accessibilityRole="button" onPress={() => { setManage(null); Keyboard.dismiss(); }} style={s.cancelButton}><Text style={s.buttonText}>Cancel</Text></Pressable>
@@ -356,7 +362,6 @@ const useLocalStyles = defineStyles(({ colors: Colors }) => ({
   empty: { paddingVertical: 28, gap: Space.xs },
   name: { color: Colors.text, fontSize: FontSize.title, fontWeight: "600", paddingVertical: Space.xs },
   renameTarget: { flexDirection: "row", alignItems: "center", minHeight: 52, gap: Space.sm },
-  undoBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: Space.md, borderTopWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface2 },
   manageWrap: { width: "100%", alignItems: "center", justifyContent: "center", flex: 1 },
   line: { flexDirection: "row", alignItems: "flex-start", borderBottomWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, paddingVertical: 6, gap: 6 },
   checkTarget: { width: 48, minHeight: 48, alignItems: "center", justifyContent: "center" },

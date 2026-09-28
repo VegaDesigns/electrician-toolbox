@@ -4,6 +4,8 @@ import { useAppTheme, defineStyles } from "../../theme";
 import React, { useRef, useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import type { CalcKey } from "../../utils/calc/engine";
+import { COMMON_FRACTIONS, type FractionSpec } from "../../utils/calc/fractions";
+export type { FractionSpec } from "../../utils/calc/fractions";
 
 type Props = {
   onKeyPress: (key: CalcKey) => void;
@@ -12,8 +14,6 @@ type Props = {
   fractionMode?: boolean;
   compact?: boolean;
 };
-
-export type FractionSpec = { label: string; value: number };
 
 type KeySpec = {
   key: CalcKey;
@@ -33,17 +33,6 @@ const ROWS: KeySpec[][] = [
   [{ key: "1" }, { key: "2" }, { key: "3" }, { key: "-" }],
   [{ key: "0" }, { key: "." }, { key: "FRAC", label: "frac" }, { key: "+" }],
   [{ key: "=", span: 4 }],
-];
-
-const COMMON_FRACTIONS: FractionSpec[] = [
-  { label: "1/16", value: 1 / 16 },
-  { label: "1/8", value: 1 / 8 },
-  { label: "1/4", value: 1 / 4 },
-  { label: "3/8", value: 3 / 8 },
-  { label: "1/2", value: 1 / 2 },
-  { label: "5/8", value: 5 / 8 },
-  { label: "3/4", value: 3 / 4 },
-  { label: "7/8", value: 7 / 8 },
 ];
 
 export default function CalcKeypad({

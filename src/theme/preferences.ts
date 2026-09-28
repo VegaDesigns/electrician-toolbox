@@ -29,6 +29,7 @@ export interface AppearanceStorage { getItem(key: string): Promise<string | null
 export function createAppearanceStore(storage: AppearanceStorage) {
   let queue: Promise<unknown> = Promise.resolve();
   return {
+    async settle() { await queue; },
     async load() { return parseAppearance(await storage.getItem(APPEARANCE_KEY)); },
     save(preferences: AppearancePreferences) {
       const snapshot = JSON.stringify(preferences);

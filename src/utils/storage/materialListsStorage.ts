@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "./appStorage";
 import { decodeLists, type MaterialLists } from "../jobBoard/materialLists";
 
 // Separate from the earlier board: never overwrite or migrate its saved work.

@@ -1,4 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "../utils/storage/appStorage";
+import { isStoragePreparing, registerStorageParticipant } from "../utils/storage/maintenance";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Appearance, Platform, StyleSheet, useColorScheme, View } from "react-native";
 import * as SystemUI from "expo-system-ui";
@@ -6,6 +7,7 @@ import { themeCatalog } from "./color";
 import { createAppearanceStore, defaultAppearance, resolveMode, type AppearancePreferences } from "./preferences";
 
 const store = createAppearanceStore(AsyncStorage);
+registerStorageParticipant({ settle: store.settle, reset: () => {} });
 function makeTheme(preferences: AppearancePreferences, system: string | null | undefined) {
   const mode = resolveMode(preferences.mode, system);
   const colors = themeCatalog[preferences.themeId][mode];
@@ -54,6 +56,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     store.save(next).catch(() => { if (request === revision.current) setError("Theme changed, but couldn’t be saved. Try saving again."); });
   }, []);
   const setAppearance = useCallback((next: Partial<Pick<AppearancePreferences, "themeId" | "mode">>) => {
+    if (isStoragePreparing()) return;
     const value = { ...current.current, ...next }; current.current = value; setPreferences(value); persist(value);
   }, [persist]);
   const retrySave = useCallback(() => persist(current.current), [persist]);

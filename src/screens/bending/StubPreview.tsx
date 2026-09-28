@@ -145,6 +145,18 @@ export function StubPreview({
   }
   return (
     <View>
+      <View style={styles.summary}>
+        <View style={styles.summaryText}>
+          <Text style={styles.legend}>Bend mark from tip</Text>
+          <Text style={styles.calculation}>{`${isRounded(r.value, precision) ? "≈ " : ""}${f(r.value)}`}</Text>
+          <Text style={styles.legend}>{`${f(r.height)} target − ${f(r.deduction)} deduction`}</Text>
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={copied ? "Copied result" : "Copy result"}
+          onPress={onCopy} style={styles.copy}>
+          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
+        </Pressable>
+      </View>
+      <View style={styles.previewDivider} />
       <PreviewControls guided={guided} finished={finished} steps={steps.map(s => names[s])}
         step={steps.indexOf(active)} onView={value => { setStep("mark"); onFinishedChange(value); }}
         onGuide={() => { setGuided(!guided); setStep(guided ? "mark" : "measure"); onFinishedChange(false); }}
@@ -363,22 +375,6 @@ export function StubPreview({
             </G>
           )}
         </Svg>
-      </View>
-      <View style={styles.summary}>
-        <View style={styles.summaryText}>
-          <Text
-            style={styles.calculation}
-          >{`${f(r.height)} − ${f(r.deduction)} ${isRounded(r.value, precision) ? "≈" : "="} ${f(r.value)}`}</Text>
-          <Text style={styles.legend}>Target − deduction = mark</Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={copied ? "Copied result" : "Copy result"}
-          onPress={onCopy}
-          style={({ pressed }) => [styles.copy, { opacity: pressed ? 0.7 : 1 }]}
-        >
-          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
-        </Pressable>
       </View>
       <View style={styles.caption}>
         <Text style={styles.captionText}>{instruction}</Text>

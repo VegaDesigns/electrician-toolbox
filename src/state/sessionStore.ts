@@ -1,3 +1,5 @@
+import { registerStorageParticipant } from "../utils/storage/maintenance";
+
 /** Drafts last for this app session, including when a route is unmounted. */
 export function createSessionStore<T>(defaults: () => T) {
   let value = defaults();
@@ -6,6 +8,7 @@ export function createSessionStore<T>(defaults: () => T) {
     value = typeof next === "function" ? (next as (current: T) => T)(value) : next;
     listeners.forEach(listener => listener());
   }
+  registerStorageParticipant({ settle: async () => {}, reset: () => setValue(defaults()) });
   return {
     getSnapshot: () => value,
     subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; },

@@ -1,9 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "./appStorage";
+import { isStoragePreparing, registerStorageParticipant } from "./maintenance";
 import { retainHistory, restoreHistory, type CalcHistoryItem } from "../calc/historyModel";
 export type { CalcHistoryItem, CalcHistoryResultKind } from "../calc/historyModel";
 
 const CALC_HISTORY_KEY = "electrician-toolbox:calc-history:v1";
 let writes: Promise<unknown> = Promise.resolve();
+registerStorageParticipant({ settle: async () => { await writes; }, reset: () => { writes = Promise.resolve(); } });
 
 async function readHistory(): Promise<CalcHistoryItem[]> {
   const raw = await AsyncStorage.getItem(CALC_HISTORY_KEY);
@@ -20,6 +22,7 @@ export async function loadCalcHistory(): Promise<CalcHistoryItem[]> {
 
 // Serialize read/modify/write so quick taps cannot overwrite each other's saves.
 function mutateHistory(transform: (items: CalcHistoryItem[]) => CalcHistoryItem[]) {
+  if (isStoragePreparing()) return Promise.reject(new Error("Please finish the backup operation before changing history."));
   const operation = writes.catch(() => {}).then(async () => {
     const next = transform(await readHistory());
     await AsyncStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(next));

@@ -124,7 +124,7 @@ For inline SVG strokes, input placeholders, or dynamic swatches, get `theme.colo
 
 Appearance is stored only at `electrician-toolbox:appearance:v1`. Invalid or unknown stored values fall back safely. Writes are serialized so rapid selection saves the last choice. A failed save displays recovery feedback. No tool history, saved panel setup, list, measurement, or calculation setting is rewritten by the theme system.
 
-All eleven themes are currently available. Account settings are a clearly labeled future area; authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
+All eleven themes are currently available. Settings now links to Help and manual Backup & restore instead of an account placeholder. Authentication, billing, paid entitlements, and cross-device sync are not implemented. A future paid catalog should check account entitlements separately from rendering, offer a free fallback, and preserve tool data when access changes. Add both appearances and contrast coverage for each future family before exposing it.
 
 Native launch screens follow the system light/dark setting with Forest launch colors. They cannot read a saved color family before JavaScript starts. The saved theme appears after preferences load. Native configuration changes require a new native build to take effect.
 

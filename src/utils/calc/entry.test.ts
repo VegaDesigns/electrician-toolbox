@@ -1,8 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createInitialCalcState, pressKey, type CalcKey } from "./engine";
+import { createInitialCalcState, getExpressionString, pressKey, type CalcKey } from "./engine";
 import { parseSmartExpression } from "./parser";
 import { calculateConduitFill, getMaxAdditionalConductors } from "../conduitFill/conduitFill";
+
+test("uninterrupted input retains every digit across long equation display thresholds", () => {
+  const digits = "123456789012345678901234567890";
+  let state = createInitialCalcState();
+  for (let i = 0; i < digits.length; i++) {
+    state = pressKey(state, digits[i] as CalcKey);
+    assert.equal(state.buffer, digits.slice(0, i + 1));
+    assert.equal(getExpressionString(state), digits.slice(0, i + 1));
+  }
+  for (let i = digits.length - 1; i >= 0; i--) {
+    state = pressKey(state, "⌫");
+    assert.equal(state.buffer, digits.slice(0, i));
+  }
+  assert.equal(pressKey(state, "7").buffer, "7");
+});
 
 test("keypad and typed entry agree on measurement scaling and continuation", () => {
   for (const [keys, input, expected] of [

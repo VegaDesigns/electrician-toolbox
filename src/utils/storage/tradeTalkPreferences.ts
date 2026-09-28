@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "./appStorage";
 
 const STORAGE_KEY = "electrician-toolbox:trade-talk:v1";
 const MAX_RECENT = 8;

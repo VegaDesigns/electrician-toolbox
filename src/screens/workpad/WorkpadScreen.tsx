@@ -8,7 +8,7 @@ import { BackButton } from "../../components/BackButton";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, useWindowDimensions } from "react-native";
+import { ScrollView, Text, TextInput, useWindowDimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import CalcDisplay, {
@@ -17,7 +17,6 @@ import CalcDisplay, {
 } from "../../components/workpad/CalcDisplay";
 import CalcKeypad from "../../components/workpad/CalcKeypad";
 import HistoryDrawer from "../../components/workpad/HistoryDrawer";
-import SmartInputSheet from "../../components/workpad/SmartInputSheet";
 import WorkpadSettingsSheet from "../../components/workpad/WorkpadSettingsSheet";
 
 import {
@@ -37,6 +36,7 @@ import {
   type Precision,
 } from "../../utils/calc/measure";
 import { parseSmartExpression } from "../../utils/calc/parser";
+import { clampSelection, editEquationFraction, editEquationKey, type EquationEdit, type EquationSelection } from "../../utils/calc/equationEdit";
 import {
   inferPreferredResultFormat,
   shouldOfferUnitToggle,
@@ -139,7 +139,9 @@ export default function WorkpadScreen() {
   const [state, setState] = useState(createInitialCalcState());
   const [isFracOpen, setIsFracOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
+  const [equationEdit, setEquationEdit] = useState<EquationEdit | null>(null);
+  const equationEditRef = useRef<EquationEdit | null>(null);
+  const equationInputRef = useRef<TextInput>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<CalcHistoryItem[]>([]);
   const [removedHistory, setRemovedHistory] = useState<CalcHistoryItem[]>([]);
@@ -160,7 +162,7 @@ export default function WorkpadScreen() {
 
   const isCompact = height - insets.top - insets.bottom < 740;
 
-  const expression = useMemo(() => getExpressionString(state), [state]);
+  const expression = equationEdit?.text ?? getExpressionString(state);
 
   const result: CalcResult | null = state.lastResult;
 
@@ -355,6 +357,22 @@ export default function WorkpadScreen() {
       setCleanedExpression("");
     }
 
+    if (key === "C") {
+      endEquationEdit();
+      setState(createInitialCalcState());
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      return;
+    }
+    if (equationEditRef.current) {
+      if (key === "=") calculateEditedEquation();
+      else {
+        changeEquation(editEquationKey(equationEditRef.current, key));
+        equationInputRef.current?.focus();
+      }
+      Haptics.selectionAsync().catch(() => {});
+      return;
+    }
+
     if (
       hasResult &&
       result?.kind === "number" &&
@@ -413,7 +431,7 @@ export default function WorkpadScreen() {
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
         ).catch(() => {});
-      } else if (key === "C" || key === "⌫") {
+      } else if (key === "⌫") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       } else {
         Haptics.selectionAsync().catch(() => {});
@@ -425,6 +443,13 @@ export default function WorkpadScreen() {
 
   function onPickFraction(f: FractionPick) {
     setRecalledPrecision(null);
+    if (equationEditRef.current) {
+      changeEquation(editEquationFraction(equationEditRef.current, f.label));
+      setIsFracOpen(false);
+      equationInputRef.current?.focus();
+      Haptics.selectionAsync().catch(() => {});
+      return;
+    }
     setState((prev) => {
       const r = applyFraction(prev.buffer, f.label);
 
@@ -525,6 +550,8 @@ export default function WorkpadScreen() {
       return;
     }
 
+    endEquationEdit();
+    setIsFracOpen(false);
     skipNextHistorySaveRef.current = true;
     lastSavedHistoryIdRef.current = item.id;
     setRecalledPrecision(item.precision ?? null);
@@ -568,10 +595,56 @@ export default function WorkpadScreen() {
     Haptics.selectionAsync().catch(() => {});
   }
 
-  function onSubmitSmartInput(value: string): string | null {
+  function updateEquationEdit(next: EquationEdit | null) {
+    // Keep the next key independent of React render timing during rapid entry.
+    equationEditRef.current = next;
+    setEquationEdit(next);
+  }
+
+  function beginEquationEdit() {
+    if (equationEditRef.current) return;
+    // Do not send an end-of-text selection back on focus: the native tap is
+    // still choosing its caret. Adopt that position in onSelectionChange.
+    equationEditRef.current = { text: expression, selection: { start: expression.length, end: expression.length } };
+  }
+
+  function selectEquation(selection: EquationSelection) {
+    const current = equationEditRef.current;
+    if (!current) return;
+    const next = clampSelection(current.text, selection);
+    if (next.start === current.selection.start && next.end === current.selection.end) return;
+    updateEquationEdit({ ...current, selection: next });
+  }
+
+  function changeEquation(next: EquationEdit) {
+    updateEquationEdit(next);
+    setState(createInitialCalcState());
+    setCleanedExpression("");
+    setRecalledPrecision(null);
+    setCopyLabel("Copy answer");
+  }
+
+  function changeEquationText(text: string) {
+    const previous = equationEditRef.current;
+    const caret = previous ? previous.selection.start + text.length - previous.text.length
+      + previous.selection.end - previous.selection.start : text.length;
+    changeEquation({ text, selection: clampSelection(text, { start: caret, end: caret }) });
+  }
+
+  function endEquationEdit() {
+    equationInputRef.current?.blur();
+    updateEquationEdit(null);
+  }
+
+  function calculateEditedEquation() {
+    const value = equationEditRef.current?.text ?? expression;
     const parsed = parseSmartExpression(value);
 
-    if (!parsed.ok) return parsed.error;
+    if (!parsed.ok) {
+      setState(prev => ({ ...prev, error: parsed.error }));
+      return;
+    }
+    endEquationEdit();
     setRecalledPrecision(null);
     setCopyLabel("Copy answer");
 
@@ -585,11 +658,9 @@ export default function WorkpadScreen() {
     });
     setCleanedExpression(parsed.cleaned);
     setSelectedResultKey(inferPreferredResultFormat(value, parsed.result.kind));
-    setIsSmartInputOpen(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
     );
-    return null;
   }
 
   function updatePrecision(next: Precision) {
@@ -664,7 +735,12 @@ export default function WorkpadScreen() {
           hasResult={hasResult}
           interpretation={interpretation}
           onCopy={onCopyPrimary}
-          onOpenSmartInput={() => setIsSmartInputOpen(true)}
+          inputRef={equationInputRef}
+          selection={equationEdit?.selection}
+          onBeginEdit={beginEquationEdit}
+          onSelectionChange={selectEquation}
+          onChangeText={changeEquationText}
+          onSubmitEdit={calculateEditedEquation}
           onToggleUnit={onToggleResultUnit}
           primary={primary}
           roundingNotice={roundingNotice}
@@ -698,14 +774,6 @@ export default function WorkpadScreen() {
         onSelectItem={onSelectHistoryItem}
         onToggleFavorite={onToggleHistoryFavorite}
       />
-
-      {isSmartInputOpen && (
-        <SmartInputSheet
-          initialValue={expression}
-          onClose={() => setIsSmartInputOpen(false)}
-          onSubmit={onSubmitSmartInput}
-        />
-      )}
 
       <WorkpadSettingsSheet
         onChangePrecision={updatePrecision}

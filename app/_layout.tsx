@@ -4,9 +4,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ThemeProvider, useAppTheme } from "../src/theme";
+import { BackupBoundary } from "../src/components/BackupBoundary";
+import { BackupNotice } from "../src/components/BackupNotice";
 
 export default function RootLayout() {
-  return <ThemeProvider><ThemedNavigation /></ThemeProvider>;
+  return <BackupBoundary><ThemeProvider><ThemedNavigation /></ThemeProvider></BackupBoundary>;
 }
 
 function ThemedNavigation() {
@@ -17,6 +19,8 @@ function ThemedNavigation() {
         <Stack screenOptions={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false, contentStyle: { backgroundColor: Colors.bg } }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="settings" options={{ presentation: "modal" }} />
+          <Stack.Screen name="help" />
+          <Stack.Screen name="backup" />
           <Stack.Screen name="workpad" />
           <Stack.Screen name="bending" />
           <Stack.Screen name="panel-colors" />
@@ -26,6 +30,7 @@ function ThemedNavigation() {
           <Stack.Screen name="trade-talk" />
           <Stack.Screen name="job-board" />
         </Stack>
+        <BackupNotice />
         <StatusBar style={mode === "dark" ? "light" : "dark"} />
       </SafeAreaProvider>
     </GestureHandlerRootView>

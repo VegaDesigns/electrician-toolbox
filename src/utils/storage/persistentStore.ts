@@ -1,3 +1,5 @@
+import { isStoragePreparing, registerStorageParticipant } from "./maintenance";
+
 export type StorageSnapshot<T> = {
   value: T; ready: boolean; loading: boolean; saving: boolean; dirty: boolean;
   error: "load" | "save" | null;
@@ -25,7 +27,7 @@ export function createPersistentStore<T>(loadValue: () => Promise<T>, saveValue:
     return loading;
   }
   function setValue(update: T | ((current: T) => T)) {
-    if (!snapshot.ready) return Promise.resolve(false);
+    if (!snapshot.ready || isStoragePreparing()) return Promise.resolve(false);
     const value = typeof update === "function" ? (update as (current: T) => T)(snapshot.value) : update;
     const request = ++revision;
     publish({ value, dirty: true, saving: true, error: null });
@@ -44,6 +46,18 @@ export function createPersistentStore<T>(loadValue: () => Promise<T>, saveValue:
     queue = operation.then(() => {});
     return operation;
   }
+  registerStorageParticipant({
+    async settle() {
+      await loading;
+      await queue;
+      if (snapshot.dirty || snapshot.error) throw new Error("Save or reload your changes before making a backup or restoring one.");
+    },
+    reset() {
+      revision++;
+      snapshot = { value: initial, ready: false, loading: false, saving: false, dirty: false, error: null };
+      listeners.forEach(listener => listener());
+    },
+  });
   return {
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },

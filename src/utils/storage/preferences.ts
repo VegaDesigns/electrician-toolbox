@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "./appStorage";
 
 import type { Precision } from "../calc/measure";
 

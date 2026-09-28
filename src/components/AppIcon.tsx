@@ -1,4 +1,5 @@
 import Svg, { Path } from "react-native-svg";
+import { Platform } from "react-native";
 import { useAppTheme } from "../theme";
 
 const paths = {
@@ -12,7 +13,7 @@ const paths = {
 export type IconName = keyof typeof paths;
 export function AppIcon({ name, size = 22 }: { name: IconName; size?: number }) {
   const { theme } = useAppTheme();
-  return <Svg width={size} height={size} viewBox="0 0 24 24" accessible={false}>
+  return <Svg width={size} height={size} viewBox="0 0 24 24" {...(Platform.OS === "web" ? { "aria-hidden": true } : { accessible: false })}>
     <Path d={paths[name]} fill="none" stroke={theme.colors.text} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
   </Svg>;
 }

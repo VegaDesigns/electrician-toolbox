@@ -1,6 +1,8 @@
 # Electrical reference register
 
-Software review date: September 14, 2026. This register describes the existing implementation and its source-tracking gaps. No new code edition or jurisdiction is claimed by this repair.
+Software inventory reviewed September 28, 2026. This register describes the existing implementation and its source-tracking gaps. No new code edition or jurisdiction is claimed. The Version 1 preparation pass did not change electrical table values or formulas and does not constitute independent electrical or commercial-rights approval.
+
+Status: **independent electrical review pending**. The owner has coworkers available for review; no completed reviewer record has been supplied. Use [V1 electrical review](V1_ELECTRICAL_REVIEW.md) for the inventory, sample regression cases, boundary checklist, and sign-off template. Use [V1 field test guide](V1_FIELD_TEST_GUIDE.md) for native acceptance with 5–10 testers.
 
 | Dataset / module | Implemented scope | Reference tracking |
 | --- | --- | --- |
@@ -20,3 +22,15 @@ Primary source starting points:
 - [Southwire calculators](https://www.southwire.com/calculators) includes conduit-fill and cable-pulling tools for independent example comparisons. No full table comparison with those tools was performed in this repair.
 
 Do not label a dataset “verified to NEC 2023/2026” until the corresponding comparison and reviewer record exist. Source tracking is now explicit; field/reference acceptance remains a release task.
+
+## Version 1 evidence tracker
+
+| Area | Current evidence | Still required before a supported public-release claim |
+| --- | --- | --- |
+| Formula regression | 57 targeted tests passed September 28 on the current working tree, including domain calculations and selected geometry/input boundaries; see the review worksheet for scope and exact cases. | Run the final candidate all-app checks and retain the result. Derive separate answers from authorized references; tests written against the same dataset are not independent validation. |
+| Electrical data provenance | Source modules and missing edition records are identified above. | Identify reference editions, actual source rows, errata, and applicable jurisdiction; compare every shipped row and record reviewer/date. |
+| Manufacturer-specific behavior | Bending sources, configurable deduction, and schematic limits are documented. | Qualified physical checks for each claimed workflow and compatible tool; record model, material, tolerance, and measured results. |
+| Content rights | Source links exist; no commercial-permission or complete authorship/license inventory has been recorded here. | Owner review of distribution basis for tables, text, illustrations, and assets; record required permissions/attribution and resolve legal uncertainty before sale. Removing citations does not resolve provenance. |
+| Native field acceptance | The owner has offered coworkers for a test group. | Record actual TestFlight candidate, tester roles/devices, observations, critical/high defects, fixes, and acceptance. An available tester is not a completed test. |
+
+Until these records are complete, retain the qualified field-reference scope and do not imply approval by NFPA, a jurisdiction, or a tool manufacturer. A disclaimer does not turn an unverified calculation into a verified one. Public release of an unresolved feature requires an owner decision to hold or reduce its scope, not a silent assumption.

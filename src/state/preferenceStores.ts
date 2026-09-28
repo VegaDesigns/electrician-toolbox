@@ -1,6 +1,6 @@
 import { loadMaterialLists, saveMaterialLists } from "../utils/storage/materialListsStorage";
 import { createPersistentStore } from "../utils/storage/persistentStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "../utils/storage/appStorage";
 import { decodeBenderSetup, defaultBenderSetup } from "../utils/bending/setup";
 import { DEFAULT_WORKPAD_PREFERENCES, loadWorkpadPreferences, saveWorkpadPreferences } from "../utils/storage/preferences";
 import { DEFAULT_WIRE_GUIDE_PREFERENCES, loadWireGuidePreferences, saveWireGuidePreferences } from "../utils/storage/wireGuidePreferences";

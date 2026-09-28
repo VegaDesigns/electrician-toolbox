@@ -1,4 +1,6 @@
 import { IconButton } from "../src/components/IconButton";
+import { router } from "expo-router";
+import { getAppReportInfo } from "../src/utils/support/appInfo";
 import { returnHome } from "../src/utils/navigation";
 import { FeedbackPressable as Pressable } from "../src/components/FeedbackPressable";
 import { ScrollView, Text, View } from "react-native";
@@ -13,6 +15,7 @@ const modes: { id: AppearanceMode; label: string }[] = [
 export default function SettingsScreen() {
   const s = useStyles();
   const { preferences, theme, setAppearance, error, retrySave } = useAppTheme();
+  const appInfo = getAppReportInfo();
   return <SafeAreaView style={s.safe}>
     <ScrollView contentContainerStyle={s.container}>
       <View style={s.header}>
@@ -42,8 +45,10 @@ export default function SettingsScreen() {
         </View>)}
       </View>
       {error ? <View accessibilityRole="alert" style={s.error}><Text style={s.errorText}>{error}</Text><Pressable accessibilityRole="button" onPress={retrySave} style={s.retry}><Text style={s.errorText}>Save again</Text></Pressable></View> : null}
-      <Text style={s.label}>ACCOUNT</Text>
-      <View style={s.account}><Text style={s.body}>Account settings</Text><Text style={s.description}>A home for your account and personalization options in a future update.</Text></View>
+      <Text style={s.label}>SUPPORT & DATA</Text>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/backup")} style={s.destination}><View style={s.grow}><Text style={s.body}>Backup & restore</Text><Text style={s.description}>Keep a copy of saved work. Restore it when needed.</Text></View><Text style={s.check}>›</Text></Pressable>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/help")} style={s.destination}><View style={s.grow}><Text style={s.body}>Help & app information</Text><Text style={s.description}>Getting started, privacy, and report a problem.</Text></View><Text style={s.check}>›</Text></Pressable>
+      <View style={s.footer}><Text style={s.description}>{appInfo.appName}</Text><Text style={s.description}>Version {appInfo.version}{appInfo.build ? ` · Build ${appInfo.build}` : ""}</Text><Text style={s.themeDescription}>{appInfo.environment}</Text></View>
     </ScrollView>
   </SafeAreaView>;
 }
@@ -72,7 +77,8 @@ const useStyles = defineStyles(({ colors: c }) => ({
   swatch: { width: 22, height: 22, borderRadius: Radius.round, borderWidth: 1 },
   grow: { flex: 1 },
   check: { color: c.primary, width: 24, fontSize: FontSize.section },
-  account: { gap: Space.xs, padding: Space.md, backgroundColor: c.surface, borderRadius: Radius.card, borderColor: c.border, borderWidth: 1 },
+  destination: { flexDirection: "row", alignItems: "center", gap: Space.sm, minHeight: Layout.touchTarget, padding: Space.md, backgroundColor: c.surface, borderRadius: Radius.card, borderColor: c.border, borderWidth: 1 },
+  footer: { alignItems: "center", paddingTop: Space.lg, gap: Space.xxs },
   error: { padding: Space.md, backgroundColor: c.errorSoft, borderRadius: Radius.card },
   errorText: { color: c.error, fontSize: FontSize.label },
   retry: { minHeight: Layout.touchTarget, justifyContent: "center" },

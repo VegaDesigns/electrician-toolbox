@@ -1,4 +1,4 @@
-import { FormField } from "../../components/FormField";
+import { MeasurementKeypad } from "./MeasurementKeypad";
 import { IconButton } from "../../components/IconButton";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { returnHome } from "../../utils/navigation";
@@ -123,9 +123,9 @@ export default function SuiteScreen() {
     setInputError("");
     setSheet("input");
   }
-  function done() {
-    const n = parseInches(text);
-    if (editing === "location" && !text.trim()) {
+  function done(value: string) {
+    const n = parseInches(value);
+    if (editing === "location" && !value.trim()) {
       update({ location: "" });
       setSheet(null);
       return;
@@ -142,7 +142,7 @@ export default function SuiteScreen() {
       return;
     }
     if (editing === "deduction") applySettings({ deduction: n });
-    else update({ [editing]: text.trim() });
+    else update({ [editing]: value.trim() });
     setSheet(null);
   }
   const labels: Record<Field | "deduction", string> = {
@@ -390,6 +390,7 @@ bend ⌄</Text>
             <ScrollView
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={s.sheetBody}
+              showsVerticalScrollIndicator={false}
             >
               {sheet === "bends" &&
                 BENDS.map((item) => (
@@ -414,38 +415,19 @@ bend ⌄</Text>
                 ))}
               {sheet === "input" && (
                 <>
-                  <Text style={s.muted}>
-                    Inches only. Decimals and fractions both work: 6.5 or 6 1/2.
-                    {editing === "location"
-                      ? " Leave blank to use relative marks."
-                      : ""}
-                  </Text>
-                  {editing === "location" && (
-                    <Text style={s.muted}>
-                      {bend === "saddle3"
-                        ? "Enter the obstacle center from the pipe end. The center-location correction is included in your marks."
-                        : "This sets absolute marks from the pipe end. Estimated shrink is not automatically added to your first mark."}
-                    </Text>
-                  )}
-                  <FormField
-                    autoFocus
-                    selectTextOnFocus
-                    accessibilityLabel={labels[editing]}
-                    style={s.input}
-                    value={text}
-                    onChangeText={(v) => {
-                      setText(v);
-                      setInputError("");
-                    }}
-                    keyboardType="numbers-and-punctuation"
-                    returnKeyType="done"
-                    onSubmitEditing={done}
-                    maxLength={24}
+                  <MeasurementKeypad
+                    key={editing}
+                    initialValue={text}
+                    error={inputError}
+                    onChange={() => setInputError("")}
+                    onSubmit={done}
                   />
-                  {inputError ? (
-                    <Text style={s.error}>{inputError}</Text>
-                  ) : null}
-                  <Button label="Enter" onPress={done} primary />
+                  {editing === "location" && <Text style={s.muted}>
+                    Clear, then Done to use relative marks.
+                    {bend === "saddle3"
+                      ? " Enter the obstacle center from the pipe end; center-location correction is included."
+                      : " Enter the first mark from the pipe end; shrink is not automatically added."}
+                  </Text>}
                 </>
               )}
               {sheet === "settings" && (

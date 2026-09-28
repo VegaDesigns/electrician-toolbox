@@ -47,21 +47,21 @@ export function BendPreview({
   }
   return (
     <View>
-      <PreviewControls guided={guided} finished={finished} steps={content.steps.map(s => s.label)} step={step}
-        onView={onFinishedChange} onGuide={() => {
-          setGuided(!guided); setStep(0); onFinishedChange(false);
-        }} onStep={selectStep} />
-      <View style={styles.stage}>
-        <BendDiagram
-          bend={bend}
-          result={result}
-          precision={precision}
-          finished={finished}
-          focusMarks={guided ? current.marks : undefined}
-          formed={guided ? (current.formed ?? []) : undefined}
-          flip={guided && current.flip}
-          guideLabel={guided ? current.label : undefined}
-        />
+      <View style={styles.summary}>
+        <View style={styles.summaryText}>
+          <Text style={styles.legend}>{content.summaryLabel}</Text>
+          <Text
+            style={styles.calculation}
+          >{`${isRounded(result.value, precision) ? "≈ " : ""}${inches(result.value, precision)}`}</Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copied ? "Copied result" : "Copy result"}
+          onPress={onCopy}
+          style={({ pressed }) => [styles.copy, { opacity: pressed ? 0.7 : 1 }]}
+        >
+          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
+        </Pressable>
       </View>
       {!result.relative && bend !== "back" && (
         <View style={styles.markList}>
@@ -82,21 +82,22 @@ export function BendPreview({
           </View>
         </View>
       )}
-      <View style={styles.summary}>
-        <View style={styles.summaryText}>
-          <Text
-            style={styles.calculation}
-          >{`${isRounded(result.value, precision) ? "≈ " : ""}${inches(result.value, precision)}`}</Text>
-          <Text style={styles.legend}>{content.summaryLabel}</Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={copied ? "Copied result" : "Copy result"}
-          onPress={onCopy}
-          style={({ pressed }) => [styles.copy, { opacity: pressed ? 0.7 : 1 }]}
-        >
-          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
-        </Pressable>
+      <View style={styles.previewDivider} />
+      <PreviewControls guided={guided} finished={finished} steps={content.steps.map(s => s.label)} step={step}
+        onView={onFinishedChange} onGuide={() => {
+          setGuided(!guided); setStep(0); onFinishedChange(false);
+        }} onStep={selectStep} />
+      <View style={styles.stage}>
+        <BendDiagram
+          bend={bend}
+          result={result}
+          precision={precision}
+          finished={finished}
+          focusMarks={guided ? current.marks : undefined}
+          formed={guided ? (current.formed ?? []) : undefined}
+          flip={guided && current.flip}
+          guideLabel={guided ? current.label : undefined}
+        />
       </View>
       <View style={styles.caption}>
         <Text style={styles.captionText}>{instruction}</Text>

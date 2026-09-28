@@ -2,7 +2,7 @@
   "expo": {
     "name": "Electrician Toolbox",
     "slug": "electrician-toolbox",
-    "version": "0.9.2",
+    "version": "0.9.3",
     "orientation": "portrait",
     "icon": "./assets/images/electrician-toolbox-icon.png",
     "scheme": "electriciantoolbox",
@@ -41,7 +41,8 @@
             "backgroundColor": "#171E1B"
           }
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

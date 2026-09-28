@@ -51,17 +51,17 @@ export const usePreviewStyles = defineStyles(({ colors: Colors }) => ({
   amber: { color: Colors.primary },
   calculation: {
     color: Colors.text,
-    fontSize: FontSize.section,
+    fontSize: FontSize.screen,
     fontWeight: "500",
-    lineHeight: 30,
+    lineHeight: 40,
   },
   summary: {
     flexDirection: "row",
     alignItems: "center",
     gap: Space.xs,
-    marginTop: 14,
   },
   summaryText: { flex: 1, minWidth: 0 },
+  previewDivider: { height: 1, backgroundColor: Colors.border, marginVertical: Space.md },
   legend: { color: Colors.textMuted, fontSize: FontSize.caption, lineHeight: 17 },
   copy: {
     minHeight: 48,

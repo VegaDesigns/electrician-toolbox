@@ -30,6 +30,7 @@ import {
   type WorkItemPriority,
 } from "../../utils/jobBoard/jobBoard";
 import { loadJobBoard, saveJobBoard } from "../../utils/storage/jobBoardStorage";
+import { isStoragePreparing, registerStorageParticipant } from "../../utils/storage/maintenance";
 import { formatJobList, formatMaterialRun } from "../../utils/jobBoard/shareList";
 import { useStyles } from "./styles";
 
@@ -76,6 +77,7 @@ export default function JobBoardScreen() {
   const [data, setBoardData] = useState<JobBoardData>({ jobs: [], items: [] });
   const dataRef = useRef(data);
   const saveQueue = useRef(Promise.resolve());
+  const unsaved = useRef(false);
   const revision = useRef(0);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -111,9 +113,17 @@ export default function JobBoardScreen() {
     reloadBoard();
     return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
   }, []);
+  useEffect(() => {
+    const unregister = registerStorageParticipant({
+      async settle() { await saveQueue.current; if (unsaved.current) throw new Error("Save your previous Job Board changes before using backups."); },
+      reset() { unsaved.current = false; },
+    });
+    return () => { void saveQueue.current.finally(unregister); };
+  }, []);
 
   function commitBoard(next: JobBoardData | ((current: JobBoardData) => JobBoardData)): Promise<boolean> {
-    if (!loaded) return Promise.resolve(false);
+    if (!loaded || isStoragePreparing()) return Promise.resolve(false);
+    unsaved.current = true;
     const board = typeof next === "function" ? next(dataRef.current) : next;
     dataRef.current = board;
     setBoardData(board);
@@ -123,7 +133,7 @@ export default function JobBoardScreen() {
     const result = saveQueue.current.then(async () => {
       try {
         await saveJobBoard(board);
-        if (version === revision.current) setSaveError("");
+        if (version === revision.current) { unsaved.current = false; setSaveError(""); }
         return true;
       } catch {
         if (version === revision.current) setSaveError("Changes aren't saved yet. Keep this screen open and retry.");
