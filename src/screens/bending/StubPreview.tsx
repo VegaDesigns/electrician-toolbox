@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "./measurementI18n";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import { ReferenceColors, useAppTheme } from "../../theme";
 import React, { useState } from "react";
@@ -50,6 +51,7 @@ function Label({
   children: string;
   muted?: boolean;
 }) {
+  const { t } = useMeasurementI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   return (
@@ -62,7 +64,7 @@ function Label({
       fontWeight="600"
       textAnchor="middle"
     >
-      {children}
+      {t(children)}
     </SvgText>
   );
 }
@@ -114,6 +116,7 @@ export function StubPreview({
   onCopy: () => void;
   onHelp: () => void;
 }) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
   const { theme: { colors: Colors } } = useAppTheme();
 
@@ -147,13 +150,13 @@ export function StubPreview({
     <View>
       <View style={styles.summary}>
         <View style={styles.summaryText}>
-          <Text style={styles.legend}>Bend mark from tip</Text>
+          <Text style={styles.legend}>{t("Bend mark from tip")}</Text>
           <Text style={styles.calculation}>{`${isRounded(r.value, precision) ? "≈ " : ""}${f(r.value)}`}</Text>
-          <Text style={styles.legend}>{`${f(r.height)} target − ${f(r.deduction)} deduction`}</Text>
+          <Text style={styles.legend}>{t(`${f(r.height)} target − ${f(r.deduction)} deduction`)}</Text>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={copied ? "Copied result" : "Copy result"}
+        <Pressable accessibilityRole="button" accessibilityLabel={t(copied ? "Copied result" : "Copy result")}
           onPress={onCopy} style={styles.copy}>
-          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
+          <Text style={styles.copyText}>{t(copied ? "Copied ✓" : "Copy")}</Text>
         </Pressable>
       </View>
       <View style={styles.previewDivider} />
@@ -166,7 +169,7 @@ export function StubPreview({
           width="100%"
           height={280}
           viewBox="0 0 400 290"
-          accessibilityLabel={`${names[active]}: ${instruction}`}
+          accessibilityLabel={`${t(names[active])}: ${t(instruction)}`}
         >
           <Defs>
             <LinearGradient id="stub-floor" x1="0" y1="0" x2="1" y2="1">
@@ -293,9 +296,9 @@ export function StubPreview({
           {annotations && !finished && (
             <G>
               <Label x={200} y={42}>
-                {step === "measure"
+                {t(step === "measure"
                   ? "MEASURE FROM THE TIP"
-                  : `Bend mark · ${f(r.value)} from tip`}
+                  : `Bend mark · ${f(r.value)} from tip`)}
               </Label>
               <Line
                 x1={50}
@@ -317,12 +320,10 @@ export function StubPreview({
                 x1={50}
                 x2={290}
                 y={110}
-                label={`Target ${f(r.height)}`}
+                label={t(`Target ${f(r.height)}`)}
                 muted={step !== "measure"}
               />
-              <Label x={50} y={203} muted>
-                TIP
-              </Label>
+              <Label x={50} y={203} muted>{t("TIP")}</Label>
               {step !== "measure" ? (
                 <G>
                   <Line
@@ -341,20 +342,16 @@ export function StubPreview({
                   <Label
                     x={230}
                     y={252}
-                  >{`Deduct ${f(r.deduction)} toward tip`}</Label>
+                  >{t(`Deduct ${f(r.deduction)} toward tip`)}</Label>
                 </G>
               ) : (
-                <Label x={200} y={252} muted>
-                  Target only · deduct before marking
-                </Label>
+                <Label x={200} y={252} muted>{t("Target only · deduct before marking")}</Label>
               )}
             </G>
           )}
           {annotations && finished && (
             <G>
-              <Label x={235} y={25}>
-                OUTSIDE HEIGHT
-              </Label>
+              <Label x={235} y={25}>{t("OUTSIDE HEIGHT")}</Label>
               <Path
                 d={`M${tip.x - 12} ${tip.y} H126 V${end.y + 10} H210 M126 ${tip.y} l-3 5 m3 -5 l3 5 M126 ${end.y + 10} l-3 -5 m3 5 l3 -5`}
                 stroke={Colors.primary}
@@ -377,26 +374,24 @@ export function StubPreview({
         </Svg>
       </View>
       <View style={styles.caption}>
-        <Text style={styles.captionText}>{instruction}</Text>
+        <Text style={styles.captionText}>{t(instruction)}</Text>
       </View>
       {guided && <GuideNavigation step={steps.indexOf(active)} count={steps.length} onStep={selectStep} />}
       <View style={styles.footer}>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Bender help and references"
+          accessibilityLabel={t("Bender help and references")}
           onPress={onHelp}
           style={({ pressed }) => [
             styles.textButton,
             { opacity: pressed ? 0.7 : 1 },
           ]}
         >
-          <Text style={styles.helpText}>Help</Text>
+          <Text style={styles.helpText}>{t("Help")}</Text>
         </Pressable>
       </View>
-      <Text style={styles.hint}>
-        Verify your bender’s deduction · Drawing not to scale
-      </Text>
+      <Text style={styles.hint}>{t("Verify your bender’s deduction · Drawing not to scale")}</Text>
     </View>
   );
 }

@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "./measurementI18n";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
@@ -31,6 +32,7 @@ export function BendPreview({
   onCopy: () => void;
   onHelp: () => void;
 }) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
 
   const [guided, setGuided] = useState(false);
@@ -49,30 +51,30 @@ export function BendPreview({
     <View>
       <View style={styles.summary}>
         <View style={styles.summaryText}>
-          <Text style={styles.legend}>{content.summaryLabel}</Text>
+          <Text style={styles.legend}>{t(content.summaryLabel)}</Text>
           <Text
             style={styles.calculation}
           >{`${isRounded(result.value, precision) ? "≈ " : ""}${inches(result.value, precision)}`}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={copied ? "Copied result" : "Copy result"}
+          accessibilityLabel={t(copied ? "Copied result" : "Copy result")}
           onPress={onCopy}
           style={({ pressed }) => [styles.copy, { opacity: pressed ? 0.7 : 1 }]}
         >
-          <Text style={styles.copyText}>{copied ? "Copied ✓" : "Copy"}</Text>
+          <Text style={styles.copyText}>{t(copied ? "Copied ✓" : "Copy")}</Text>
         </Pressable>
       </View>
       {!result.relative && bend !== "back" && (
         <View style={styles.markList}>
-          <Text style={styles.legend}>MARKS FROM TIP</Text>
+          <Text style={styles.legend}>{t("MARKS FROM TIP")}</Text>
           <View style={styles.markRows}>
             {result.marks.map((mark, i) => (
               <View key={i} style={styles.markPosition}>
                 <Text style={styles.legend}>
-                  {bend === "saddle3"
+                  {t(bend === "saddle3"
                     ? `${i + 1} · ${["Near return", "Center", "Far return"][i]}`
-                    : `Mark ${i + 1}`}
+                    : `Mark ${i + 1}`)}
                 </Text>
                 <Text
                   style={styles.markMeasurement}
@@ -100,32 +102,30 @@ export function BendPreview({
         />
       </View>
       <View style={styles.caption}>
-        <Text style={styles.captionText}>{instruction}</Text>
+        <Text style={styles.captionText}>{t(instruction)}</Text>
       </View>
       {guided && <GuideNavigation step={step} count={content.steps.length} onStep={selectStep} />}
       {bend === "rolling" && (
         <Text
           style={[styles.hint, { paddingBottom: 10 }]}
-        >{`True offset ${inches(Math.hypot(result.height, result.roll), precision)} · Roll ${result.rollAngle?.toFixed(1)}° from vertical`}</Text>
+        >{t(`True offset ${inches(Math.hypot(result.height, result.roll), precision)} · Roll ${result.rollAngle?.toFixed(1)}° from vertical`)}</Text>
       )}
       <View style={styles.footer}>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Bender help and references"
+          accessibilityLabel={t("Bender help and references")}
           onPress={onHelp}
           style={({ pressed }) => [
             styles.textButton,
             { opacity: pressed ? 0.7 : 1 },
           ]}
         >
-          <Text style={styles.helpText}>Help</Text>
+          <Text style={styles.helpText}>{t("Help")}</Text>
         </Pressable>
       </View>
-      <Text style={styles.hint}>{content.notice}</Text>
-      <Text style={styles.hint}>
-        Drawing not to scale · Full measurements in Help
-      </Text>
+      <Text style={styles.hint}>{t(content.notice)}</Text>
+      <Text style={styles.hint}>{t("Drawing not to scale · Full measurements in Help")}</Text>
     </View>
   );
 }

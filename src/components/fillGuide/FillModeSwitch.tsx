@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
@@ -10,6 +11,7 @@ type FillMode = "box" | "conduit";
 
 export function FillModeSwitch({ mode }: { mode: FillMode }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   function choose(nextMode: FillMode) {
     if (nextMode === mode) return;
@@ -18,7 +20,7 @@ export function FillModeSwitch({ mode }: { mode: FillMode }) {
   }
 
   return (
-    <View accessibilityLabel="Fill guide type" style={styles.track}>
+    <View accessibilityLabel={t("Fill guide type")} style={styles.track}>
       <Pressable
         accessibilityRole="tab"
         accessibilityState={{ selected: mode === "conduit" }}
@@ -30,8 +32,7 @@ export function FillModeSwitch({ mode }: { mode: FillMode }) {
         ]}
       >
         <Text style={[styles.optionText, mode === "conduit" && styles.optionTextSelected]}>
-          Conduit
-        </Text>
+          {t("Conduit")}</Text>
       </Pressable>
       <Pressable
         accessibilityRole="tab"
@@ -44,8 +45,7 @@ export function FillModeSwitch({ mode }: { mode: FillMode }) {
         ]}
       >
         <Text style={[styles.optionText, mode === "box" && styles.optionTextSelected]}>
-          Box
-        </Text>
+          {t("Box")}</Text>
       </Pressable>
     </View>
   );

@@ -1,3 +1,5 @@
+import { TRADE_TALK_ES } from "./spanish";
+
 export type TradeTalkCategory =
   | "tools"
   | "materials"
@@ -291,6 +293,8 @@ const DAILY_IDS = ["battleship", "beater", "smurf-tube", "dogleg", "wiggy", "fou
 
 export function normalizeDictionaryText(value: string): string {
   return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[’']/g, "")
     .replace(/[^a-z0-9]+/g, " ")
@@ -316,7 +320,8 @@ function editDistance(left: string, right: string): number {
 }
 
 function entryScore(entry: TradeTalkEntry, normalizedQuery: string): number {
-  const names = [entry.term, entry.officialName ?? "", ...entry.aliases]
+  const spanish = TRADE_TALK_ES[entry.id];
+  const names = [entry.term, entry.officialName ?? "", ...entry.aliases, spanish?.term ?? "", spanish?.officialName ?? ""]
     .map(normalizeDictionaryText)
     .filter(Boolean);
   if (names.some((name) => name === normalizedQuery)) return 120;
@@ -331,6 +336,10 @@ function entryScore(entry: TradeTalkEntry, normalizedQuery: string): number {
     ...entry.aliases,
     entry.definition,
     entry.fieldUse,
+    spanish?.term,
+    spanish?.officialName,
+    spanish?.definition,
+    spanish?.fieldUse,
   ].filter(Boolean).join(" "));
   const matchedWords = queryWords.filter((word) => searchable.includes(word));
   if (matchedWords.length === queryWords.length) return 65;

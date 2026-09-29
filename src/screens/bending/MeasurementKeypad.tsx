@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "./measurementI18n";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
@@ -8,6 +9,7 @@ import { enterMeasurementKey, measurementEntry, measurementText, pickMeasurement
 export function MeasurementKeypad({ initialValue, error, onChange, onSubmit }: {
   initialValue: string; error: string; onChange: () => void; onSubmit: (value: string) => void;
 }) {
+  const { t } = useMeasurementI18n();
   const s = useStyles();
   const [entry, setEntry] = useState(() => measurementEntry(initialValue));
   const [mode, setMode] = useState<"number" | "fractions" | "custom">("number");
@@ -37,57 +39,57 @@ export function MeasurementKeypad({ initialValue, error, onChange, onSubmit }: {
   const fractionLabel = entry.text.match(/\d+\/\d+$/)?.[0];
   return <View style={s.body}>
     <View style={s.display}>
-      <Text style={s.label}>Inches</Text>
-      <Text accessibilityLiveRegion="polite" accessibilityLabel={`Measurement: ${entry.text || "empty"} inches`}
+      <Text style={s.label}>{t("Inches")}</Text>
+      <Text accessibilityLiveRegion="polite" accessibilityLabel={t(`Measurement: ${entry.text || "empty"} inches`)}
         numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.65} style={s.value}>
         {entry.text || "0"}″
       </Text>
     </View>
     <View style={s.tools}>
       {mode === "number" ? <>
-        <Pressable accessibilityRole="button" accessibilityLabel="Clear measurement" style={s.quiet} onPress={() => key("clear")}>
-          <Text style={s.text}>Clear</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={t("Clear measurement")} style={s.quiet} onPress={() => key("clear")}>
+          <Text style={s.text}>{t("Clear")}</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Choose fraction" style={[s.quiet, s.soft]}
+        <Pressable accessibilityRole="button" accessibilityLabel={t("Choose fraction")} style={[s.quiet, s.soft]}
           onPress={() => { setMode("fractions"); clearError(); }}>
-          <Text style={s.accent}>frac</Text>
+          <Text style={s.accent}>{t("frac")}</Text>
         </Pressable>
       </> : <>
-        <Pressable accessibilityRole="button" accessibilityLabel={mode === "custom" ? "Back to common fractions" : "Return to number keypad"}
+        <Pressable accessibilityRole="button" accessibilityLabel={t(mode === "custom" ? "Back to common fractions" : "Return to number keypad")}
           style={[s.quiet, s.soft]} onPress={() => { setMode(mode === "custom" ? "fractions" : "number"); clearError(); }}>
-          <Text style={s.accent}>← Back</Text>
+          <Text style={s.accent}>{t("← Back")}</Text>
         </Pressable>
-        {mode === "custom" ? <Pressable accessibilityRole="button" accessibilityLabel="Clear custom fraction" style={s.quiet}
+        {mode === "custom" ? <Pressable accessibilityRole="button" accessibilityLabel={t("Clear custom fraction")} style={s.quiet}
           onPress={() => { setCustom({ top: "", bottom: "", active: "top", replace: true }); clearError(); }}>
-          <Text style={s.text}>Clear</Text>
+          <Text style={s.text}>{t("Clear")}</Text>
         </Pressable> : fractionLabel ? <Pressable accessibilityRole="button" style={s.quiet}
           onPress={() => { setEntry(removeMeasurementFraction(entry)); setMode("number"); clearError(); }}>
-          <Text style={s.text}>Remove fraction</Text>
+          <Text style={s.text}>{t("Remove fraction")}</Text>
         </Pressable> : null}
       </>}
     </View>
     {mode === "fractions" ? <View style={s.picker}>
-      <Text style={s.label}>COMMON FRACTIONS</Text>
+      <Text style={s.label}>{t("COMMON FRACTIONS")}</Text>
       {[COMMON_FRACTIONS.slice(0, 4), COMMON_FRACTIONS.slice(4)].map((row, i) => <View key={i} style={s.row}>
-        {row.map(fraction => <Pressable key={fraction.label} accessibilityRole="button" accessibilityLabel={`${fraction.label} inch`}
+        {row.map(fraction => <Pressable key={fraction.label} accessibilityRole="button" accessibilityLabel={t(`${fraction.label} inch`)}
           accessibilityState={{ selected: fractionLabel === fraction.label }}
           onPress={() => pick(fraction.label)} style={[s.key, fractionLabel === fraction.label && s.selected]}>
           <Text style={s.fractionText}>{fraction.label}</Text>
         </Pressable>)}
       </View>)}
       <Pressable accessibilityRole="button" style={[s.quiet, s.customButton]} onPress={openCustom}>
-        <Text style={s.accent}>Custom fraction</Text>
+        <Text style={s.accent}>{t("Custom fraction")}</Text>
         <Text style={s.text}>›</Text>
       </Pressable>
     </View> : <>
       {mode === "custom" ? <View style={s.customFields}>
         {(["top", "bottom"] as const).map((field, i) => <React.Fragment key={field}>
           {i === 1 && <Text style={s.slash}>/</Text>}
-          <Pressable accessibilityRole="button" accessibilityLabel={field === "top" ? "Custom fraction numerator" : "Custom fraction denominator"}
+          <Pressable accessibilityRole="button" accessibilityLabel={t(field === "top" ? "Custom fraction numerator" : "Custom fraction denominator")}
             accessibilityState={{ selected: custom.active === field }}
             style={[s.customField, custom.active === field && s.selected]}
             onPress={() => setCustom(current => ({ ...current, active: field, replace: true }))}>
-            <Text style={s.label}>{field === "top" ? "Top" : "Bottom"}</Text>
+            <Text style={s.label}>{t(field === "top" ? "Top" : "Bottom")}</Text>
             <Text style={s.customValue}>{custom[field] || "—"}</Text>
           </Pressable>
         </React.Fragment>)}
@@ -97,18 +99,18 @@ export function MeasurementKeypad({ initialValue, error, onChange, onSubmit }: {
           {row.map(value => {
             const disabled = mode === "custom" && value === ".";
             return <Pressable key={value} accessibilityRole="button" disabled={disabled} accessibilityState={{ disabled }}
-              accessibilityLabel={value === "." ? "Decimal point" : value === "backspace" ? "Backspace" : value}
+              accessibilityLabel={t(value === "." ? "Decimal point" : value === "backspace" ? "Backspace" : value)}
               onPress={() => key(value)} style={[s.key, disabled && s.disabled]}>
-              <Text style={s.digit}>{value === "backspace" ? "⌫" : value}</Text>
+              <Text style={s.digit}>{t(value === "backspace" ? "⌫" : value)}</Text>
             </Pressable>;
           })}
         </View>)}
       </View>
     </>}
-    {error || localError ? <Text accessibilityRole="alert" style={s.error}>{localError || error}</Text> : null}
-    <Pressable accessibilityRole="button" accessibilityLabel={mode === "custom" ? "Use custom fraction" : "Done, use measurement"}
+    {error || localError ? <Text accessibilityRole="alert" style={s.error}>{t(localError || error)}</Text> : null}
+    <Pressable accessibilityRole="button" accessibilityLabel={t(mode === "custom" ? "Use custom fraction" : "Done, use measurement")}
       onPress={() => mode === "custom" ? pick(`${custom.top}/${custom.bottom}`) : onSubmit(measurementText(entry))} style={s.done}>
-      <Text style={s.doneText}>{mode === "custom" ? "Use fraction" : "Done ✓"}</Text>
+      <Text style={s.doneText}>{t(mode === "custom" ? "Use fraction" : "Done ✓")}</Text>
     </Pressable>
   </View>;
 }

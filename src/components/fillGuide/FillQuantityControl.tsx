@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { SheetHeader } from "../SheetHeader";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
@@ -23,6 +24,7 @@ export function FillQuantityControl({
   value,
 }: Props) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [draft, setDraft] = useState(String(value));
@@ -79,7 +81,7 @@ export function FillQuantityControl({
     <>
       <View style={styles.control}>
         <Pressable
-          accessibilityLabel={`Decrease ${accessibilityLabel}`}
+          accessibilityLabel={t("Decrease {{label}}", { label: accessibilityLabel })}
           accessibilityRole="button"
           disabled={value <= 1}
           onPress={() => step(-1)}
@@ -93,18 +95,18 @@ export function FillQuantityControl({
         </Pressable>
 
         <Pressable
-          accessibilityHint="Opens a number pad for direct entry"
-          accessibilityLabel={`Edit ${accessibilityLabel}, current value ${value}`}
+          accessibilityHint={t("Opens a number pad for direct entry")}
+          accessibilityLabel={t("Edit {{label}}, current value {{value}}", { label: accessibilityLabel, value })}
           accessibilityRole="button"
           onPress={openEditor}
           style={({ pressed }) => [styles.valueButton, pressed && styles.pressed]}
         >
           <Text style={styles.valueText}>{value}</Text>
-          <Text style={styles.valueLabel}>QTY</Text>
+          <Text style={styles.valueLabel}>{t("QTY")}</Text>
         </Pressable>
 
         <Pressable
-          accessibilityLabel={`Increase ${accessibilityLabel}`}
+          accessibilityLabel={t("Increase {{label}}", { label: accessibilityLabel })}
           accessibilityRole="button"
           disabled={value >= 999}
           onPress={() => step(1)}
@@ -127,15 +129,15 @@ export function FillQuantityControl({
         <SafeAreaProvider>
           <SafeAreaView edges={["top", "bottom"]} style={styles.modalSafe}>
             <Pressable
-              accessibilityLabel="Cancel quantity entry"
+              accessibilityLabel={t("Cancel quantity entry")}
               accessibilityRole="button"
               onPress={() => setEditorOpen(false)}
               style={styles.scrim} feedback="none"
             />
             <View style={styles.sheet}>
               <View style={styles.handle} />
-              <SheetHeader eyebrow="WIRE QUANTITY" title="How many?" closeLabel="Cancel quantity entry" onClose={() => setEditorOpen(false)} />
-              <View accessibilityLabel={`${accessibilityLabel}, ${draft || "empty"}`} style={styles.display}>
+              <SheetHeader eyebrow={t("WIRE QUANTITY")} title={t("How many?")} closeLabel={t("Cancel quantity entry")} onClose={() => setEditorOpen(false)} />
+              <View accessibilityLabel={`${accessibilityLabel}, ${draft || t("empty")}`} style={styles.display}>
                 <Text style={[styles.displayValue, !draft && styles.displayEmpty]}>{draft || "—"}</Text>
               </View>
               <View style={styles.keypad}>
@@ -151,12 +153,12 @@ export function FillQuantityControl({
                   </Pressable>
                 ))}
                 <Pressable
-                  accessibilityLabel="Clear quantity"
+                  accessibilityLabel={t("Clear quantity")}
                   accessibilityRole="button"
                   onPress={clearDraft}
                   style={({ pressed }) => [styles.actionKey, pressed && styles.pressed]}
                 >
-                  <Text style={styles.clearKeyText}>Clear</Text>
+                  <Text style={styles.clearKeyText}>{t("Clear")}</Text>
                 </Pressable>
                 <Pressable
                   accessibilityLabel="0"
@@ -167,7 +169,7 @@ export function FillQuantityControl({
                   <Text style={styles.numberKeyText}>0</Text>
                 </Pressable>
                 <Pressable
-                  accessibilityLabel="Backspace"
+                  accessibilityLabel={t("Backspace")}
                   accessibilityRole="button"
                   onPress={backspace}
                   style={({ pressed }) => [styles.actionKey, pressed && styles.pressed]}
@@ -185,9 +187,9 @@ export function FillQuantityControl({
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={styles.doneText}>Done</Text>
+                <Text style={styles.doneText}>{t("Done")}</Text>
               </Pressable>
-              <Text style={styles.hint}>Enter a number from 1 to 999.</Text>
+              <Text style={styles.hint}>{t("Enter a number from 1 to 999.")}</Text>
             </View>
           </SafeAreaView>
         </SafeAreaProvider>

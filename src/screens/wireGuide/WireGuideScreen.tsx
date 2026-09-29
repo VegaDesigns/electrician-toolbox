@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { returnHome } from "../../utils/navigation";
 import { useStoredValue } from "../../hooks/useStoredValue";
@@ -38,15 +39,16 @@ function percent(factor: number) {
   return `${Math.round(factor * 100)}%`;
 }
 
-function reasonLabel(reason: LimitingReason, effectiveLugRating: string): string {
-  if (reason === "small-wire") return "Small-wire protection limit";
-  if (reason === "termination") return `${effectiveLugRating}°C equipment connection limit`;
-  if (reason === "ambient") return "Reduced for surrounding temperature";
-  return "Reduced for grouped conductors";
+function reasonLabel(reason: LimitingReason, effectiveLugRating: string, t: (source: string, params?: Record<string, string>) => string): string {
+  if (reason === "small-wire") return t("Small-wire protection limit");
+  if (reason === "termination") return t("{{rating}}°C equipment connection limit", { rating: effectiveLugRating });
+  if (reason === "ambient") return t("Reduced for surrounding temperature");
+  return t("Reduced for grouped conductors");
 }
 
 export default function WireGuideScreen() {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const stored = useStoredValue(wireGuidePreferences);
   const { material, size, lugRating, ambientBand, conductorCountBand } = stored.value;
@@ -87,24 +89,24 @@ export default function WireGuideScreen() {
 
   const primaryReason = result.limitingReasons[0];
   const resultNote = primaryReason
-    ? reasonLabel(primaryReason, result.effectiveLugRating)
-    : "No additional reduction applies";
+    ? reasonLabel(primaryReason, result.effectiveLugRating, t)
+    : t("No additional reduction applies");
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => {
             pulse();
             returnHome();
           }} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>WIRE GUIDE</Text>
-          <Text style={styles.headerTitle}>Ampacity</Text>
+          <Text style={styles.headerEyebrow}>{t("WIRE GUIDE")}</Text>
+          <Text style={styles.headerTitle}>{t("Ampacity")}</Text>
         </View>
       </ScreenHeader>
 
-      <StorageStatus state={stored} onRetry={stored.retry} label="Wire Guide settings" />
+      <StorageStatus state={stored} onRetry={stored.retry} label={t("Wire Guide settings")} />
       {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={styles.container}
@@ -115,8 +117,8 @@ export default function WireGuideScreen() {
             <View style={styles.wireCore} />
           </View>
           <View style={styles.promptCopy}>
-            <Text style={styles.promptTitle}>Check a wire</Text>
-            <Text style={styles.promptHint}>Copper or aluminum THHN / THWN-2</Text>
+            <Text style={styles.promptTitle}>{t("Check a wire")}</Text>
+            <Text style={styles.promptHint}>{t("Copper or aluminum THHN / THWN-2")}</Text>
           </View>
         </View>
 
@@ -135,20 +137,20 @@ export default function WireGuideScreen() {
             >
               <View style={[styles.materialDot, option === "aluminum" && styles.materialDotAluminum]} />
               <Text style={[styles.segmentText, material === option && styles.segmentTextSelected]}>
-                {option === "copper" ? "Copper" : "Aluminum"}
+                {option === "copper" ? t("Copper") : t("Aluminum")}
               </Text>
             </Pressable>
           ))}
         </View>
 
         <View style={styles.sectionHeading}>
-          <Text style={styles.sectionTitle}>Wire size</Text>
-          <Text style={styles.sectionHint}>Tap the marking on the conductor</Text>
+          <Text style={styles.sectionTitle}>{t("Wire size")}</Text>
+          <Text style={styles.sectionHint}>{t("Tap the marking on the conductor")}</Text>
         </View>
         <View style={styles.sizeRow}>
           {commonSizes.map((option) => (
             <Pressable
-              accessibilityLabel={`Wire size ${formatWireSize(option)}`}
+              accessibilityLabel={t("Wire size {{size}}", { size: formatWireSize(option) })}
               accessibilityRole="button"
               accessibilityState={{ selected: size === option }}
               key={option}
@@ -165,7 +167,7 @@ export default function WireGuideScreen() {
             </Pressable>
           ))}
           <Pressable
-            accessibilityHint="Opens all supported wire sizes"
+            accessibilityHint={t("Opens all supported wire sizes")}
             accessibilityRole="button"
             accessibilityState={{ selected: selectedIsOther }}
             onPress={() => {
@@ -180,13 +182,13 @@ export default function WireGuideScreen() {
             ]}
           >
             <Text style={[styles.otherSizeText, selectedIsOther && styles.sizeButtonTextSelected]}>
-              {selectedIsOther ? formatWireSize(size) : "Other"} ⌄
+              {selectedIsOther ? formatWireSize(size) : t("Other")} ⌄
             </Text>
           </Pressable>
         </View>
 
         <Pressable
-          accessibilityHint="Opens equipment connection rating choices"
+          accessibilityHint={t("Opens equipment connection rating choices")}
           accessibilityRole="button"
           onPress={() => {
             pulse();
@@ -196,14 +198,14 @@ export default function WireGuideScreen() {
         >
           <View style={styles.connectionIcon}><Text style={styles.connectionIconText}>T°</Text></View>
           <View style={styles.connectionCopy}>
-            <Text style={styles.connectionLabel}>EQUIPMENT CONNECTION</Text>
+            <Text style={styles.connectionLabel}>{t("EQUIPMENT CONNECTION")}</Text>
             <Text style={styles.connectionValue}>
-              {lugRating === "unknown" ? "Not sure" : `${lugRating}°C marked`}
+              {lugRating === "unknown" ? t("Not sure") : t("{{rating}}°C marked", { rating: lugRating })}
             </Text>
             <Text style={styles.connectionHint}>
               {lugRating === "unknown"
-                ? `Using ${result.effectiveLugRating}°C until you check the lug`
-                : "Using the temperature marked on the equipment"}
+                ? t("Using {{rating}}°C until you check the lug", { rating: result.effectiveLugRating })
+                : t("Using the temperature marked on the equipment")}
             </Text>
           </View>
           <Text style={styles.chevron}>⌄</Text>
@@ -212,8 +214,8 @@ export default function WireGuideScreen() {
         <View style={styles.resultCard}>
           <View style={styles.resultGlow} />
           <View style={styles.resultTopRow}>
-            <View>
-              <Text style={styles.resultEyebrow}>ALLOWABLE AMPACITY</Text>
+            <View style={styles.flexibleCopy}>
+              <Text style={styles.resultEyebrow}>{t("ALLOWABLE AMPACITY")}</Text>
               <View style={styles.ampRow}>
                 <Text style={styles.ampValue}>{result.finalAmpacity}</Text>
                 <Text style={styles.ampUnit}>A</Text>
@@ -231,7 +233,7 @@ export default function WireGuideScreen() {
           </View>
 
           <Text style={styles.resultContext}>
-            {material === "copper" ? "Copper" : "Aluminum"} THHN / THWN-2  •  {ambientLabel}  •  {conductorCountLabel} current-carrying
+            {t("{{material}} THHN / THWN-2 • {{ambient}} • {{count}} current-carrying", { material: material === "copper" ? t("Copper") : t("Aluminum"), ambient: ambientLabel, count: conductorCountLabel })}
           </Text>
 
           <Pressable
@@ -242,22 +244,22 @@ export default function WireGuideScreen() {
             }}
             style={({ pressed }) => [styles.breakdownButton, pressed && styles.pressed]}
           >
-            <Text style={styles.breakdownButtonText}>{showBreakdown ? "Hide calculation" : "Why this answer?"}</Text>
+            <Text style={styles.breakdownButtonText}>{showBreakdown ? t("Hide calculation") : t("Why this answer?")}</Text>
             <Text style={styles.chevron}>{showBreakdown ? "⌃" : "⌄"}</Text>
           </Pressable>
 
           {showBreakdown ? (
             <View style={styles.breakdown}>
-              <BreakdownRow label="90°C conductor starting value" value={`${result.baseAmpacity} A`} />
-              <BreakdownRow label={`Temperature factor (${ambientLabel})`} value={percent(result.ambientFactor)} />
-              <BreakdownRow label={`Grouping factor (${conductorCountLabel} conductors)`} value={percent(result.conductorFactor)} />
-              <BreakdownRow label="After heat and grouping" value={`${result.adjustedAmpacity.toFixed(1)} A`} />
-              <BreakdownRow label={`${result.effectiveLugRating}°C equipment limit`} value={`${result.terminationLimit} A`} />
+              <BreakdownRow label={t("90°C conductor starting value")} value={`${result.baseAmpacity} A`} />
+              <BreakdownRow label={t("Temperature factor ({{temperature}})", { temperature: ambientLabel })} value={percent(result.ambientFactor)} />
+              <BreakdownRow label={t("Grouping factor ({{count}} conductors)", { count: conductorCountLabel })} value={percent(result.conductorFactor)} />
+              <BreakdownRow label={t("After heat and grouping")} value={`${result.adjustedAmpacity.toFixed(1)} A`} />
+              <BreakdownRow label={t("{{rating}}°C equipment limit", { rating: result.effectiveLugRating })} value={`${result.terminationLimit} A`} />
               {result.smallWireLimit !== null ? (
-                <BreakdownRow label="Small-wire limit" value={`${result.smallWireLimit} A`} />
+                <BreakdownRow label={t("Small-wire limit")} value={`${result.smallWireLimit} A`} />
               ) : null}
               <View style={styles.breakdownRule} />
-              <BreakdownRow emphasis label="Lowest applicable limit" value={`${result.finalAmpacity} A`} />
+              <BreakdownRow emphasis label={t("Lowest applicable limit")} value={`${result.finalAmpacity} A`} />
             </View>
           ) : null}
         </View>
@@ -271,48 +273,46 @@ export default function WireGuideScreen() {
           style={({ pressed }) => [styles.advancedHeader, pressed && styles.pressed]}
         >
           <View style={styles.advancedHeaderCopy}>
-            <Text style={styles.advancedEyebrow}>JOB CONDITIONS</Text>
-            <Text style={styles.advancedTitle}>Advanced adjustments</Text>
+            <Text style={styles.advancedEyebrow}>{t("JOB CONDITIONS")}</Text>
+            <Text style={styles.advancedTitle}>{t("Advanced adjustments")}</Text>
           </View>
-          {conditionsChanged ? <View style={styles.activeBadge}><Text style={styles.activeBadgeText}>ON</Text></View> : null}
+          {conditionsChanged ? <View style={styles.activeBadge}><Text style={styles.activeBadgeText}>{t("ON")}</Text></View> : null}
           <Text style={styles.chevron}>{showAdvanced ? "⌃" : "⌄"}</Text>
         </Pressable>
 
         {showAdvanced ? (
           <View style={styles.advancedCard}>
             <SettingRow
-              hint="Air around the conductor"
-              label="Temperature"
+              hint={t("Air around the conductor")}
+              label={t("Temperature")}
               onPress={() => setSheet("ambient")}
               value={ambientLabel}
             />
             <View style={styles.settingRule} />
             <SettingRow
-              hint="In this raceway or cable"
-              label="Current-carrying wires"
+              hint={t("In this raceway or cable")}
+              label={t("Current-carrying wires")}
               onPress={() => setSheet("conductors")}
               value={conductorCountLabel}
             />
             <Text style={styles.advancedHelp}>
-              Equipment grounds do not count here. Neutrals can count in some systems—verify when unsure.
-            </Text>
+              {t("Equipment grounds do not count here. Neutrals can count in some systems—verify when unsure.")}</Text>
             {conditionsChanged ? (
               <Pressable
                 accessibilityRole="button"
                 onPress={resetConditions}
                 style={({ pressed }) => [styles.resetButton, pressed && styles.pressed]}
               >
-                <Text style={styles.resetButtonText}>Reset job conditions</Text>
+                <Text style={styles.resetButtonText}>{t("Reset job conditions")}</Text>
               </Pressable>
             ) : null}
           </View>
         ) : null}
 
         <View style={styles.referenceNote}>
-          <Text style={styles.referenceTitle}>FIELD REFERENCE</Text>
+          <Text style={styles.referenceTitle}>{t("FIELD REFERENCE")}</Text>
           <Text style={styles.referenceText}>
-            This checks conductor ampacity—it does not automatically choose a breaker. Continuous loads, equipment rules, cable type, installation method, local requirements, and job specifications can change the final design. Verify labels and conditions before installation.
-          </Text>
+            {t("This checks conductor ampacity—it does not automatically choose a breaker. Continuous loads, equipment rules, cable type, installation method, local requirements, and job specifications can change the final design. Verify labels and conditions before installation.")}</Text>
         </View>
       </ScrollView>}
 
@@ -394,6 +394,7 @@ type SelectionSheetProps = {
 
 function SelectionSheet(props: SelectionSheetProps) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const titles: Record<Exclude<SheetKind, null>, { eyebrow: string; title: string }> = {
     ambient: { eyebrow: "SURROUNDING AIR", title: "Temperature" },
@@ -412,11 +413,11 @@ function SelectionSheet(props: SelectionSheetProps) {
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <View style={styles.sheetHeadingCopy}>
-                <Text style={styles.sheetEyebrow}>{heading.eyebrow}</Text>
-                <Text style={styles.sheetTitle}>{heading.title}</Text>
+                <Text style={styles.sheetEyebrow}>{t(heading.eyebrow)}</Text>
+                <Text style={styles.sheetTitle}>{t(heading.title)}</Text>
               </View>
               <Pressable accessibilityRole="button" onPress={props.onClose} style={styles.doneButton}>
-                <Text style={styles.doneButtonText}>Done</Text>
+                <Text style={styles.doneButtonText}>{t("Done")}</Text>
               </Pressable>
             </View>
 
@@ -450,14 +451,14 @@ function SelectionSheet(props: SelectionSheetProps) {
                   { id: "90" as const, label: "90°C marked", hint: "Use only when the equipment connection is marked 90°C" },
                 ]).map((option) => (
                   <SheetOption
-                    hint={option.hint}
+                    hint={t(option.hint)}
                     key={option.id}
-                    label={option.label}
+                    label={t(option.label)}
                     onPress={() => props.onSelectLug(option.id)}
                     selected={props.selectedLug === option.id}
                   />
                 ))}
-                <Text style={styles.sheetHelp}>Look for a temperature marking on the breaker, lug, or equipment instructions.</Text>
+                <Text style={styles.sheetHelp}>{t("Look for a temperature marking on the breaker, lug, or equipment instructions.")}</Text>
               </View>
             ) : null}
 
@@ -465,7 +466,7 @@ function SelectionSheet(props: SelectionSheetProps) {
               <ScrollView contentContainerStyle={styles.optionList} showsVerticalScrollIndicator={false}>
                 {AMBIENT_OPTIONS.map((option) => (
                   <SheetOption
-                    hint={option.factor90 === 1 ? "Normal reference range" : `${percent(option.factor90)} adjustment factor`}
+                    hint={option.factor90 === 1 ? t("Normal reference range") : t("{{factor}} adjustment factor", { factor: percent(option.factor90) })}
                     key={option.id}
                     label={option.label}
                     onPress={() => props.onSelectAmbient(option.id)}
@@ -479,9 +480,9 @@ function SelectionSheet(props: SelectionSheetProps) {
               <View style={styles.optionList}>
                 {CONDUCTOR_COUNT_OPTIONS.map((option) => (
                   <SheetOption
-                    hint={option.factor === 1 ? "No grouping reduction" : `${percent(option.factor)} adjustment factor`}
+                    hint={option.factor === 1 ? t("No grouping reduction") : t("{{factor}} adjustment factor", { factor: percent(option.factor) })}
                     key={option.id}
-                    label={`${option.label} conductors`}
+                    label={t("{{count}} conductors", { count: option.label })}
                     onPress={() => props.onSelectConductors(option.id)}
                     selected={props.selectedConductors === option.id}
                   />

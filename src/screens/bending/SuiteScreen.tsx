@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "./measurementI18n";
 import { MeasurementKeypad } from "./MeasurementKeypad";
 import { IconButton } from "../../components/IconButton";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -43,17 +44,18 @@ function Button({
   selected?: boolean;
   primary?: boolean;
 }) {
+  const { t } = useMeasurementI18n();
   const s = useS();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
-        label === "←"
+        t(label === "←"
           ? "Return to toolbox home"
           : label === "⚙"
             ? "Bender settings"
-            : label
+            : label)
       }
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -65,12 +67,13 @@ function Button({
       ]}
     >
       <Text style={[s.text, selected && s.amber, primary && s.inverse]}>
-        {label}
+        {t(label)}
       </Text>
     </Pressable>
   );
 }
 export default function SuiteScreen() {
+  const { t } = useMeasurementI18n();
   const s = useS();
 
   const insets = useSafeAreaInsets();
@@ -167,12 +170,12 @@ export default function SuiteScreen() {
       <Pressable
         key={field}
         accessibilityRole="button"
-        accessibilityLabel={`Edit ${labels[field]}`}
+        accessibilityLabel={t(`Edit ${labels[field]}`)}
         style={s.inputTile}
         onPress={() => openInput(field)}
       >
-        <Text style={s.muted}>{labels[field]} ↗</Text>
-        <Text style={s.inputValue}>{n === null ? "Set location" : f(n)}</Text>
+        <Text style={s.muted}>{t(labels[field])} ↗</Text>
+        <Text style={s.inputValue}>{t(n === null ? "Set location" : f(n))}</Text>
       </Pressable>
     );
   }
@@ -181,7 +184,7 @@ export default function SuiteScreen() {
     setFeedbackError("");
     try {
       await Clipboard.setStringAsync(
-        `${b.title} · ${sizes[settings.size].name} EMT\n${r.label}: ${f(r.value)}\n${r.origin}\n${r.steps.join("\n")}\n${[...r.warnings, ...(fit?.issues.map(i => `${i.title}: ${i.message}`) ?? [])].join("\n")}\n${r.method}. Nearest 1/${settings.precision} inch. Verify with your bender.`,
+        `${t(b.title)} · ${sizes[settings.size].name} EMT\n${t(r.label)}: ${f(r.value)}\n${t(r.origin)}\n${r.steps.map(t).join("\n")}\n${[...r.warnings.map(t), ...(fit?.issues.map(i => `${t(i.title)}: ${t(i.message)}`) ?? [])].join("\n")}\n${t(r.method)}. ${t(`Nearest 1/${settings.precision} inch. Verify with your bender.`)}`,
       );
       setCopied(true);
     } catch {
@@ -199,39 +202,38 @@ export default function SuiteScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => returnHome()} />
-        <Pressable accessibilityRole="button" accessibilityLabel={`Change bend from header, currently ${b.title}`}
+        <Pressable accessibilityRole="button" accessibilityLabel={t(`Change bend from header, currently ${b.title}`)}
           disabled={!stored.ready} onPress={() => setSheet("bends")} style={[s.grow, { minHeight: 48, justifyContent: "center", gap: 3 }]}>
-          <Text style={s.headerTitle}>Bending Suite</Text>
-          <Text style={s.label}>{b.title} ⌄</Text>
+          <Text style={s.headerTitle}>{t("Bending Suite")}</Text>
+          <Text style={s.label}>{t(b.title)} ⌄</Text>
         </Pressable>
-        <IconButton icon="settings" label="Bender settings" disabled={!stored.ready} onPress={() => setSheet("settings")} />
+        <IconButton icon="settings" label={t("Bender settings")} disabled={!stored.ready} onPress={() => setSheet("settings")} />
       </ScreenHeader>
-      <StorageStatus state={stored} onRetry={stored.retry} label="Bender setup" />
+      <StorageStatus state={stored} onRetry={stored.retry} label={t("Bender setup")} />
       {stored.ready && <ScrollView
         contentContainerStyle={s.body}
         keyboardShouldPersistTaps="handled"
       >
         {feedbackError ? (
           <Text accessibilityRole="alert" style={s.error}>
-            {feedbackError}
+            {t(feedbackError)}
           </Text>
         ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Change bend type, currently ${b.title}`}
+          accessibilityLabel={t(`Change bend type, currently ${b.title}`)}
           onPress={() => setSheet("bends")}
           style={[s.card, s.row]}
         >
-          <Text style={[s.title, s.amber]}>{b.icon}</Text>
+          <Text style={[s.title, s.amber]}>{t(b.icon)}</Text>
           <View style={s.grow}>
-            <Text style={s.eyebrow}>BEND TYPE</Text>
-            <Text style={s.title}>{b.title}</Text>
-            <Text style={s.muted}>{b.hint}</Text>
+            <Text style={s.eyebrow}>{t("BEND TYPE")}</Text>
+            <Text style={s.title}>{t(b.title)}</Text>
+            <Text style={s.muted}>{t(b.hint)}</Text>
           </View>
-          <Text style={s.changeBend}>Change
-bend ⌄</Text>
+          <Text style={s.changeBend}>{t("Change\nbend ⌄")}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -239,28 +241,24 @@ bend ⌄</Text>
           style={{ minHeight: 48, justifyContent: "center" }}
         >
           <Text style={s.muted}>
-            {sizes[settings.size].name} EMT · Hand bender ⚙
-          </Text>
+            {sizes[settings.size].name} {t("EMT · Hand bender ⚙")}</Text>
         </Pressable>
         <View style={s.card}>
-          <Text style={s.eyebrow}>YOUR MEASUREMENTS · INCHES</Text>
+          <Text style={s.eyebrow}>{t("YOUR MEASUREMENTS · INCHES")}</Text>
           <View style={s.wrap}>
             {tile(bend === "back" ? "span" : "height")}
             {bend === "rolling" && tile("roll")}
             {bend === "saddle4" && tile("bridge")}
           </View>
           {bend === "saddle4" && (
-            <Text style={s.muted}>
-              Bridge = distance between marks 2 and 3, not the clear width of
-              the obstacle. Allow room for the bends.
-            </Text>
+            <Text style={s.muted}>{t("Bridge = distance between marks 2 and 3, not the clear width of the obstacle. Allow room for the bends.")}</Text>
           )}
           {!["stub", "back"].includes(bend) && (
             <>
               <Text style={s.muted}>
-                {bend === "saddle3"
+                {t(bend === "saddle3"
                   ? "Center bend · returns are half this angle"
-                  : "Angle of each bend"}
+                  : "Angle of each bend")}
               </Text>
               <View style={s.wrap}>
                 {(bend === "saddle3" ? [45, 60] : ANGLES).map((a) => (
@@ -284,35 +282,35 @@ bend ⌄</Text>
             draft.location ? (
               <View style={s.savedLocation}>
                 <Text style={[s.text, s.grow]}>
-                  {`${labels.location}: ${f(parseInches(draft.location) ?? 0)}`}
+                  {t(`${labels.location}: ${f(parseInches(draft.location) ?? 0)}`)}
                 </Text>
-                <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${labels.location}`}
+                <Pressable accessibilityRole="button" accessibilityLabel={t(`Edit ${labels.location}`)}
                   onPress={() => openInput("location")}
                   style={({ pressed }) => [s.locationEdit, { opacity: pressed ? 0.7 : 1 }]}>
-                  <Text style={s.label}>Edit</Text>
+                  <Text style={s.label}>{t("Edit")}</Text>
                 </Pressable>
               </View>
             ) : (
-              <Pressable accessibilityRole="button" accessibilityLabel={`Add ${labels.location}, optional`}
+              <Pressable accessibilityRole="button" accessibilityLabel={t(`Add ${labels.location}, optional`)}
                 onPress={() => openInput("location")}
                 style={({ pressed }) => [s.locationButton, { opacity: pressed ? 0.7 : 1 }]}>
                 <Text style={s.locationIcon}>＋</Text>
-                <Text style={s.locationText}>{`Add ${bend === "saddle3" ? "obstacle center" : "first mark"}`}</Text>
-                <Text style={s.muted}>optional</Text>
+                <Text style={s.locationText}>{t(`Add ${bend === "saddle3" ? "obstacle center" : "first mark"}`)}</Text>
+                <Text style={s.muted}>{t("optional")}</Text>
               </Pressable>
             )
           )}
         </View>
         {fit && fit.issues.length > 0 && <View style={[s.fitWarning, !strongFitWarning && s.fitReminder]} accessibilityRole="alert">
           {fit.issues.map(issue => <View key={issue.title} style={{ gap: Space.xxs }}>
-            <Text style={s.label}>{issue.title}</Text><Text style={s.fitBody}>{issue.message}</Text>
+            <Text style={s.label}>{t(issue.title)}</Text><Text style={s.fitBody}>{t(issue.message)}</Text>
           </View>)}
-          {strongFitWarning && <Text style={s.muted}>Reference shoe only. Match your actual bender; clearance can require more room.</Text>}
-          {layoutBlocked && <Button label="Change precision" onPress={() => setSheet("settings")} />}
-          {fit.suggestedAngle !== undefined && <Button label={`Try ${fit.suggestedAngle}° · more spacing`}
+          {strongFitWarning && <Text style={s.muted}>{t("Reference shoe only. Match your actual bender; clearance can require more room.")}</Text>}
+          {layoutBlocked && <Button label={t("Change precision")} onPress={() => setSheet("settings")} />}
+          {fit.suggestedAngle !== undefined && <Button label={t(`Try ${fit.suggestedAngle}° · more spacing`)}
             onPress={() => { update({ angle: fit.suggestedAngle! }); setFinished(false); }} />}
           <Pressable accessibilityRole="button" onPress={() => setSheet("help")} style={s.locationEdit}>
-            <Text style={s.label}>How this is checked</Text>
+            <Text style={s.label}>{t("How this is checked")}</Text>
           </Pressable>
         </View>}
         {!layoutBlocked && <View style={s.card}>
@@ -342,10 +340,10 @@ bend ⌄</Text>
           ) : (
             <View style={{ minHeight: 280, justifyContent: "center", gap: Space.md }}>
               <Text accessibilityRole="alert" style={s.error}>
-                {calc.error ?? fit?.issues.find(i => i.blocksLayout)?.message}
+                {t(calc.error ?? fit?.issues.find(i => i.blocksLayout)?.message ?? "")}
               </Text>
               <Button
-                label="Bender help and references"
+                label={t("Bender help and references")}
                 onPress={() => setSheet("help")}
               />
             </View>
@@ -374,16 +372,16 @@ bend ⌄</Text>
           >
             <View style={s.row}>
               <Text style={[s.title, s.grow]}>
-                {sheet === "bends"
+                {t(sheet === "bends"
                   ? "Choose a bend"
                   : sheet === "settings"
                     ? "Bender setup"
                     : sheet === "help"
                       ? "Before you bend"
-                      : labels[editing]}
+                      : labels[editing])}
               </Text>
               <Button
-                label={sheet === "input" ? "Cancel" : "Done"}
+                label={t(sheet === "input" ? "Cancel" : "Done")}
                 onPress={() => setSheet(null)}
               />
             </View>
@@ -406,10 +404,10 @@ bend ⌄</Text>
                     }}
                     style={[s.card, s.row, bend === item.id && s.selected]}
                   >
-                    <Text style={[s.title, s.amber]}>{item.icon}</Text>
+                    <Text style={[s.title, s.amber]}>{t(item.icon)}</Text>
                     <View style={s.grow}>
-                      <Text style={s.text}>{item.title}</Text>
-                      <Text style={s.muted}>{item.hint}</Text>
+                      <Text style={s.text}>{t(item.title)}</Text>
+                      <Text style={s.muted}>{t(item.hint)}</Text>
                     </View>
                   </Pressable>
                 ))}
@@ -422,17 +420,15 @@ bend ⌄</Text>
                     onChange={() => setInputError("")}
                     onSubmit={done}
                   />
-                  {editing === "location" && <Text style={s.muted}>
-                    Clear, then Done to use relative marks.
-                    {bend === "saddle3"
+                  {editing === "location" && <Text style={s.muted}>{t("Clear, then Done to use relative marks.")}{t(bend === "saddle3"
                       ? " Enter the obstacle center from the pipe end; center-location correction is included."
-                      : " Enter the first mark from the pipe end; shrink is not automatically added."}
+                      : " Enter the first mark from the pipe end; shrink is not automatically added.")}
                   </Text>}
                 </>
               )}
               {sheet === "settings" && (
                 <>
-                  <Text style={s.eyebrow}>EMT · MATCH YOUR ACTUAL SHOE</Text>
+                  <Text style={s.eyebrow}>{t("EMT · MATCH YOUR ACTUAL SHOE")}</Text>
                   <View style={s.wrap}>
                     {sizes.map((v, i) => (
                       <Button
@@ -445,16 +441,12 @@ bend ⌄</Text>
                       />
                     ))}
                   </View>
-                  <Text style={s.muted}>
-                    Common hand-bender starting values for EMT. Match the
-                    deduction stamped on your shoe; it can vary by model. For
-                    1¼″ EMT, tools may specify 11″ or 12″—check yours.
-                  </Text>
+                  <Text style={s.muted}>{t("Common hand-bender starting values for EMT. Match the deduction stamped on your shoe; it can vary by model. For 1¼″ EMT, tools may specify 11″ or 12″—check yours.")}</Text>
                   <Button
-                    label={`90° deduction: ${f(settings.deduction)} · Change`}
+                    label={t(`90° deduction: ${f(settings.deduction)} · Change`)}
                     onPress={() => openInput("deduction")}
                   />
-                  <Text style={s.eyebrow}>TAPE-MEASURE PRECISION</Text>
+                  <Text style={s.eyebrow}>{t("TAPE-MEASURE PRECISION")}</Text>
                   <View style={s.wrap}>
                     {([8, 16, 32] as Precision[]).map((p) => (
                       <Button
@@ -467,117 +459,89 @@ bend ⌄</Text>
                       />
                     ))}
                   </View>
-                  <Text style={s.eyebrow}>OFFSET CALCULATION</Text>
+                  <Text style={s.eyebrow}>{t("OFFSET CALCULATION")}</Text>
                   <Button
-                    label="Hand-bender multipliers"
+                    label={t("Hand-bender multipliers")}
                     selected={settings.method === "field"}
                     onPress={() =>
                       applySettings({ method: "field" })
                     }
                   />
                   <Button
-                    label="Ideal geometry · advanced"
+                    label={t("Ideal geometry · advanced")}
                     selected={settings.method === "geometry"}
                     onPress={() =>
                       applySettings({ method: "geometry" })
                     }
                   />
-                  <Text style={s.muted}>
-                    Field mode uses common rounded multipliers (30° × 2).
-                    Geometry uses 1/sin(angle), not a calibrated shoe model.
-                    Three-point saddles always use their separate field method.
-                  </Text>
+                  <Text style={s.muted}>{t("Field mode uses common rounded multipliers (30° × 2). Geometry uses 1/sin(angle), not a calibrated shoe model. Three-point saddles always use their separate field method.")}</Text>
                 </>
               )}
               {sheet === "help" && (
                 <>
                   {referenceError ? (
                     <Text accessibilityRole="alert" style={s.error}>
-                      {referenceError}
+                      {t(referenceError)}
                     </Text>
                   ) : null}
                   {fit && <View style={{ gap: Space.xs }}>
-                    <Text style={s.eyebrow}>BENDER FIT CHECK</Text>
-                    <Text style={s.muted}>Checks use an illustrative {f(fit.referenceRadius)} centerline radius from the Greenlee Site-Rite manual for this EMT size. This is not your identified shoe. Two equal round bends need at least 2 × radius × (1 − cos(angle)) of height before any straight section fits between them. The app compares height to that geometric bound, not the multiplier mark distance to an arc length.</Text>
-                    <Text style={s.muted}>A warning is not a universal rejection. No warning is not a guarantee: hook engagement, bend radius, springback, pipe length and obstacle clearance still require your actual tool. Close marks under 4″ and tip marks under 1″ trigger conservative reminders, not manufacturer minimums. Numeric layouts that round to zero or merge marks are withheld.</Text>
+                    <Text style={s.eyebrow}>{t("BENDER FIT CHECK")}</Text>
+                    <Text style={s.muted}>{t(`Checks use an illustrative ${f(fit.referenceRadius)} centerline radius from the Greenlee Site-Rite manual for this EMT size. This is not your identified shoe. Two equal round bends need at least 2 × radius × (1 − cos(angle)) of height before any straight section fits between them. The app compares height to that geometric bound, not the multiplier mark distance to an arc length.`)}</Text>
+                    <Text style={s.muted}>{t("A warning is not a universal rejection. No warning is not a guarantee: hook engagement, bend radius, springback, pipe length and obstacle clearance still require your actual tool. Close marks under 4″ and tip marks under 1″ trigger conservative reminders, not manufacturer minimums. Numeric layouts that round to zero or merge marks are withheld.")}</Text>
                   </View>}
                   {r && (
                     <>
                       <Text style={s.eyebrow}>
-                        {b.title.toUpperCase()} · AT THE BENDER
-                      </Text>
+                        {t(`${b.title} · AT THE BENDER`).toUpperCase()}</Text>
                       {r.steps.map((step, i) => (
                         <Text
                           key={i}
                           style={s.step}
-                        >{`${i + 1}. ${step}`}</Text>
+                        >{t(`${i + 1}. ${step}`)}</Text>
                       ))}
                       {r.warnings.map((warning) => (
                         <Text key={warning} style={s.warning}>
-                          {warning}
+                          {t(warning)}
                         </Text>
                       ))}
                       {!r.relative && (
                         <>
                           <Text style={s.eyebrow}>
-                            {bend === "back"
+                            {t(bend === "back"
                               ? "FROM THE OUTSIDE BACK OF THE FIRST 90"
-                              : "MARKS FROM THE STARTING END"}
+                              : "MARKS FROM THE STARTING END")}
                           </Text>
                           {r.marks.map((mark, i) => (
                             <Text
                               key={i}
                               style={s.step}
-                            >{`${mark.label}: ${f(mark.at)} · ${mark.align} · ${mark.angle}°`}</Text>
+                            >{`${t(mark.label)}: ${f(mark.at)} · ${t(mark.align)} · ${mark.angle}°`}</Text>
                           ))}
                         </>
                       )}
                       <Text style={s.muted}>
-                        {r.method}
-                        {r.factor
+                        {t(r.method)}
+                        {t(r.factor
                           ? ` · multiplier ${Number(r.factor.toFixed(4))}`
-                          : ""}
-                        {`\nUnrounded main value: ${r.value.toFixed(4)} in · Display: nearest 1/${settings.precision}″`}
-                        {r.shrink !== undefined
+                          : "")}
+                        {t(`\nUnrounded main value: ${r.value.toFixed(4)} in · Display: nearest 1/${settings.precision}″`)}
+                        {t(r.shrink !== undefined
                           ? `\nEstimated ${bend === "saddle3" ? "center-location correction" : "shrink"}: ${f(r.shrink)}`
-                          : ""}
-                        {r.rollAngle !== undefined
+                          : "")}
+                        {t(r.rollAngle !== undefined
                           ? `\nRoll plane: ${r.rollAngle.toFixed(1)}° from vertical toward sideways travel`
-                          : ""}
+                          : "")}
                       </Text>
-                      <Text style={s.muted}>
-                        The pipe preview is schematic, not a calibrated shoe
-                        profile or cut-length calculation.
-                      </Text>
+                      <Text style={s.muted}>{t("The pipe preview is schematic, not a calibrated shoe profile or cut-length calculation.")}</Text>
                       <View style={s.divider} />
                     </>
                   )}
-                  <Text style={s.step}>
-                    Arrow: stub mark, offset marks and saddle return marks.
-                    {"\n\n"}Star: back of the second 90, measured from the
-                    outside back of an existing bend.{"\n\n"}Center notch: the
-                    middle saddle bend. Use the notch for your selected center
-                    angle.
-                  </Text>
-                  <Text style={s.step}>
-                    Offsets show spacing—not where the obstacle starts. Place
-                    your first mark for the job. Shrink is an estimate, not a
-                    finished cut length.
-                  </Text>
-                  <Text style={s.step}>
-                    Rolling offsets combine up and sideways travel into one
-                    bending plane. Four-point saddles ask for inner mark
-                    spacing; that is not guaranteed clearance around an
-                    obstacle.
-                  </Text>
-                  <Text style={s.warning}>
-                    Confirm your manufacturer’s instructions. A short stub or
-                    closely spaced marks may not fit the shoe. Practice on
-                    scrap, check the resting angle, and verify dimensions before
-                    installation.
-                  </Text>
+                  <Text style={s.step}>{t("Arrow: stub mark, offset marks and saddle return marks.")}{"\n\n"}{t("Star: back of the second 90, measured from the outside back of an existing bend.")}{"\n\n"}{t("Center notch: the middle saddle bend. Use the notch for your selected center angle.")}</Text>
+                  <Text style={s.step}>{t("Offsets show spacing—not where the obstacle starts. Place your first mark for the job. Shrink is an estimate, not a finished cut length.")}</Text>
+                  <Text style={s.step}>{t("Rolling offsets combine up and sideways travel into one bending plane. Four-point saddles ask for inner mark spacing; that is not guaranteed clearance around an obstacle.")}</Text>
+                  <Text style={s.warning}>{t("Confirm your manufacturer’s instructions. A short stub or closely spaced marks may not fit the shoe. Practice on scrap, check the resting angle, and verify dimensions before installation.")}</Text>
                   <Button
-                    label="Open Gardner Bender hand-bender guide ↗"
+                    label={t("Open Gardner Bender hand-bender guide ↗")}
                     onPress={() => {
                       openGuide(
                         "https://www.gardnerbender.com/-/media/inriver/GAR_BRO_032_1220_Hand%20Bender%20How%20To%20Guide.pdf",
@@ -585,7 +549,7 @@ bend ⌄</Text>
                     }}
                   />
                   <Button
-                    label="Open Greenlee hand-bender guide ↗"
+                    label={t("Open Greenlee hand-bender guide ↗")}
                     onPress={() => {
                       openGuide(
                         "https://cdn.greenlee.com/resources/media?key=1adba548-f1d2-43d2-bf44-fe4b89a8b579&languageCode=en&type=document",
@@ -593,19 +557,14 @@ bend ⌄</Text>
                     }}
                   />
                   <Button
-                    label="Open Klein bending guide ↗"
+                    label={t("Open Klein bending guide ↗")}
                     onPress={() => {
                       openGuide(
                         "https://data.kleintools.com/sites/all/product_assets/documents/instructions/klein/ConduitBenderGuide.pdf",
                       );
                     }}
                   />
-                  <Text style={s.muted}>
-                    Independent field aid. Not affiliated with or endorsed by
-                    any tool manufacturer. Markings and shoe profiles vary;
-                    follow the instructions for your actual tool. Segmented
-                    bends, kicks and powered-bender setups are not included.
-                  </Text>
+                  <Text style={s.muted}>{t("Independent field aid. Not affiliated with or endorsed by any tool manufacturer. Markings and shoe profiles vary; follow the instructions for your actual tool. Segmented bends, kicks and powered-bender setups are not included.")}</Text>
                 </>
               )}
             </ScrollView>

@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "../bending/measurementI18n";
 import { IconButton } from "../../components/IconButton";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { returnHome } from "../../utils/navigation";
@@ -132,6 +133,7 @@ function formatInchesOnlyFraction(
 }
 
 export default function WorkpadScreen() {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
 
   const { height } = useWindowDimensions();
@@ -705,19 +707,19 @@ export default function WorkpadScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => {
             Haptics.selectionAsync().catch(() => {});
             returnHome();
           }} />
 
-        <Text style={styles.title}>Workpad</Text>
+        <Text style={styles.title}>{t("Workpad")}</Text>
 
-        <IconButton icon="history" label="Open calculation history" onPress={() => setIsHistoryOpen(true)} />
-        <IconButton icon="settings" label="Open Workpad settings" disabled={!stored.ready} onPress={() => { Haptics.selectionAsync().catch(() => {}); setIsSettingsOpen(true); }} />
+        <IconButton icon="history" label={t("Open calculation history")} onPress={() => setIsHistoryOpen(true)} />
+        <IconButton icon="settings" label={t("Open Workpad settings")} disabled={!stored.ready} onPress={() => { Haptics.selectionAsync().catch(() => {}); setIsSettingsOpen(true); }} />
       </ScreenHeader>
 
-      <StorageStatus state={stored} onRetry={stored.retry} label="Workpad settings" />
+      <StorageStatus state={stored} onRetry={stored.retry} label={t("Workpad settings")} />
       {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={[

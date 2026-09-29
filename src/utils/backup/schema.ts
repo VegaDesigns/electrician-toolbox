@@ -105,7 +105,7 @@ export function validateRecords(records: BackupRecords) {
         check(oneOf(value.conductorCountBand, ["1-3", "4-6", "7-9", "10-20", "21-30", "31-40", "41+"]));
         check(oneOf(value.lugRating, ["unknown", "60", "75", "90"]));
       } else if (key === DATA_KEYS[6]) check(object(value) && strings(value.favoriteIds) && strings(value.recentIds) && value.recentIds.length <= 8);
-      else if (key === DATA_KEYS[7]) check(object(value) && value.version === 1 && themeIds.some(id => id === value.themeId) && oneOf(value.mode, ["system", "light", "dark"]));
+      else if (key === DATA_KEYS[7]) check(object(value) && value.version === 1 && themeIds.some(id => id === value.themeId) && oneOf(value.mode, ["system", "light", "dark"]) && (value.language === undefined || oneOf(value.language, ["system", "en", "es"])));
       else {
         // Retained earlier Job Board is archived, not converted into current lists.
         check(object(value) && Array.isArray(value.jobs) && Array.isArray(value.items));

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { AppIcon } from "../../components/AppIcon";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
 import * as Haptics from "expo-haptics";
@@ -40,12 +41,13 @@ function ToolIcon({ accent, icon }: Pick<ToolTileProps, "accent" | "icon">) {
 }
 
 function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTileProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   const { fontScale, width } = useWindowDimensions();
 
   return (
     <Pressable
-      accessibilityHint={`Opens ${title}`}
+      accessibilityHint={t("Opens {{title}}", { title })}
       accessibilityLabel={`${title}${status ? `, ${status}` : ""}`}
       accessibilityRole="button"
       onPress={() => {
@@ -73,6 +75,7 @@ function ToolTile({ accent, icon, onPress, status, subtitle, title }: ToolTilePr
 }
 
 export default function HomeScreen() {
+  const { t } = useI18n();
   const styles = useStyles();
 
   return (
@@ -89,77 +92,77 @@ export default function HomeScreen() {
 
           <View style={styles.headerCopy}>
             <Text style={styles.brandName}>ELECTRICIAN TOOLBOX</Text>
-            <Text style={styles.headline}>What do you need?</Text>
+            <Text style={styles.headline}>{t("What do you need?")}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Open app settings" onPress={() => router.push("/settings")} style={({ pressed }) => [styles.menu, pressed && styles.pressed]}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t("Open app settings")} onPress={() => router.push("/settings")} style={({ pressed }) => [styles.menu, pressed && styles.pressed]}>
             <AppIcon name="menu" />
           </Pressable>
         </View>
 
-        <Text style={styles.sectionLabel}>TOOLS</Text>
+        <Text style={styles.sectionLabel}>{t("TOOLS")}</Text>
 
         <View style={styles.toolGrid}>
           <ToolTile
             accent="amber"
             icon="＋"
             onPress={() => router.push("/workpad")}
-            subtitle="Measurements and field math"
-            title="Workpad"
+            subtitle={t("Measurements and field math")}
+            title={t("Workpad")}
           />
 
           <ToolTile
             accent="phase"
             icon="●"
             onPress={() => router.push("/panel-colors")}
-            subtitle="Circuit phase and wire color"
-            title="Panel Colors"
+            subtitle={t("Circuit phase and wire color")}
+            title={t("Panel Colors")}
           />
 
           <ToolTile
             accent="blue"
             icon="✓"
             onPress={() => router.push("/job-board")}
-            subtitle="Job notes and material lists"
-            title="Jobsite Lists"
+            subtitle={t("Job notes and material lists")}
+            title={t("Jobsite Lists")}
           />
 
           <ToolTile
             accent="amber"
             icon="◉"
             onPress={() => router.push("/conduit-fill")}
-            subtitle="Conduit capacity and sizing"
-            title="Fill Guide"
+            subtitle={t("Conduit capacity and sizing")}
+            title={t("Fill Guide")}
           />
 
           <ToolTile
             accent="blue"
             icon="∥"
             onPress={() => router.push("/wire-guide")}
-            subtitle="Ampacity and conductor limits"
-            title="Wire Guide"
+            subtitle={t("Ampacity and conductor limits")}
+            title={t("Wire Guide")}
           />
 
           <ToolTile
             accent="amber"
             icon="“”"
             onPress={() => router.push("/trade-talk")}
-            subtitle="Electrical terms and jobsite slang"
-            title="Trade Talk"
+            subtitle={t("Electrical terms and jobsite slang")}
+            title={t("Trade Talk")}
           />
 
           <ToolTile
             accent="blue"
             icon="↱"
             onPress={() => router.push("/bending")}
-            status="NEW"
-            subtitle="Bend marks and pipe layouts"
-            title="Bending"
+            status={t("NEW")}
+            subtitle={t("Bend marks and pipe layouts")}
+            title={t("Bending")}
           />
         </View>
 
         <View style={styles.footer}>
           <View style={styles.offlineDot} />
-          <Text style={styles.footerText}>READY OFFLINE</Text>
+          <Text style={styles.footerText}>{t("READY OFFLINE")}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

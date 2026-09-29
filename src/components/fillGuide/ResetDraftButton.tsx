@@ -1,11 +1,13 @@
+import { useI18n } from "../../i18n";
 import { Text } from "react-native";
 import { FeedbackPressable } from "../FeedbackPressable";
 import { defineStyles, Layout, Space, FontSize, Radius } from "../../theme";
 
 export function ResetDraftButton({ onPress, label }: { onPress: () => void; label: string }) {
   const styles = useStyles();
+  const { t } = useI18n();
   return <FeedbackPressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.button}>
-    <Text style={styles.text}>Reset</Text>
+    <Text style={styles.text}>{t("Reset")}</Text>
   </FeedbackPressable>;
 }
 const useStyles = defineStyles(({ colors }) => ({

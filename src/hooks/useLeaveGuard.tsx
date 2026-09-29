@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n";
 import { useEffect, useState } from "react";
 import { Modal, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,6 +9,7 @@ import { defineStyles, FontSize, Layout, Radius, Space } from "../theme";
 
 /** Native/system navigation and explicit local back actions share one decision. */
 export function useLeaveGuard(hasUnsavedChanges: boolean) {
+  const { t } = useI18n();
   const styles = useStyles();
   const navigation = useNavigation();
   const [pending, setPending] = useState<null | (() => void)>(null);
@@ -27,10 +29,10 @@ export function useLeaveGuard(hasUnsavedChanges: boolean) {
   const dialog = <Modal transparent animationType="fade" visible={!!pending} onRequestClose={() => setPending(null)}>
     <SafeAreaView style={styles.overlay}>
       <View style={styles.sheet}><ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Leave with unsaved changes?</Text>
-        <Text style={styles.body}>Keep editing to finish or retry saving. Leaving may discard unfinished entry text. Changes that could not be saved can be lost if you close the app.</Text>
-        <FeedbackPressable accessibilityRole="button" onPress={() => setPending(null)} style={styles.primary}><Text style={styles.primaryText}>Keep editing</Text></FeedbackPressable>
-        <FeedbackPressable accessibilityRole="button" onPress={() => { const action = pending; setPending(null); action?.(); }} style={styles.button}><Text style={styles.body}>Leave anyway</Text></FeedbackPressable>
+        <Text style={styles.title}>{t("Leave with unsaved changes?")}</Text>
+        <Text style={styles.body}>{t("Keep editing to finish or retry saving. Leaving may discard unfinished entry text. Changes that could not be saved can be lost if you close the app.")}</Text>
+        <FeedbackPressable accessibilityRole="button" onPress={() => setPending(null)} style={styles.primary}><Text style={styles.primaryText}>{t("Keep editing")}</Text></FeedbackPressable>
+        <FeedbackPressable accessibilityRole="button" onPress={() => { const action = pending; setPending(null); action?.(); }} style={styles.button}><Text style={styles.body}>{t("Leave anyway")}</Text></FeedbackPressable>
       </ScrollView></View>
     </SafeAreaView>
   </Modal>;

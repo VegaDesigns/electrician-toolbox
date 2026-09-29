@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { boxDraft } from "../../state/fillDrafts";
 import { useSessionField } from "../../hooks/useSessionField";
@@ -22,6 +23,7 @@ import {
   STANDARD_BOXES,
 } from "../../utils/boxFill/boxFill";
 import { useStyles } from "./styles";
+import { normalizeVolumeInput } from "./volumeInput";
 
 type Picker =
   | { kind: "device-size" }
@@ -66,8 +68,9 @@ function boxShape(family: BoxFamily): BoxShape {
 function standardBoxDescription(
   family: Exclude<BoxFamily, "marked">,
   depth: string,
+  t: (source: string, params?: Record<string, string>) => string,
 ) {
-  return `${boxFaceLabel(family)} × ${depth}″ deep · ${boxShapeLabel(family)}`;
+  return t("{{face}} × {{depth}}″ deep · {{shape}}", { face: boxFaceLabel(family), depth, shape: t(boxShapeLabel(family)) });
 }
 
 function addOnLabel(addOn: BoxAddOn) {
@@ -78,6 +81,7 @@ function addOnLabel(addOn: BoxAddOn) {
 
 export default function BoxFillScreen() {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const [boxFamily, setBoxFamily] = useSessionField(boxDraft, "boxFamily");
   const [depth, setDepth] = useSessionField(boxDraft, "depth");
@@ -131,10 +135,10 @@ export default function BoxFillScreen() {
     && resultLayout.y + resultLayout.height > scrollY + 12;
   const amountShort = Math.max(0, result.requiredVolume - availableVolume);
   const liveResultText = !isReady
-    ? needsAddOnVolume ? "ENTER ADD-ON VOLUME" : "ENTER BOX VOLUME"
+    ? needsAddOnVolume ? t("ENTER ADD-ON VOLUME") : t("ENTER BOX VOLUME")
     : result.fits
-      ? `FITS • ${result.remainingVolume.toFixed(1)} in³ remaining`
-      : `TOO FULL • Need ${amountShort.toFixed(1)} in³ more`;
+      ? t("FITS • {{volume}} in³ remaining", { volume: result.remainingVolume.toFixed(1) })
+      : t("TOO FULL • Need {{volume}} in³ more", { volume: amountShort.toFixed(1) });
 
   function chooseFamily(nextFamily: BoxFamily) {
     pulse();
@@ -225,29 +229,29 @@ export default function BoxFillScreen() {
   }
 
   const boxTitle = boxFamily === "marked"
-    ? "Marked box"
-    : standardBoxDescription(boxFamily, selectedStandardBox?.depth ?? depth);
+    ? t("Marked box")
+    : standardBoxDescription(boxFamily, selectedStandardBox?.depth ?? depth, t);
   const boxSummary = boxFamily === "marked"
-    ? "Stamped volume"
+    ? t("Stamped volume")
     : `${boxTitle}${extraVolume > 0
-      ? ` + ${extraVolume.toFixed(1)} in³ add-on`
+      ? t(" + {{volume}} in³ add-on", { volume: extraVolume.toFixed(1) })
       : needsAddOnVolume
-        ? " + add-on volume needed"
+        ? t(" + add-on volume needed")
         : ""} • ${availableVolume.toFixed(1)} in³`;
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => {
             pulse();
             returnHome();
           }} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
-          <Text style={styles.headerTitle}>Box Fill</Text>
+          <Text style={styles.headerEyebrow}>{t("FILL GUIDE")}</Text>
+          <Text style={styles.headerTitle}>{t("Box Fill")}</Text>
         </View>
-        <ResetDraftButton label="Reset box calculation" onPress={() => { pulse(); boxDraft.reset(); }} />
+        <ResetDraftButton label={t("Reset box calculation")} onPress={() => { pulse(); boxDraft.reset(); }} />
       </ScreenHeader>
 
       <View style={styles.modeSwitchWrap}>
@@ -266,12 +270,12 @@ export default function BoxFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>1</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Choose the box</Text>
-            <Text style={styles.sectionHint}>Use the shape you see—or its stamped volume.</Text>
+            <Text style={styles.sectionTitle}>{t("Choose the box")}</Text>
+            <Text style={styles.sectionHint}>{t("Use the shape you see—or its stamped volume.")}</Text>
           </View>
         </View>
 
-        <Text style={styles.depthLabel}>HOW DO YOU WANT TO CHOOSE THE BOX?</Text>
+        <Text style={styles.depthLabel}>{t("HOW DO YOU WANT TO CHOOSE THE BOX?")}</Text>
         <View style={styles.boxModeRow}>
           <Pressable
             accessibilityRole="button"
@@ -286,7 +290,7 @@ export default function BoxFillScreen() {
             <Text style={[
               styles.boxModeText,
               boxFamily !== "marked" && styles.boxModeTextSelected,
-            ]}>Common box</Text>
+            ]}>{t("Common box")}</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
@@ -301,7 +305,7 @@ export default function BoxFillScreen() {
             <Text style={[
               styles.boxModeText,
               boxFamily === "marked" && styles.boxModeTextSelected,
-            ]}>Use stamped volume</Text>
+            ]}>{t("Use stamped volume")}</Text>
           </Pressable>
         </View>
 
@@ -309,12 +313,13 @@ export default function BoxFillScreen() {
           <>
             <View style={styles.markedCard}>
               <View style={styles.markedCopy}>
-                <Text style={styles.markedLabel}>VOLUME STAMPED INSIDE BOX</Text>
+                <Text style={styles.markedLabel}>{t("VOLUME STAMPED INSIDE BOX")}</Text>
                 <TextInput
-                  accessibilityLabel="Box volume in cubic inches"
+                  accessibilityLabel={t("Box volume in cubic inches")}
                   keyboardType="decimal-pad"
                   onChangeText={(value) => {
-                    if (/^\d*\.?\d{0,2}$/.test(value)) setMarkedVolume(value);
+                    const normalized = normalizeVolumeInput(value);
+                    if (normalized !== null) setMarkedVolume(normalized);
                   }}
                   onSubmitEditing={() => Keyboard.dismiss()}
                   placeholder="30.3"
@@ -323,24 +328,24 @@ export default function BoxFillScreen() {
                   style={styles.markedInput}
                   value={markedVolume}
                 />
-                <Text style={styles.markedUnit}>Look inside for a number ending in in³.</Text>
+                <Text style={styles.markedUnit}>{t("Look inside for a number ending in in³.")}</Text>
               </View>
               <Pressable
                 accessibilityRole="button"
                 onPress={() => Keyboard.dismiss()}
                 style={({ pressed }) => [styles.doneKeyboardButton, pressed && styles.pressed]}
               >
-                <Text style={styles.doneKeyboardButtonText}>Done</Text>
+                <Text style={styles.doneKeyboardButtonText}>{t("Done")}</Text>
               </Pressable>
             </View>
           </>
         ) : (
           <>
-            <Text style={styles.depthLabel}>BUILD YOUR BOX</Text>
+            <Text style={styles.depthLabel}>{t("BUILD YOUR BOX")}</Text>
             <View style={styles.builderPanel}>
               <View style={styles.boxBuilderRow}>
                 <Pressable
-                  accessibilityLabel={`Box size ${boxFaceLabel(boxFamily)}`}
+                  accessibilityLabel={t("Box size {{size}}", { size: boxFaceLabel(boxFamily) })}
                   accessibilityRole="button"
                   onPress={() => {
                     pulse();
@@ -348,12 +353,12 @@ export default function BoxFillScreen() {
                   }}
                   style={({ pressed }) => [styles.builderControl, pressed && styles.pressed]}
                 >
-                  <Text style={styles.builderLabel}>SIZE</Text>
+                  <Text style={styles.builderLabel}>{t("SIZE")}</Text>
                   <Text style={styles.builderValue}>{boxFaceLabel(boxFamily)} <Text style={styles.builderChevron}>⌄</Text></Text>
                 </Pressable>
                 <Text style={styles.builderTimes}>×</Text>
                 <Pressable
-                  accessibilityLabel={`Box depth ${selectedStandardBox?.depth} inches`}
+                  accessibilityLabel={t("Box depth {{depth}} inches", { depth: selectedStandardBox?.depth ?? depth })}
                   accessibilityRole="button"
                   onPress={() => {
                     pulse();
@@ -361,11 +366,11 @@ export default function BoxFillScreen() {
                   }}
                   style={({ pressed }) => [styles.builderControl, pressed && styles.pressed]}
                 >
-                  <Text style={styles.builderLabel}>DEPTH</Text>
+                  <Text style={styles.builderLabel}>{t("DEPTH")}</Text>
                   <Text style={styles.builderValue}>{selectedStandardBox?.depth}″ <Text style={styles.builderChevron}>⌄</Text></Text>
                 </Pressable>
                 <Pressable
-                  accessibilityLabel={`Box shape ${boxShapeLabel(boxFamily)}`}
+                  accessibilityLabel={t("Box shape {{shape}}", { shape: t(boxShapeLabel(boxFamily)) })}
                   accessibilityRole="button"
                   onPress={() => {
                     pulse();
@@ -373,13 +378,13 @@ export default function BoxFillScreen() {
                   }}
                   style={({ pressed }) => [styles.builderControl, styles.builderShapeControl, pressed && styles.pressed]}
                 >
-                  <Text style={styles.builderLabel}>SHAPE</Text>
-                  <Text style={styles.builderValue}>{boxShapeLabel(boxFamily)} <Text style={styles.builderChevron}>⌄</Text></Text>
+                  <Text style={styles.builderLabel}>{t("SHAPE")}</Text>
+                  <Text style={styles.builderValue}>{t(boxShapeLabel(boxFamily))} <Text style={styles.builderChevron}>⌄</Text></Text>
                 </Pressable>
               </View>
 
               <Pressable
-                accessibilityLabel={`Box add-on ${addOnLabel(addOn)}`}
+                accessibilityLabel={t("Box add-on {{addon}}", { addon: t(addOnLabel(addOn)) })}
                 accessibilityRole="button"
                 onPress={() => {
                   pulse();
@@ -387,9 +392,9 @@ export default function BoxFillScreen() {
                 }}
                 style={({ pressed }) => [styles.addOnControl, pressed && styles.pressed]}
               >
-                <View>
-                  <Text style={styles.builderLabel}>ADD-ON</Text>
-                  <Text style={styles.addOnValue}>{addOnLabel(addOn)}</Text>
+                <View style={styles.flexibleCopy}>
+                  <Text style={styles.builderLabel}>{t("ADD-ON")}</Text>
+                  <Text style={styles.addOnValue}>{t(addOnLabel(addOn))}</Text>
                 </View>
                 <Text style={styles.chevron}>⌄</Text>
               </Pressable>
@@ -397,12 +402,13 @@ export default function BoxFillScreen() {
               {addOn !== "none" ? (
                 <View style={styles.addOnVolumeCard}>
                   <View style={styles.markedCopy}>
-                    <Text style={styles.markedLabel}>VOLUME MARKED ON ADD-ON</Text>
+                    <Text style={styles.markedLabel}>{t("VOLUME MARKED ON ADD-ON")}</Text>
                     <TextInput
-                      accessibilityLabel="Add-on volume in cubic inches"
+                      accessibilityLabel={t("Add-on volume in cubic inches")}
                       keyboardType="decimal-pad"
                       onChangeText={(value) => {
-                        if (/^\d*\.?\d{0,2}$/.test(value)) setAddOnVolume(value);
+                        const normalized = normalizeVolumeInput(value);
+                        if (normalized !== null) setAddOnVolume(normalized);
                       }}
                       onSubmitEditing={() => Keyboard.dismiss()}
                       placeholder="0.0"
@@ -411,14 +417,14 @@ export default function BoxFillScreen() {
                       style={styles.addOnVolumeInput}
                       value={addOnVolume}
                     />
-                    <Text style={styles.markedUnit}>Use the capacity marked by the manufacturer.</Text>
+                    <Text style={styles.markedUnit}>{t("Use the capacity marked by the manufacturer.")}</Text>
                   </View>
                   <Pressable
                     accessibilityRole="button"
                     onPress={() => Keyboard.dismiss()}
                     style={({ pressed }) => [styles.doneKeyboardButton, pressed && styles.pressed]}
                   >
-                    <Text style={styles.doneKeyboardButtonText}>Done</Text>
+                    <Text style={styles.doneKeyboardButtonText}>{t("Done")}</Text>
                   </Pressable>
                 </View>
               ) : null}
@@ -435,14 +441,13 @@ export default function BoxFillScreen() {
           }}
           style={({ pressed }) => [styles.boxHelpButton, pressed && styles.pressed]}
         >
-          <Text style={styles.boxHelpButtonText}>How do I identify this?</Text>
+          <Text style={styles.boxHelpButtonText}>{t("How do I identify this?")}</Text>
           <Text style={styles.chevron}>{showBoxHelp ? "⌃" : "⌄"}</Text>
         </Pressable>
         {showBoxHelp ? (
           <View style={styles.boxHelpCard}>
             <Text style={styles.boxHelpText}>
-              Match the face size, depth, and shape you see. “3″ × 2″” means a device or switch box—not a 3″ square box. For plastic, masonry, gangable, or unusual boxes, use the cubic-inch capacity stamped by the manufacturer.
-            </Text>
+              {t("Match the face size, depth, and shape you see. “3″ × 2″” means a device or switch box—not a 3″ square box. For plastic, masonry, gangable, or unusual boxes, use the cubic-inch capacity stamped by the manufacturer.")}</Text>
           </View>
         ) : null}
 
@@ -451,8 +456,8 @@ export default function BoxFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>2</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Add wires</Text>
-            <Text style={styles.sectionHint}>Count every wire entering or leaving the box.</Text>
+            <Text style={styles.sectionTitle}>{t("Add wires")}</Text>
+            <Text style={styles.sectionHint}>{t("Count every wire entering or leaving the box.")}</Text>
           </View>
         </View>
 
@@ -461,13 +466,13 @@ export default function BoxFillScreen() {
             <View key={wire.id} style={styles.wireCard}>
               <View style={styles.wireTopRow}>
                 <FillQuantityControl
-                  accessibilityLabel={`${displayWireSize(wire.size)} wire quantity`}
+                accessibilityLabel={t("{{size}} wire quantity", { size: displayWireSize(wire.size) })}
                   onChange={(quantity) => setQuantity(wire.id, quantity)}
                   value={wire.quantity}
                 />
 
                 <Pressable
-                  accessibilityLabel={`Wire size ${displayWireSize(wire.size)}`}
+                accessibilityLabel={t("Wire size {{size}}", { size: displayWireSize(wire.size) })}
                   accessibilityRole="button"
                   onPress={() => {
                     pulse();
@@ -476,7 +481,7 @@ export default function BoxFillScreen() {
                   style={({ pressed }) => [styles.wireSizeButton, pressed && styles.pressed]}
                 >
                   <View>
-                    <Text style={styles.controlLabel}>WIRE SIZE</Text>
+                    <Text style={styles.controlLabel}>{t("WIRE SIZE")}</Text>
                     <Text style={styles.controlValue}>{displayWireSize(wire.size)}</Text>
                   </View>
                   <Text style={styles.chevron}>⌄</Text>
@@ -484,7 +489,7 @@ export default function BoxFillScreen() {
 
                 {wires.length > 1 ? (
                   <Pressable
-                    accessibilityLabel="Remove this wire row"
+                    accessibilityLabel={t("Remove this wire row")}
                     accessibilityRole="button"
                     onPress={() => removeWire(wire.id)}
                     style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
@@ -495,7 +500,7 @@ export default function BoxFillScreen() {
               </View>
 
               <Pressable
-                accessibilityLabel={`Count as ${roleLabel(wire.role)}`}
+                accessibilityLabel={t("Count as {{role}}", { role: t(roleLabel(wire.role)) })}
                 accessibilityRole="button"
                 onPress={() => {
                   pulse();
@@ -504,11 +509,11 @@ export default function BoxFillScreen() {
                 style={({ pressed }) => [styles.roleButton, pressed && styles.pressed]}
               >
                 <View style={styles.roleCopy}>
-                  <Text style={styles.controlLabel}>COUNT AS</Text>
-                  <Text style={styles.roleValue}>{roleLabel(wire.role)}</Text>
+                  <Text style={styles.controlLabel}>{t("COUNT AS")}</Text>
+                  <Text style={styles.roleValue}>{t(roleLabel(wire.role))}</Text>
                 </View>
                 <View style={[styles.roleBadge, wire.role === "ground" && styles.roleBadgeGround]}>
-                  <Text style={styles.roleBadgeText}>{wire.role === "ground" ? "GND" : "WIRE"}</Text>
+                  <Text style={styles.roleBadgeText}>{wire.role === "ground" ? t("GND") : t("WIRE")}</Text>
                 </View>
                 <Text style={styles.chevron}>⌄</Text>
               </Pressable>
@@ -522,7 +527,7 @@ export default function BoxFillScreen() {
           style={({ pressed }) => [styles.addWireButton, pressed && styles.pressed]}
         >
           <Text style={styles.addWireIcon}>＋</Text>
-          <Text style={styles.addWireText}>Add another wire</Text>
+          <Text style={styles.addWireText}>{t("Add another wire")}</Text>
         </Pressable>
 
         <View style={styles.divider} />
@@ -530,27 +535,27 @@ export default function BoxFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>3</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Devices and clamps</Text>
-            <Text style={styles.sectionHint}>Tell us what is installed. The app calculates the space.</Text>
+            <Text style={styles.sectionTitle}>{t("Devices and clamps")}</Text>
+            <Text style={styles.sectionHint}>{t("Tell us what is installed. The app calculates the space.")}</Text>
           </View>
         </View>
 
         <View style={styles.extraCard}>
           <View style={styles.extraRow}>
             <View style={styles.extraCopy}>
-              <Text style={styles.extraTitle}>Switches or receptacles</Text>
-              <Text style={styles.extraHint}>How many device straps are mounted?</Text>
+              <Text style={styles.extraTitle}>{t("Switches or receptacles")}</Text>
+              <Text style={styles.extraHint}>{t("How many device straps are mounted?")}</Text>
             </View>
             <View style={styles.smallStepper}>
               <Pressable
-                accessibilityLabel="Remove one device"
+                accessibilityLabel={t("Remove one device")}
                 accessibilityRole="button"
                 onPress={() => changeDeviceCount(-1)}
                 style={({ pressed }) => [styles.smallStepButton, pressed && styles.pressed]}
               ><Text style={styles.smallStepText}>−</Text></Pressable>
               <Text style={styles.smallStepValue}>{deviceCount}</Text>
               <Pressable
-                accessibilityLabel="Add one device"
+                accessibilityLabel={t("Add one device")}
                 accessibilityRole="button"
                 onPress={() => changeDeviceCount(1)}
                 style={({ pressed }) => [styles.smallStepButton, pressed && styles.pressed]}
@@ -560,7 +565,7 @@ export default function BoxFillScreen() {
 
           {deviceCount > 0 ? (
             <Pressable
-              accessibilityLabel={`Largest wire attached to devices ${displayWireSize(deviceWireSize)}`}
+              accessibilityLabel={t("Largest wire attached to devices {{size}}", { size: displayWireSize(deviceWireSize) })}
               accessibilityRole="button"
               onPress={() => {
                 pulse();
@@ -568,8 +573,8 @@ export default function BoxFillScreen() {
               }}
               style={({ pressed }) => [styles.deviceSizeRow, pressed && styles.pressed]}
             >
-              <View>
-                <Text style={styles.controlLabel}>LARGEST WIRE CONNECTED TO A DEVICE</Text>
+              <View style={styles.flexibleCopy}>
+                <Text style={styles.controlLabel}>{t("LARGEST WIRE CONNECTED TO A DEVICE")}</Text>
                 <Text style={styles.deviceSizeValue}>{displayWireSize(deviceWireSize)}</Text>
               </View>
               <Text style={styles.chevron}>⌄</Text>
@@ -578,8 +583,7 @@ export default function BoxFillScreen() {
 
           {deviceCount > 0 ? (
             <Text style={styles.deviceHelp}>
-              No device volume is needed. Each strap counts as two allowances based on this wire size.
-            </Text>
+              {t("No device volume is needed. Each strap counts as two allowances based on this wire size.")}</Text>
           ) : null}
 
           <View style={styles.extraDivider} />
@@ -594,8 +598,8 @@ export default function BoxFillScreen() {
             style={({ pressed }) => [styles.extraRow, pressed && styles.pressed]}
           >
             <View style={styles.extraCopy}>
-              <Text style={styles.extraTitle}>Internal cable clamp</Text>
-              <Text style={styles.extraHint}>A clamp built into the box</Text>
+              <Text style={styles.extraTitle}>{t("Internal cable clamp")}</Text>
+              <Text style={styles.extraHint}>{t("A clamp built into the box")}</Text>
             </View>
             <View style={[styles.toggle, hasInternalClamp && styles.toggleOn]}>
               <View style={[styles.toggleKnob, hasInternalClamp && styles.toggleKnobOn]} />
@@ -609,21 +613,21 @@ export default function BoxFillScreen() {
           !isReady && styles.resultCardWaiting,
         ]} onLayout={(event) => setResultLayout(event.nativeEvent.layout)}>
           <View style={styles.resultTopRow}>
-            <View>
-              <Text style={styles.resultEyebrow}>RESULT</Text>
+            <View style={styles.flexibleCopy}>
+              <Text style={styles.resultEyebrow}>{t("RESULT")}</Text>
               <Text style={[
                 styles.resultStatus,
                 isReady && !result.fits && styles.resultStatusFail,
                 !isReady && styles.resultStatusWaiting,
               ]}>
                 {!isReady
-                  ? needsAddOnVolume ? "ENTER ADD-ON" : "ENTER VOLUME"
-                  : result.fits ? "FITS" : "TOO FULL"}
+                  ? needsAddOnVolume ? t("ENTER ADD-ON") : t("ENTER VOLUME")
+                  : result.fits ? t("FITS") : t("TOO FULL")}
               </Text>
             </View>
             <View style={styles.volumeBadge}>
               <Text style={styles.volumeBadgeValue}>{result.requiredVolume.toFixed(1)}</Text>
-              <Text style={styles.volumeBadgeLabel}>in³ NEEDED</Text>
+              <Text style={styles.volumeBadgeLabel}>{t("in³ NEEDED")}</Text>
             </View>
           </View>
 
@@ -639,30 +643,30 @@ export default function BoxFillScreen() {
 
           <View style={styles.resultDetails}>
             <View style={styles.detailBlock}>
-              <Text style={styles.detailLabel}>AVAILABLE</Text>
+              <Text style={styles.detailLabel}>{t("AVAILABLE")}</Text>
               <Text style={styles.detailValue}>{isReady ? `${availableVolume.toFixed(1)} in³` : "—"}</Text>
               <Text style={styles.detailCaption}>{boxTitle}</Text>
             </View>
             <View style={styles.detailRule} />
             <View style={styles.detailBlock}>
-              <Text style={styles.detailLabel}>{result.fits ? "SPACE LEFT" : "NEXT STEP"}</Text>
+              <Text style={styles.detailLabel}>{result.fits ? t("SPACE LEFT") : t("NEXT STEP")}</Text>
               <Text style={styles.detailValue}>
                 {!isReady
-                  ? needsAddOnVolume ? "Enter add-on" : "Enter stamp"
+                  ? needsAddOnVolume ? t("Enter add-on") : t("Enter stamp")
                   : result.fits
                     ? `${result.remainingVolume.toFixed(1)} in³`
                     : nextBox
-                      ? `${nextBox.volume.toFixed(1)} in³ box`
-                      : `Need ${result.requiredVolume.toFixed(1)} in³`}
+                      ? t("{{volume}} in³ box", { volume: nextBox.volume.toFixed(1) })
+                      : t("Need {{volume}} in³", { volume: result.requiredVolume.toFixed(1) })}
               </Text>
               <Text style={styles.detailCaption}>
                 {!isReady
-                  ? needsAddOnVolume ? "Use its marked volume" : "Look inside the box"
+                  ? needsAddOnVolume ? t("Use its marked volume") : t("Look inside the box")
                   : result.fits
-                    ? "Remaining capacity"
+                    ? t("Remaining capacity")
                     : nextBox
-                      ? standardBoxDescription(nextBox.family, nextBox.depth)
-                      : "Choose a larger box"}
+                      ? standardBoxDescription(nextBox.family, nextBox.depth, t)
+                      : t("Choose a larger box")}
               </Text>
             </View>
           </View>
@@ -675,30 +679,29 @@ export default function BoxFillScreen() {
             }}
             style={({ pressed }) => [styles.breakdownButton, pressed && styles.pressed]}
           >
-            <Text style={styles.breakdownButtonText}>{showBreakdown ? "Hide breakdown" : "See what counts"}</Text>
+            <Text style={styles.breakdownButtonText}>{showBreakdown ? t("Hide breakdown") : t("See what counts")}</Text>
             <Text style={styles.chevron}>{showBreakdown ? "⌃" : "⌄"}</Text>
           </Pressable>
 
           {showBreakdown ? (
             <View style={styles.breakdownList}>
-              <BreakdownRow label="Insulated wires" value={result.breakdown.insulated} />
-              <BreakdownRow label="Equipment grounds" value={result.breakdown.grounds} />
-              <BreakdownRow label="Device straps" value={result.breakdown.devices} />
-              <BreakdownRow label="Internal clamp" value={result.breakdown.clamps} />
+              <BreakdownRow label={t("Insulated wires")} value={result.breakdown.insulated} />
+              <BreakdownRow label={t("Equipment grounds")} value={result.breakdown.grounds} />
+              <BreakdownRow label={t("Device straps")} value={result.breakdown.devices} />
+              <BreakdownRow label={t("Internal clamp")} value={result.breakdown.clamps} />
             </View>
           ) : null}
         </View>
 
         <View style={styles.codeNote}>
-          <Text style={styles.codeNoteTitle}>FIELD REFERENCE</Text>
+          <Text style={styles.codeNoteTitle}>{t("FIELD REFERENCE")}</Text>
           <Text style={styles.codeNoteText}>
-            Solid and stranded conductors use the same volume allowance here. Verify the box’s manufacturer marking, local rules, project specifications, and job requirements before installation. Larger conductors and pull-box sizing require a different calculation.
-          </Text>
+            {t("Solid and stranded conductors use the same volume allowance here. Verify the box’s manufacturer marking, local rules, project specifications, and job requirements before installation. Larger conductors and pull-box sizing require a different calculation.")}</Text>
         </View>
       </ScrollView>
 
       {!resultIsVisible ? <Pressable
-        accessibilityHint="Jumps to the full box fill result"
+        accessibilityHint={t("Jumps to the full box fill result")}
         accessibilityRole="button"
         onPress={() => {
           pulse();
@@ -716,7 +719,7 @@ export default function BoxFillScreen() {
           <Text style={styles.liveResultStatus}>{liveResultText}</Text>
           <Text numberOfLines={1} style={styles.liveResultBox}>{boxSummary}</Text>
         </View>
-        <Text style={styles.liveResultArrow}>View details ↑</Text>
+        <Text style={styles.liveResultArrow}>{t("View details ↑")}</Text>
       </Pressable> : null}
 
       <Modal
@@ -731,23 +734,23 @@ export default function BoxFillScreen() {
             <View style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
-                <View>
-                  <Text style={styles.sheetEyebrow}>BUILD YOUR BOX</Text>
+                <View style={styles.flexibleCopy}>
+                  <Text style={styles.sheetEyebrow}>{t("BUILD YOUR BOX")}</Text>
                   <Text style={styles.sheetTitle}>
                     {boxBuilderPicker === "size"
-                      ? "Choose face size"
+                      ? t("Choose face size")
                       : boxBuilderPicker === "depth"
-                        ? "Choose depth"
+                        ? t("Choose depth")
                         : boxBuilderPicker === "shape"
-                          ? "Choose shape"
-                          : "Add anything?"}
+                          ? t("Choose shape")
+                          : t("Add anything?")}
                   </Text>
                 </View>
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => setBoxBuilderPicker(null)}
                   style={styles.doneButton}
-                ><Text style={styles.doneButtonText}>Done</Text></Pressable>
+                ><Text style={styles.doneButtonText}>{t("Done")}</Text></Pressable>
               </View>
 
               <View style={styles.builderOptions}>
@@ -773,8 +776,8 @@ export default function BoxFillScreen() {
                         ]}
                       >
                         <View style={styles.builderOptionCopy}>
-                          <Text style={styles.builderOptionTitle}>{option.label}</Text>
-                          <Text style={styles.builderOptionHint}>{option.hint}</Text>
+                          <Text style={styles.builderOptionTitle}>{t(option.label)}</Text>
+                          <Text style={styles.builderOptionHint}>{t(option.hint)}</Text>
                         </View>
                         {boxFamily === option.family ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
                       </Pressable>
@@ -785,8 +788,8 @@ export default function BoxFillScreen() {
                       style={({ pressed }) => [styles.builderOption, pressed && styles.pressed]}
                     >
                       <View style={styles.builderOptionCopy}>
-                        <Text style={styles.builderOptionTitle}>Other box</Text>
-                        <Text style={styles.builderOptionHint}>Use its stamped cubic-inch capacity</Text>
+                        <Text style={styles.builderOptionTitle}>{t("Other box")}</Text>
+                        <Text style={styles.builderOptionHint}>{t("Use its stamped cubic-inch capacity")}</Text>
                       </View>
                       <Text style={styles.chevron}>→</Text>
                     </Pressable>
@@ -804,8 +807,8 @@ export default function BoxFillScreen() {
                       ]}
                     >
                       <View style={styles.builderOptionCopy}>
-                        <Text style={styles.builderOptionTitle}>{option.depth}″ deep</Text>
-                        <Text style={styles.builderOptionHint}>{option.volume.toFixed(1)} in³ box capacity</Text>
+                        <Text style={styles.builderOptionTitle}>{t("{{depth}}″ deep", { depth: option.depth })}</Text>
+                        <Text style={styles.builderOptionHint}>{t("{{volume}} in³ box capacity", { volume: option.volume.toFixed(1) })}</Text>
                       </View>
                       {depth === option.depth ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
                     </Pressable>
@@ -827,8 +830,8 @@ export default function BoxFillScreen() {
                       ]}
                     >
                       <View style={styles.builderOptionCopy}>
-                        <Text style={styles.builderOptionTitle}>{option.label}</Text>
-                        <Text style={styles.builderOptionHint}>{option.hint}</Text>
+                        <Text style={styles.builderOptionTitle}>{t(option.label)}</Text>
+                        <Text style={styles.builderOptionHint}>{t(option.hint)}</Text>
                       </View>
                       {boxShape(boxFamily) === option.shape ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
                     </Pressable>
@@ -846,9 +849,9 @@ export default function BoxFillScreen() {
                       ]}
                     >
                       <View style={styles.builderOptionCopy}>
-                        <Text style={styles.builderOptionTitle}>{addOnLabel(option)}</Text>
+                        <Text style={styles.builderOptionTitle}>{t(addOnLabel(option))}</Text>
                         <Text style={styles.builderOptionHint}>
-                          {option === "none" ? "Box only" : "Enter the volume marked on the add-on"}
+                          {option === "none" ? t("Box only") : t("Enter the volume marked on the add-on")}
                         </Text>
                       </View>
                       {addOn === option ? <Text style={styles.builderOptionCheck}>✓</Text> : null}
@@ -873,17 +876,17 @@ export default function BoxFillScreen() {
             <View style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
-                <View>
-                  <Text style={styles.sheetEyebrow}>BOX FILL INPUT</Text>
+                <View style={styles.flexibleCopy}>
+                  <Text style={styles.sheetEyebrow}>{t("BOX FILL INPUT")}</Text>
                   <Text style={styles.sheetTitle}>
-                    {picker?.kind === "role" ? "What kind of wire?" : "Choose wire size"}
+                    {picker?.kind === "role" ? t("What kind of wire?") : t("Choose wire size")}
                   </Text>
                 </View>
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => setPicker(null)}
                   style={styles.doneButton}
-                ><Text style={styles.doneButtonText}>Done</Text></Pressable>
+                ><Text style={styles.doneButtonText}>{t("Done")}</Text></Pressable>
               </View>
 
               {picker?.kind === "role" ? (
@@ -905,11 +908,11 @@ export default function BoxFillScreen() {
                           <Text style={styles.roleOptionIconText}>{role === "ground" ? "G" : "W"}</Text>
                         </View>
                         <View style={styles.roleOptionCopy}>
-                          <Text style={styles.roleOptionTitle}>{roleLabel(role)}</Text>
+                          <Text style={styles.roleOptionTitle}>{t(roleLabel(role))}</Text>
                           <Text style={styles.roleOptionHint}>
                             {role === "ground"
-                              ? "Bare or insulated equipment grounding conductor"
-                              : "Hot, neutral, traveler, or other insulated conductor"}
+                              ? t("Bare or insulated equipment grounding conductor")
+                              : t("Hot, neutral, traveler, or other insulated conductor")}
                           </Text>
                         </View>
                         {selected ? <Text style={styles.roleOptionCheck}>✓</Text> : null}

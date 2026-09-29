@@ -22,3 +22,13 @@ test("material run excludes collected items and preserves task context", () => {
   assert.ok(!output.includes("Already collected"));
   assert.ok(!output.includes("Straps"));
 });
+
+test("Spanish legacy exports keep jobs, notes, material names and stored units untouched", () => {
+  const item = { ...createWorkItem("a", "task", "Materials"), location: "Floor 2", waitingOn: "Devices", notes: "Do not translate my words",
+    materials: [{ id: "m", name: "Wire", quantity: 200, unit: "ft", collected: false }] };
+  const output = formatJobList("School", [item], "es");
+  assert.ok(output.includes("Ubicación: Floor 2"));
+  assert.ok(output.includes("En espera de: Devices"));
+  assert.ok(output.includes("Do not translate my words"));
+  assert.ok(formatMaterialRun("School", [item], "es").includes("200 ft Wire — para Materials"));
+});

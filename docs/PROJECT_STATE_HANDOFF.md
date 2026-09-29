@@ -1,5 +1,23 @@
 # Electrician Toolbox — project-state handoff
 
+## TestFlight preparation authorized — September 28, 2026
+
+The owner approved proceeding with TestFlight after reviewing the Spanish preview and the proposed save/push/build sequence. The bilingual 0.9.4 checkpoint is being saved on `fix/reliability-and-ux`; use the existing `fieldtest` store-distribution profile and separate update channel. The owner supplied a feedback email in conversation for Apple's tester feedback fields only; do not copy that personal address into public repository documentation or silently make it the app's public support contact.
+
+Final pre-save TypeScript, ESLint and all 201 tests passed; the independent release-hygiene review found no blocker. Native signing, cloud build, App Store Connect upload/processing and beta review still need live confirmation. No completed TestFlight build or invitation is claimed here. Stop for account details, required agreements, or changes to security-sensitive access. Coworker invitations and public App Store release require a separate confirmation. Public-launch and monetization gates remain open.
+
+## Current local work — Spanish support, 0.9.4 (not built or pushed)
+
+September 28, 2026. The owner requested Spanish for a mixed-country crew, standard-term Spanish dictionary translations and a way to suggest additional words. This local pass starts from `56c78288049cbbfd2d2058a19c5dd18395d62850` on `fix/reliability-and-ux` in the authoritative September 13 checkout. It has **not** been committed, pushed or put into a new installable binary. The installed 0.9.3 (9) receipt below remains valid but does not contain Spanish.
+
+- Settings now offers Automatic / English / Español for the same offline app. The optional language value is saved in the existing appearance record and included in the existing nine-domain backup; legacy records remain valid.
+- All main tools, Help, Backup, errors, safety warnings and presentation/share labels are translated. User-entered notes/names/equations, IDs, calculations and U.S. units remain unchanged. Box Fill volume inputs also accept a decimal comma from regional native keyboards.
+- Trade Talk has Spanish presentations for all 43 entries, bilingual accent-insensitive search, unchanged favorite IDs, and four translated quiz questions. English slang aliases remain visible. A new suggestion form previews the exact payload before manual Copy/native Share; it sends nothing automatically and has no backend, publishing or persistent draft store. Tester-to-owner sharing is the local-first default; public inbox/moderation and future question generation remain undecided.
+- Added `expo-localization` with English/Spanish native locales. Local version/runtime is 0.9.4; this needs a new native binary, not an OTA-only update to 0.9.3. Native build/upload/invitations are not authorized by this turn.
+- Checks: 201 tests, TypeScript, ESLint, 21/21 Expo Doctor, and production bundle exports for iOS/Android/web pass. Browser checks cover language persistence, panel results, fill selection, ampacity settings, Workpad controls, bending, dictionaries, suggestions and unchanged user content. Actual iPhone Spanish layouts/keyboard/VoiceOver and qualified bilingual electrician review remain pending.
+
+See **LOCALIZATION.md** for architecture, changed file groups, decisions, QA evidence and limitations. Next: owner/coworker language review in the refreshed Expo Go preview, then fix reported wording/layout issues; only save/push/build when requested. No public-release gate or payment flag was cleared.
+
 ## Current iPhone field-test build — 0.9.3 (9), September 28, 2026
 
 The owner approved saving/pushing the current work and creating a new **internal iPhone preview** for their already-registered phone. This supersedes the previous section's pending save/build status, not its open public-release gates. The source includes the calculator caret fixes, timed Undo, fraction-friendly bending entry and launch groundwork described below. Final pre-save checks passed: TypeScript, ESLint and all 175 automated tests; an independent file/config review found no release-hygiene blocker. App version/runtime is 0.9.3; remote iOS build numbering remains automatic.

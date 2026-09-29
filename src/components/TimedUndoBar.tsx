@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n";
 import React, { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, AppState, Easing, Platform, Text, View } from "react-native";
 import { defineStyles, FontSize, Space, useAppTheme } from "../theme";
@@ -10,6 +11,7 @@ export const UNDO_DURATION_MS = 5000;
 export function TimedUndoBar({ message, paused, onUndo, onExpire }: {
   message: string; paused: boolean; onUndo: () => void; onExpire: () => void;
 }) {
+  const { t } = useI18n();
   const styles = useStyles();
   const { reduceMotion } = useAppTheme();
   const [foreground, setForeground] = useState(AppState.currentState !== "background" && AppState.currentState !== "inactive");
@@ -57,8 +59,8 @@ export function TimedUndoBar({ message, paused, onUndo, onExpire }: {
   return <View style={styles.bar}>
     <View style={styles.row}>
       <Text accessibilityLiveRegion="polite" style={styles.message}>{message}</Text>
-      <FeedbackPressable accessibilityRole="button" accessibilityLabel="Undo removal" disabled={paused}
-        onPress={onUndo} style={styles.button}><Text style={[styles.action, paused && styles.disabled]}>Undo</Text></FeedbackPressable>
+      <FeedbackPressable accessibilityRole="button" accessibilityLabel={t("Undo removal")} disabled={paused}
+        onPress={onUndo} style={styles.button}><Text style={[styles.action, paused && styles.disabled]}>{t("Undo")}</Text></FeedbackPressable>
     </View>
     <View style={styles.track} aria-hidden>
       <Animated.View testID="undo-countdown" style={[styles.progress, { width: progress.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />

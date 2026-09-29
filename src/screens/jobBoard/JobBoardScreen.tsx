@@ -1,3 +1,5 @@
+import { translate, type Language } from "../../i18n/core";
+import { useI18n } from "../../i18n";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { router } from "expo-router";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
@@ -14,7 +16,6 @@ import {
   createWorkItem,
   dateKeyFromChoice,
   dueChoice,
-  dueLabel,
   jobProgress,
   KIND_ICONS,
   KIND_LABELS,
@@ -63,15 +64,25 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function itemMeta(item: WorkItem, jobs: Job[]) {
+function localizedDueLabel(dueOn: string, language: Language): string {
+  const choice = dueChoice(dueOn);
+  if (choice === "today" || choice === "tomorrow") return translate(DUE_LABELS[choice], {}, language);
+  const [year, month, day] = dueOn.split("-").map(Number);
+  if (!year || !month || !day) return "";
+  const label = new Date(year, month - 1, day).toLocaleDateString(language === "es" ? "es-US" : "en-US", { month: "short", day: "numeric" });
+  return dueOn < localDateKey() ? translate("Overdue {{date}}", { date: label }, language) : label;
+}
+
+function itemMeta(item: WorkItem, jobs: Job[], language: Language) {
   const job = jobs.find(({ id }) => id === item.jobId)?.name;
-  return [job, item.location, item.dueOn ? dueLabel(item.dueOn) : null]
+  return [job, item.location, item.dueOn ? localizedDueLabel(item.dueOn, language) : null]
     .filter(Boolean)
     .join("  •  ");
 }
 
 export default function JobBoardScreen() {
   const styles = useStyles();
+  const { t, language } = useI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   const [data, setBoardData] = useState<JobBoardData>({ jobs: [], items: [] });
@@ -136,7 +147,7 @@ export default function JobBoardScreen() {
         if (version === revision.current) { unsaved.current = false; setSaveError(""); }
         return true;
       } catch {
-        if (version === revision.current) setSaveError("Changes aren't saved yet. Keep this screen open and retry.");
+        if (version === revision.current) setSaveError(t("Changes aren't saved yet. Keep this screen open and retry."));
         return false;
       } finally {
         if (version === revision.current) setSaving(false);
@@ -176,7 +187,7 @@ export default function JobBoardScreen() {
     setQuickTitle("");
     Keyboard.dismiss();
     pulse("success");
-    flash(`${KIND_LABELS[quickKind]} added`);
+    flash(t("{{kind}} added", { kind: t(KIND_LABELS[quickKind]) }));
   }
 
   function updateItem(next: WorkItem) {
@@ -206,7 +217,7 @@ export default function JobBoardScreen() {
     setDraft(null);
     Keyboard.dismiss();
     pulse("success");
-    flash("Changes saved");
+    flash(t("Changes saved"));
   }
 
   function deleteDraft() {
@@ -221,15 +232,15 @@ export default function JobBoardScreen() {
       }));
       setDraft(null);
       pulse();
-      flash("Item deleted");
+      flash(t("Item deleted"));
     };
     if (Platform.OS === "web") {
-      if (globalThis.confirm?.("Delete this item?")) remove();
+      if (globalThis.confirm?.(t("Delete this item?"))) remove();
       return;
     }
-    Alert.alert("Delete this item?", "This removes it from your Jobsite Lists.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: remove },
+    Alert.alert(t("Delete this item?"), t("This removes it from your Jobsite Lists."), [
+      { text: t("Cancel"), style: "cancel" },
+      { text: t("Delete"), style: "destructive", onPress: remove },
     ]);
   }
 
@@ -243,7 +254,7 @@ export default function JobBoardScreen() {
     setNewJobName("");
     Keyboard.dismiss();
     pulse("success");
-    flash("Job created");
+    flash(t("Job created"));
   }
 
   function deleteJob(job: Job) {
@@ -259,18 +270,18 @@ export default function JobBoardScreen() {
       }));
       if (selectedJobId === job.id) setSelectedJobId(null);
       if (materialJobId === job.id) setMaterialJobId(null);
-      flash("Job removed");
+      flash(t("Job removed"));
     };
     if (Platform.OS === "web") {
-      if (globalThis.confirm?.(`Remove ${job.name}?`)) remove();
+      if (globalThis.confirm?.(t("Remove {{name}}?", { name: job.name }))) remove();
       return;
     }
     Alert.alert(
-      `Remove ${job.name}?`,
-      "Its work items will stay safe in My List.",
+      t("Remove {{name}}?", { name: job.name }),
+      t("Its work items will stay safe in My List."),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive", onPress: remove },
+        { text: t("Cancel"), style: "cancel" },
+        { text: t("Remove"), style: "destructive", onPress: remove },
       ],
     );
   }
@@ -318,16 +329,16 @@ export default function JobBoardScreen() {
     try {
       if (copy || Platform.OS === "web") {
         await Clipboard.setStringAsync(text);
-        setShareFeedback("List copied");
+        setShareFeedback(t("List copied"));
       } else {
         await Share.share({ message: text });
       }
-    } catch { setShareError("Couldn't share the list. Try Copy list instead."); }
+    } catch { setShareError(t("Couldn't share the list. Try Copy list instead.")); }
   }
   function shareButtons(text: string) {
     return <View style={styles.choiceRow}>
-      <Pressable accessibilityRole="button" onPress={() => { void exportList(text, true); }} style={styles.completedLink}><Text style={styles.completedLinkText}>Copy list</Text></Pressable>
-      {Platform.OS !== "web" ? <Pressable accessibilityRole="button" onPress={() => { void exportList(text, false); }} style={styles.completedLink}><Text style={styles.completedLinkText}>Share list</Text></Pressable> : null}
+      <Pressable accessibilityRole="button" onPress={() => { void exportList(text, true); }} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Copy list")}</Text></Pressable>
+      {Platform.OS !== "web" ? <Pressable accessibilityRole="button" onPress={() => { void exportList(text, false); }} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Share list")}</Text></Pressable> : null}
     </View>;
   }
 
@@ -362,24 +373,24 @@ export default function JobBoardScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Back to Jobsite Lists"
+        <BackButton accessibilityLabel={t("Back to Jobsite Lists")}
           onPress={() => router.dismissTo("/job-board")} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Previous Job Board</Text>
+          <Text style={styles.headerTitle}>{t("Previous Job Board")}</Text>
         </View>
         <View style={styles.openBadge}>
           <Text style={styles.openBadgeNumber}>{openItems.length}</Text>
-          <Text style={styles.openBadgeLabel}>OPEN</Text>
+          <Text style={styles.openBadgeLabel}>{t("OPEN")}</Text>
         </View>
       </ScreenHeader>
 
       <View style={styles.boardStatus}>
         {shareFeedback ? <Text style={styles.sectionHint}>{shareFeedback}</Text> : null}
         {shareError ? <Text style={styles.errorText}>{shareError}</Text> : null}
-        {saveError ? <><Text style={styles.errorText}>{saveError}</Text>
-          <Pressable accessibilityRole="button" onPress={() => loaded ? void commitBoard(dataRef.current) : reloadBoard()} style={styles.completedLink}><Text style={styles.completedLinkText}>Retry</Text></Pressable></>
-          : saving ? <Text style={styles.sectionHint}>Saving…</Text> : !loaded ? <Text style={styles.sectionHint}>Loading your board…</Text> : null}
-        {undoAction ? <Pressable accessibilityRole="button" onPress={() => { undoAction(); setUndoAction(null); }} style={styles.completedLink}><Text style={styles.completedLinkText}>Undo last change</Text></Pressable> : null}
+        {saveError ? <><Text style={styles.errorText}>{t(saveError)}</Text>
+          <Pressable accessibilityRole="button" onPress={() => loaded ? void commitBoard(dataRef.current) : reloadBoard()} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Retry")}</Text></Pressable></>
+          : saving ? <Text style={styles.sectionHint}>{t("Saving…")}</Text> : !loaded ? <Text style={styles.sectionHint}>{t("Loading your board…")}</Text> : null}
+        {undoAction ? <Pressable accessibilityRole="button" onPress={() => { undoAction(); setUndoAction(null); }} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Undo last change")}</Text></Pressable> : null}
       </View>
       <View pointerEvents={loaded ? "auto" : "none"} style={styles.tabBar}>
         {TABS.map((tab) => (
@@ -393,7 +404,7 @@ export default function JobBoardScreen() {
             }}
             style={[styles.tab, view === tab.id && styles.tabSelected]}
           >
-            <Text style={[styles.tabText, view === tab.id && styles.tabTextSelected]}>{tab.label}</Text>
+            <Text style={[styles.tabText, view === tab.id && styles.tabTextSelected]}>{t(tab.label)}</Text>
           </Pressable>
         ))}
       </View>
@@ -410,18 +421,18 @@ export default function JobBoardScreen() {
             <View style={styles.quickCard}>
               <View style={styles.quickInputRow}>
                 <TextInput
-                  accessibilityLabel={`Add ${KIND_LABELS[quickKind].toLowerCase()}`}
+                  accessibilityLabel={t("Add {{kind}}", { kind: t(KIND_LABELS[quickKind]).toLocaleLowerCase(language) })}
                   blurOnSubmit={false}
                   onChangeText={setQuickTitle}
                   onSubmitEditing={addQuickItem}
-                  placeholder={quickPlaceholder(quickKind)}
+                  placeholder={t(quickPlaceholder(quickKind))}
                   placeholderTextColor={Colors.textMuted}
                   returnKeyType="done"
                   style={styles.quickInput}
                   value={quickTitle}
                 />
                 <Pressable
-                  accessibilityLabel="Add to Jobsite Lists"
+                  accessibilityLabel={t("Add to Jobsite Lists")}
                   accessibilityRole="button"
                   disabled={!loaded || !quickTitle.trim()}
                   onPress={addQuickItem}
@@ -431,7 +442,7 @@ export default function JobBoardScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                    <Text style={styles.addButtonText}>Add</Text>
+                    <Text style={styles.addButtonText}>{t("Add")}</Text>
                 </Pressable>
               </View>
               <View style={styles.kindRow}>
@@ -447,7 +458,7 @@ export default function JobBoardScreen() {
                     style={[styles.kindChip, quickKind === kind && styles.kindChipSelected]}
                   >
                     <Text style={[styles.kindIcon, quickKind === kind && styles.kindTextSelected]}>{KIND_ICONS[kind]}</Text>
-                    <Text style={[styles.kindText, quickKind === kind && styles.kindTextSelected]}>{KIND_LABELS[kind]}</Text>
+                    <Text style={[styles.kindText, quickKind === kind && styles.kindTextSelected]}>{t(KIND_LABELS[kind])}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -455,25 +466,25 @@ export default function JobBoardScreen() {
 
             <View style={styles.sectionRow}>
               <View>
-                <Text style={styles.sectionTitle}>My List</Text>
+                <Text style={styles.sectionTitle}>{t("My List")}</Text>
               </View>
-              <Text style={styles.sectionCount}>{myDayItems.length} open</Text>
+              <Text style={styles.sectionCount}>{t("{{count}} open", { count: myDayItems.length })}</Text>
             </View>
-            {renderWorkList(myDayItems, "Start with one thing.", "Try “Get ¾-inch couplings” or “Label panel L2.”")}
+            {renderWorkList(myDayItems, t("Start with one thing."), t("Try “Get ¾-inch couplings” or “Label panel L2.”"))}
             {laterItems.length ? (
               <>
                 <View style={styles.sectionRow}>
                   <View>
-                    <Text style={styles.sectionTitle}>Later</Text>
+                    <Text style={styles.sectionTitle}>{t("Later")}</Text>
                   </View>
                   <Text style={styles.sectionCount}>{laterItems.length}</Text>
                 </View>
-                {renderWorkList(laterItems, "Nothing scheduled later.", "Tomorrow’s work will show here.")}
+                {renderWorkList(laterItems, t("Nothing scheduled later."), t("Tomorrow’s work will show here."))}
               </>
             ) : null}
-            {openItems.length ? shareButtons(formatJobList("My List", openItems)) : null}
+            {openItems.length ? shareButtons(formatJobList(t("My List"), openItems, language)) : null}
             <Pressable accessibilityRole="button" onPress={() => setView("done")} style={styles.completedLink}>
-              <Text style={styles.completedLinkText}>Completed ({doneItems.length}) ›</Text>
+              <Text style={styles.completedLinkText}>{t("Completed ({{count}})", { count: doneItems.length })} ›</Text>
             </Pressable>
           </>
         ) : null}
@@ -481,11 +492,11 @@ export default function JobBoardScreen() {
         {view === "materials" ? (
           <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}><View style={styles.jobChipRow}>
-            <ChoiceButton label="All jobs" selected={materialJobId === null} onPress={() => setMaterialJobId(null)} />
+            <ChoiceButton label={t("All jobs")} selected={materialJobId === null} onPress={() => setMaterialJobId(null)} />
             {data.jobs.map((job) => <ChoiceButton key={job.id} label={job.name} selected={materialJobId === job.id} onPress={() => setMaterialJobId(job.id)} />)}
           </View></ScrollView>
           <View style={styles.quickCard}>
-            <TextInput accessibilityLabel="Material name" placeholder="Material to pick up" placeholderTextColor={Colors.textMuted}
+            <TextInput accessibilityLabel={t("Material name")} placeholder={t("Material to pick up")} placeholderTextColor={Colors.textMuted}
               style={styles.quickInput} value={materialName} onChangeText={setMaterialName} />
             <View style={styles.quickInputRow}>
               <View style={{ flex: 1 }}><QuantityPicker quantity={materialQuantity} unit={materialUnit} onChange={(quantity, unit) => { setMaterialQuantity(quantity); setMaterialUnit(unit); }} /></View>
@@ -495,11 +506,11 @@ export default function JobBoardScreen() {
                   commitBoard((current) => ({ ...current, items: [item, ...current.items] }));
                   setMaterialName(""); Keyboard.dismiss();
                 }} style={[styles.addButton, (!materialName.trim() || Number(materialQuantity) < 1) && styles.addButtonDisabled]}>
-                <Text style={styles.addButtonText}>Add</Text>
+                <Text style={styles.addButtonText}>{t("Add")}</Text>
               </Pressable>
             </View>
           </View>
-          {shareButtons(formatMaterialRun(`${data.jobs.find((job) => job.id === materialJobId)?.name ?? "All jobs"} — material run`, data.items.filter((item) => !materialJobId || item.jobId === materialJobId)))}
+          {shareButtons(formatMaterialRun(t("{{job}} — material run", { job: data.jobs.find((job) => job.id === materialJobId)?.name ?? t("All jobs") }), data.items.filter((item) => !materialJobId || item.jobId === materialJobId), language))}
           <MaterialsView
             data={{ jobs: data.jobs, items: data.items.filter((item) => !materialJobId || item.jobId === materialJobId) }}
             onOpen={openItem}
@@ -513,14 +524,14 @@ export default function JobBoardScreen() {
           <>
             <View style={styles.jobCreateCard}>
               <View style={styles.jobCreateCopy}>
-                <Text style={styles.sectionTitle}>Jobs</Text>
+                <Text style={styles.sectionTitle}>{t("Jobs")}</Text>
               </View>
               <View style={styles.jobInputRow}>
                 <TextInput
-                  accessibilityLabel="New job name"
+                  accessibilityLabel={t("New job name")}
                   onChangeText={setNewJobName}
                   onSubmitEditing={addJob}
-                  placeholder="Job or project name"
+                  placeholder={t("Job or project name")}
                   placeholderTextColor={Colors.textMuted}
                   returnKeyType="done"
                   style={styles.jobInput}
@@ -531,7 +542,7 @@ export default function JobBoardScreen() {
                   onPress={addJob}
                   style={[styles.jobAddButton, !newJobName.trim() && styles.addButtonDisabled]}
                 >
-                  <Text style={styles.jobAddText}>Add job</Text>
+                  <Text style={styles.jobAddText}>{t("Add job")}</Text>
                 </Pressable>
               </View>
             </View>
@@ -552,7 +563,7 @@ export default function JobBoardScreen() {
                         <View style={styles.jobMark}><Text style={styles.jobMarkText}>J</Text></View>
                         <View style={styles.jobCardCopy}>
                           <Text style={styles.jobName}>{job.name}</Text>
-                          <Text style={styles.jobMeta}>{progress.open} open  •  {progress.complete} done</Text>
+                          <Text style={styles.jobMeta}>{t("{{open}} open  •  {{done}} done", { open: progress.open, done: progress.complete })}</Text>
                         </View>
                         <Text style={styles.itemArrow}>{selected ? "⌃" : "⌄"}</Text>
                       </Pressable>
@@ -562,15 +573,15 @@ export default function JobBoardScreen() {
                             const item = { ...createWorkItem(makeId("item"), kind, title), jobId: job.id, quantity, unit };
                             commitBoard((current) => ({ ...current, items: [item, ...current.items] }));
                           }} />
-                          {shareButtons(formatJobList(job.name, data.items.filter((item) => item.jobId === job.id)))}
-                          <Pressable accessibilityRole="button" onPress={() => { setMaterialJobId(job.id); setView("materials"); }} style={styles.completedLink}><Text style={styles.completedLinkText}>View materials for this job ›</Text></Pressable>
+                          {shareButtons(formatJobList(job.name, data.items.filter((item) => item.jobId === job.id), language))}
+                          <Pressable accessibilityRole="button" onPress={() => { setMaterialJobId(job.id); setView("materials"); }} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("View materials for this job ›")}</Text></Pressable>
                           {renderWorkList(
                             sortWorkItems(data.items.filter((item) => item.jobId === job.id)),
-                            "No work here yet.",
-                            "Add the first task, note, or material above.",
+                            t("No work here yet."),
+                            t("Add the first task, note, or material above."),
                           )}
                           <Pressable onPress={() => deleteJob(job)} style={styles.removeJobButton}>
-                            <Text style={styles.removeJobText}>Remove job</Text>
+                            <Text style={styles.removeJobText}>{t("Remove job")}</Text>
                           </Pressable>
                         </View>
                       ) : null}
@@ -581,8 +592,8 @@ export default function JobBoardScreen() {
             ) : (
               <View style={styles.emptyCard}>
                 <Text style={styles.emptyIcon}>J</Text>
-                <Text style={styles.emptyTitle}>No jobs yet.</Text>
-                <Text style={styles.emptyHint}>Try “School project” or “Second-floor punch.”</Text>
+                <Text style={styles.emptyTitle}>{t("No jobs yet.")}</Text>
+                <Text style={styles.emptyHint}>{t("Try “School project” or “Second-floor punch.”")}</Text>
               </View>
             )}
           </>
@@ -591,16 +602,16 @@ export default function JobBoardScreen() {
         {view === "done" ? (
           <>
             <Pressable accessibilityRole="button" onPress={() => setView("today")} style={styles.completedLink}>
-              <Text style={styles.completedLinkText}>← Back to My List</Text>
+              <Text style={styles.completedLinkText}>{t("← Back to My List")}</Text>
             </Pressable>
             <View style={styles.doneHero}>
               <Text style={styles.doneNumber}>{doneItems.length}</Text>
               <View style={styles.doneCopy}>
-                <Text style={styles.sectionTitle}>Finished</Text>
-                <Text style={styles.sectionHint}>Tap the check to put something back</Text>
+                <Text style={styles.sectionTitle}>{t("Finished")}</Text>
+                <Text style={styles.sectionHint}>{t("Tap the check to put something back")}</Text>
               </View>
             </View>
-            {renderWorkList(doneItems, "Nothing finished yet.", "Completed work will collect here.")}
+            {renderWorkList(doneItems, t("Nothing finished yet."), t("Completed work will collect here."))}
           </>
         ) : null}
       </ScrollView>
@@ -621,27 +632,27 @@ export default function JobBoardScreen() {
                 <View style={styles.sheetHandle} />
                 <View style={styles.sheetHeader}>
                   <View>
-                    <Text style={styles.sheetEyebrow}>{KIND_LABELS[draft.kind === "punch" ? "task" : draft.kind].toUpperCase()}</Text>
-                    <Text style={styles.sheetTitle}>Edit item</Text>
+                    <Text style={styles.sheetEyebrow}>{t(KIND_LABELS[draft.kind === "punch" ? "task" : draft.kind]).toLocaleUpperCase(language)}</Text>
+                    <Text style={styles.sheetTitle}>{t("Edit item")}</Text>
                   </View>
-                  <Pressable disabled={saving} onPress={() => setDraft(null)} style={styles.completedLink}><Text style={styles.completedLinkText}>Cancel</Text></Pressable>
+                  <Pressable disabled={saving} onPress={() => setDraft(null)} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Cancel")}</Text></Pressable>
                   <Pressable disabled={saving || !draft.title.trim()} onPress={saveDraft} style={[styles.doneButton, (saving || !draft.title.trim()) && styles.addButtonDisabled]}>
-                    <Text style={styles.doneButtonText}>{saving ? "Saving…" : "Save"}</Text>
+                    <Text style={styles.doneButtonText}>{saving ? t("Saving…") : t("Save")}</Text>
                   </Pressable>
                 </View>
-                {saveError ? <Text style={styles.errorText}>{saveError} Tap Save to retry.</Text> : null}
+                {saveError ? <Text style={styles.errorText}>{t(saveError)} {t("Tap Save to retry.")}</Text> : null}
                 <ScrollView pointerEvents={saving ? "none" : "auto"} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                   <TextInput
-                    accessibilityLabel="Work item title"
+                    accessibilityLabel={t("Work item title")}
                     multiline
                     onChangeText={(title) => setDraft({ ...draft, title })}
-                    placeholder="What needs doing?"
+                    placeholder={t("What needs doing?")}
                     placeholderTextColor={Colors.textMuted}
                     style={styles.titleInput}
                     value={draft.title}
                   />
 
-                  <Text style={styles.fieldLabel}>TYPE</Text>
+                  <Text style={styles.fieldLabel}>{t("TYPE")}</Text>
                   <View style={styles.kindRow}>
                     {KINDS.map((kind) => (
                       <Pressable
@@ -649,7 +660,7 @@ export default function JobBoardScreen() {
                         onPress={() => setDraft({ ...draft, kind })}
                         style={[styles.kindChip, (draft.kind === kind || (draft.kind === "punch" && kind === "task")) && styles.kindChipSelected]}
                       >
-                        <Text style={[styles.kindText, (draft.kind === kind || (draft.kind === "punch" && kind === "task")) && styles.kindTextSelected]}>{KIND_LABELS[kind]}</Text>
+                        <Text style={[styles.kindText, (draft.kind === kind || (draft.kind === "punch" && kind === "task")) && styles.kindTextSelected]}>{t(KIND_LABELS[kind])}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -658,14 +669,14 @@ export default function JobBoardScreen() {
                     <QuantityPicker quantity={draft.quantity} unit={draft.unit} onChange={(quantity, unit) => setDraft({ ...draft, quantity, unit })} />
                   ) : null}
 
-                  <Text style={styles.fieldLabel}>LIST</Text>
+                  <Text style={styles.fieldLabel}>{t("LIST")}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.jobChipRow}>
                       <Pressable
                         onPress={() => setDraft({ ...draft, jobId: null })}
                         style={[styles.choiceChip, draft.jobId === null && styles.choiceChipSelected]}
                       >
-                        <Text style={[styles.choiceText, draft.jobId === null && styles.choiceTextSelected]}>My List</Text>
+                        <Text style={[styles.choiceText, draft.jobId === null && styles.choiceTextSelected]}>{t("My List")}</Text>
                       </Pressable>
                       {data.jobs.map((job) => (
                         <Pressable
@@ -679,31 +690,31 @@ export default function JobBoardScreen() {
                     </View>
                   </ScrollView>
 
-                  <DetailSection title="Location" summary={draft.location}>
-                      <Text style={styles.fieldLabel}>LOCATION</Text>
+                  <DetailSection title={t("Location")} summary={draft.location}>
+                      <Text style={styles.fieldLabel}>{t("LOCATION")}</Text>
                       <TextInput
                         onChangeText={(location) => setDraft({ ...draft, location })}
-                        placeholder="Floor, room, panel or area"
+                        placeholder={t("Floor, room, panel or area")}
                         placeholderTextColor={Colors.textMuted}
                         style={styles.fieldInput}
                         value={draft.location}
                       />
 
                   </DetailSection>
-                  <DetailSection title="Timing & priority" summary={[draft.dueOn ? dueLabel(draft.dueOn) : "", draft.priority === "high" ? "High priority" : ""].filter(Boolean).join(" · ")}>
-                      <Text style={styles.fieldLabel}>WHEN</Text>
+                  <DetailSection title={t("Timing & priority")} summary={[draft.dueOn ? localizedDueLabel(draft.dueOn, language) : "", draft.priority === "high" ? t("High priority") : ""].filter(Boolean).join(" · ")}>
+                      <Text style={styles.fieldLabel}>{t("WHEN")}</Text>
                       <View style={styles.choiceRow}>
                         {(["today", "tomorrow", "none"] as DueChoice[]).map((due) => (
                           <ChoiceButton
                             key={due}
-                            label={DUE_LABELS[due]}
+                            label={t(DUE_LABELS[due])}
                             onPress={() => setDraft({ ...draft, dueOn: dateKeyFromChoice(due) })}
                             selected={dueChoice(draft.dueOn) === due}
                           />
                         ))}
                       </View>
 
-                      <Text style={styles.fieldLabel}>TIME ESTIMATE</Text>
+                      <Text style={styles.fieldLabel}>{t("TIME ESTIMATE")}</Text>
                       <View style={styles.choiceRow}>
                         {([15, 30, 60, 120] as const).map((minutes) => (
                           <ChoiceButton
@@ -718,12 +729,12 @@ export default function JobBoardScreen() {
                         ))}
                       </View>
 
-                      <Text style={styles.fieldLabel}>PRIORITY</Text>
+                      <Text style={styles.fieldLabel}>{t("PRIORITY")}</Text>
                       <View style={styles.choiceRow}>
                         {(["low", "normal", "high"] as WorkItemPriority[]).map((priority) => (
                           <ChoiceButton
                             key={priority}
-                            label={priority[0].toUpperCase() + priority.slice(1)}
+                            label={t(priority[0].toUpperCase() + priority.slice(1))}
                             onPress={() => setDraft({ ...draft, priority })}
                             selected={draft.priority === priority}
                           />
@@ -731,17 +742,17 @@ export default function JobBoardScreen() {
                       </View>
 
                   </DetailSection>
-                  <DetailSection title="Waiting on" summary={draft.waitingOn}>
-                    <TextInput accessibilityLabel="Waiting on" placeholder="Devices, access, another trade…" placeholderTextColor={Colors.textMuted}
+                  <DetailSection title={t("Waiting on")} summary={draft.waitingOn}>
+                    <TextInput accessibilityLabel={t("Waiting on")} placeholder={t("Devices, access, another trade…")} placeholderTextColor={Colors.textMuted}
                       style={styles.fieldInput} value={draft.waitingOn ?? ""} onChangeText={(waitingOn) => setDraft({ ...draft, waitingOn })} />
-                    {draft.waitingOn ? <Pressable accessibilityRole="button" onPress={() => setDraft({ ...draft, waitingOn: "" })} style={styles.completedLink}><Text style={styles.completedLinkText}>Clear — ready to continue</Text></Pressable> : null}
+                    {draft.waitingOn ? <Pressable accessibilityRole="button" onPress={() => setDraft({ ...draft, waitingOn: "" })} style={styles.completedLink}><Text style={styles.completedLinkText}>{t("Clear — ready to continue")}</Text></Pressable> : null}
                   </DetailSection>
-                  <DetailSection title="Notes" summary={draft.notes}>
-                      <Text style={styles.fieldLabel}>NOTES</Text>
+                  <DetailSection title={t("Notes")} summary={draft.notes}>
+                      <Text style={styles.fieldLabel}>{t("NOTES")}</Text>
                       <TextInput
                         multiline
                         onChangeText={(notes) => setDraft({ ...draft, notes })}
-                        placeholder="Measurements, instructions, or what to watch for"
+                        placeholder={t("Measurements, instructions, or what to watch for")}
                         placeholderTextColor={Colors.textMuted}
                         style={[styles.fieldInput, styles.notesInput]}
                         textAlignVertical="top"
@@ -749,8 +760,8 @@ export default function JobBoardScreen() {
                       />
 
                   </DetailSection>
-                  <DetailSection title="Steps" summary={draft.checklist.length ? `${draft.checklist.filter((line) => line.done).length}/${draft.checklist.length} complete` : ""}>
-                      <Text style={styles.fieldLabel}>CHECKLIST</Text>
+                  <DetailSection title={t("Steps")} summary={draft.checklist.length ? t("{{done}}/{{total}} complete", { done: draft.checklist.filter((line) => line.done).length, total: draft.checklist.length }) : ""}>
+                      <Text style={styles.fieldLabel}>{t("CHECKLIST")}</Text>
                       {draft.checklist.map((line) => (
                         <Pressable
                           key={line.id}
@@ -769,17 +780,17 @@ export default function JobBoardScreen() {
                         </Pressable>
                       ))}
                       <InlineAdd
-                        buttonLabel="Add step"
+                        buttonLabel={t("Add step")}
                         onAdd={addChecklistLine}
                         onChange={setChecklistText}
-                        placeholder="Add a step"
+                        placeholder={t("Add a step")}
                         value={checklistText}
                       />
 
                   </DetailSection>
                       {draft.kind !== "material" ? (
-                        <DetailSection title="Materials" summary={draft.materials.length ? `${draft.materials.length} on the list` : ""}>
-                          <Text style={styles.fieldLabel}>MATERIALS NEEDED</Text>
+                        <DetailSection title={t("Materials")} summary={draft.materials.length ? t("{{count}} on the list", { count: draft.materials.length }) : ""}>
+                          <Text style={styles.fieldLabel}>{t("MATERIALS NEEDED")}</Text>
                           {draft.materials.map((line) => (
                             <View key={line.id}>
                             <Pressable
@@ -802,17 +813,17 @@ export default function JobBoardScreen() {
                           ))}
                           <QuantityPicker quantity={attachedQuantity} unit={attachedUnit} onChange={(quantity, unit) => { setAttachedQuantity(quantity); setAttachedUnit(unit); }} />
                           <InlineAdd
-                            buttonLabel="Add material"
+                            buttonLabel={t("Add material")}
                             onAdd={addMaterialLine}
                             onChange={setMaterialText}
-                            placeholder="Couplings, wire, straps…"
+                            placeholder={t("Couplings, wire, straps…")}
                             value={materialText}
                           />
                         </DetailSection>
                       ) : null}
 
                   <Pressable onPress={deleteDraft} style={styles.deleteButton}>
-                    <Text style={styles.deleteButtonText}>Delete item</Text>
+                    <Text style={styles.deleteButtonText}>{t("Delete item")}</Text>
                   </Pressable>
                 </ScrollView>
               </SafeAreaView>
@@ -826,15 +837,16 @@ export default function JobBoardScreen() {
 
 function QuantityPicker({ quantity, unit, onChange }: { quantity: number; unit: string; onChange: (quantity: number, unit: string) => void }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const [text, setText] = useState(String(quantity));
   return <View style={{ gap: 6, marginVertical: Space.xs }}>
     <View style={styles.choiceRow}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Decrease quantity" onPress={() => { const next = Math.max(1, quantity - 1); setText(String(next)); onChange(next, unit); }} style={styles.stepperButton}><Text style={styles.stepperText}>−</Text></Pressable>
-      <TextInput accessibilityLabel="Quantity" keyboardType="number-pad" selectTextOnFocus style={styles.quantityInput} value={text}
+      <Pressable accessibilityRole="button" accessibilityLabel={t("Decrease quantity")} onPress={() => { const next = Math.max(1, quantity - 1); setText(String(next)); onChange(next, unit); }} style={styles.stepperButton}><Text style={styles.stepperText}>−</Text></Pressable>
+      <TextInput accessibilityLabel={t("Quantity")} keyboardType="number-pad" selectTextOnFocus style={styles.quantityInput} value={text}
         onChangeText={(value) => { const next = value.replace(/[^0-9]/g, "").slice(0, 5); setText(next); if (Number(next) > 0) onChange(Number(next), unit); }}
         onBlur={() => setText(String(quantity))} />
-      <Pressable accessibilityRole="button" accessibilityLabel="Increase quantity" onPress={() => { const next = Math.min(99999, quantity + 1); setText(String(next)); onChange(next, unit); }} style={styles.stepperButton}><Text style={styles.stepperText}>+</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={t("Increase quantity")} onPress={() => { const next = Math.min(99999, quantity + 1); setText(String(next)); onChange(next, unit); }} style={styles.stepperButton}><Text style={styles.stepperText}>+</Text></Pressable>
     </View>
     <View style={styles.choiceRow}>{Array.from(new Set(["ea", "ft", "box", unit])).map((choice) => <ChoiceButton key={choice} label={choice} selected={unit === choice} onPress={() => onChange(quantity, choice)} />)}</View>
   </View>;
@@ -842,6 +854,7 @@ function QuantityPicker({ quantity, unit, onChange }: { quantity: number; unit: 
 
 function JobQuickAdd({ onAdd }: { onAdd: (kind: WorkItemKind, title: string, quantity: number, unit: string) => void }) {
   const styles = useStyles();
+  const { t } = useI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   const [kind, setKind] = useState<WorkItemKind>("task");
@@ -849,9 +862,9 @@ function JobQuickAdd({ onAdd }: { onAdd: (kind: WorkItemKind, title: string, qua
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("ea");
   return <View style={styles.quickCard}>
-    <View style={styles.quickInputRow}><TextInput accessibilityLabel="Add to this job" placeholder="Add to this job…" placeholderTextColor={Colors.textMuted} value={title} onChangeText={setTitle} style={styles.quickInput} />
-      <Pressable accessibilityRole="button" disabled={!title.trim()} onPress={() => { onAdd(kind, title.trim(), quantity, unit); setTitle(""); Keyboard.dismiss(); }} style={[styles.addButton, !title.trim() && styles.addButtonDisabled]}><Text style={styles.addButtonText}>Add</Text></Pressable></View>
-    <View style={styles.kindRow}>{KINDS.map((choice) => <ChoiceButton key={choice} label={KIND_LABELS[choice]} selected={kind === choice} onPress={() => setKind(choice)} />)}</View>
+    <View style={styles.quickInputRow}><TextInput accessibilityLabel={t("Add to this job")} placeholder={t("Add to this job…")} placeholderTextColor={Colors.textMuted} value={title} onChangeText={setTitle} style={styles.quickInput} />
+      <Pressable accessibilityRole="button" disabled={!title.trim()} onPress={() => { onAdd(kind, title.trim(), quantity, unit); setTitle(""); Keyboard.dismiss(); }} style={[styles.addButton, !title.trim() && styles.addButtonDisabled]}><Text style={styles.addButtonText}>{t("Add")}</Text></Pressable></View>
+    <View style={styles.kindRow}>{KINDS.map((choice) => <ChoiceButton key={choice} label={t(KIND_LABELS[choice])} selected={kind === choice} onPress={() => setKind(choice)} />)}</View>
     {kind === "material" ? <QuantityPicker quantity={quantity} unit={unit} onChange={(next, nextUnit) => { setQuantity(next); setUnit(nextUnit); }} /> : null}
   </View>;
 }
@@ -859,10 +872,11 @@ function JobQuickAdd({ onAdd }: { onAdd: (kind: WorkItemKind, title: string, qua
 function DetailSection({ title, summary, children }: { title: string; summary?: string; children: React.ReactNode }) {
   const styles = useStyles();
 
+
   const [open, setOpen] = useState(false);
   return <View>
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={styles.detailsToggle}>
-      <View style={{ flex: 1 }}><Text style={styles.detailsToggleTitle}>{summary ? title : title === "Waiting on" ? "Waiting on…" : `Add ${title.toLowerCase()}`}</Text>
+      <View style={{ flex: 1 }}><Text style={styles.detailsToggleTitle}>{title}</Text>
         {summary ? <Text numberOfLines={1} style={styles.detailsToggleHint}>{summary}</Text> : null}</View>
       <Text style={styles.detailsToggleArrow}>{open ? "−" : "+"}</Text>
     </Pressable>
@@ -889,18 +903,19 @@ function WorkItemRow({
   onToggle: () => void;
 }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
 
   const remaining = item.materials.filter((line) => !line.collected).length;
-  const metadata = [item.kind === "note" ? "Note" : null, itemMeta(item, jobs),
-    item.status === "open" && item.waitingOn ? `Waiting on: ${item.waitingOn}` : null,
-    item.status === "open" && remaining ? `${remaining} material${remaining === 1 ? "" : "s"} needed` : null,
-    item.checklist.length ? `${item.checklist.filter((step) => step.done).length} of ${item.checklist.length} steps complete` : null].filter(Boolean).join("  •  ");
+  const metadata = [item.kind === "note" ? t("Note") : null, itemMeta(item, jobs, language),
+    item.status === "open" && item.waitingOn ? t("Waiting on: {{text}}", { text: item.waitingOn }) : null,
+    item.status === "open" && remaining ? t("Materials needed: {{count}}", { count: remaining }) : null,
+    item.checklist.length ? t("{{done}} of {{total}} steps complete", { done: item.checklist.filter((step) => step.done).length, total: item.checklist.length }) : null].filter(Boolean).join("  •  ");
   return (
     <View style={[styles.itemCard, item.priority === "high" && styles.itemCardHigh]}>
-      <Pressable accessibilityLabel={item.status === "open" ? "Mark complete" : "Restore item"} onPress={onToggle} style={[styles.checkButton, item.status === "done" && styles.checkButtonDone]}>
+      <Pressable accessibilityLabel={item.status === "open" ? t("Mark complete") : t("Restore item")} onPress={onToggle} style={[styles.checkButton, item.status === "done" && styles.checkButtonDone]}>
         <Text style={styles.checkButtonText}>{item.status === "done" ? "✓" : ""}</Text>
       </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.title}`} onPress={onOpen} style={styles.itemMain}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t("Open {{text}}", { text: item.title })} onPress={onOpen} style={styles.itemMain}>
         <View style={styles.itemTitleRow}>
           <Text numberOfLines={2} style={[styles.itemTitle, item.status === "done" && styles.itemTitleDone]}>{item.title}</Text>
           {item.kind === "material" && item.quantity > 1 ? <Text style={styles.quantityPill}>{item.quantity} {item.unit}</Text> : null}
@@ -923,6 +938,7 @@ function MaterialsView({
   onToggleNested: (itemId: string, lineId: string) => void;
 }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
 
   const progress = materialProgress(data.items);
   const standalone = data.items.filter(({ kind }) => kind === "material");
@@ -932,11 +948,11 @@ function MaterialsView({
       <View style={styles.materialHero}>
         <View style={styles.materialRing}>
           <Text style={styles.materialNumber}>{progress.remaining}</Text>
-          <Text style={styles.materialRingLabel}>TO GET</Text>
+          <Text style={styles.materialRingLabel}>{t("TO GET")}</Text>
         </View>
         <View style={styles.materialHeroCopy}>
-          <Text style={styles.sectionTitle}>Material run</Text>
-          <Text style={styles.sectionHint}>{progress.collected} collected  •  {progress.total} total</Text>
+          <Text style={styles.sectionTitle}>{t("Material run")}</Text>
+          <Text style={styles.sectionHint}>{t("{{collected}} collected  •  {{total}} total", { collected: progress.collected, total: progress.total })}</Text>
         </View>
       </View>
       {progress.total ? (
@@ -944,7 +960,7 @@ function MaterialsView({
           {[false, true].map((collected) => {
             const count = standalone.filter((item) => (item.status === "done") === collected).length + nested.filter(({ line }) => line.collected === collected).length;
             return count ? <View key={String(collected)} style={styles.materialList}>
-              <Text style={styles.sectionTitle}>{collected ? "Collected" : "To get"}</Text>
+              <Text style={styles.sectionTitle}>{collected ? t("Collected") : t("To get")}</Text>
           {standalone.filter((item) => (item.status === "done") === collected).map((item) => (
             <View key={item.id} style={styles.materialRow}>
               <Pressable onPress={() => onToggleItem(item)} style={[styles.checkButton, item.status === "done" && styles.checkButtonDone]}>
@@ -952,7 +968,7 @@ function MaterialsView({
               </Pressable>
               <Pressable onPress={() => onOpen(item)} style={styles.materialRowMain}>
                 <Text style={[styles.materialName, item.status === "done" && styles.itemTitleDone]}>{item.title}</Text>
-                <Text style={styles.materialSource}>{item.quantity} {item.unit}  •  {itemMeta(item, data.jobs)}</Text>
+                <Text style={styles.materialSource}>{item.quantity} {item.unit}  •  {itemMeta(item, data.jobs, language)}</Text>
               </Pressable>
             </View>
           ))}
@@ -965,8 +981,8 @@ function MaterialsView({
       ) : (
         <View style={styles.emptyCard}>
           <Text style={styles.emptyIcon}>□</Text>
-          <Text style={styles.emptyTitle}>No materials on the list.</Text>
-          <Text style={styles.emptyHint}>Add a material above—for example, 10 couplings.</Text>
+          <Text style={styles.emptyTitle}>{t("No materials on the list.")}</Text>
+          <Text style={styles.emptyHint}>{t("Add a material above—for example, 10 couplings.")}</Text>
         </View>
       )}
     </>
@@ -975,6 +991,7 @@ function MaterialsView({
 
 function MaterialRow({ item, line, jobs, onToggle }: { item: WorkItem; line: MaterialLine; jobs: Job[]; onToggle: () => void }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
 
   return (
     <View style={styles.materialRow}>
@@ -983,7 +1000,7 @@ function MaterialRow({ item, line, jobs, onToggle }: { item: WorkItem; line: Mat
       </Pressable>
       <View style={styles.materialRowMain}>
         <Text style={[styles.materialName, line.collected && styles.itemTitleDone]}>{line.name}</Text>
-        <Text style={styles.materialSource}>{line.quantity} {line.unit}  •  For: {item.title}  •  {itemMeta(item, jobs)}</Text>
+        <Text style={styles.materialSource}>{line.quantity} {line.unit}  •  {t("For: {{text}}", { text: item.title })}  •  {itemMeta(item, jobs, language)}</Text>
       </View>
     </View>
   );
@@ -991,6 +1008,7 @@ function MaterialRow({ item, line, jobs, onToggle }: { item: WorkItem; line: Mat
 
 function ChoiceButton({ label, onPress, selected }: { label: string; onPress: () => void; selected: boolean }) {
   const styles = useStyles();
+
 
   return (
     <Pressable onPress={onPress} style={[styles.choiceButton, selected && styles.choiceButtonSelected]}>
@@ -1013,6 +1031,7 @@ function InlineAdd({
   value: string;
 }) {
   const styles = useStyles();
+
   const { theme: { colors: Colors } } = useAppTheme();
 
   return (

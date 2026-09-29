@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "../../screens/bending/measurementI18n";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize } from "../../theme/tokens";
 import { useAppTheme, defineStyles } from "../../theme";
@@ -42,6 +43,7 @@ export default function CalcKeypad({
   fractionMode = false,
   compact = false,
 }: Props) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
   const { theme: { colors: Colors } } = useAppTheme();
 
@@ -104,7 +106,7 @@ export default function CalcKeypad({
 
     return (
       <View
-        accessibilityLabel="Fraction keypad"
+        accessibilityLabel={t("Fraction keypad")}
         style={[styles.container, compact && styles.containerCompact]}
       >
         <View
@@ -115,7 +117,7 @@ export default function CalcKeypad({
           ]}
         >
           <Pressable
-            accessibilityLabel="Return to number keypad"
+            accessibilityLabel={t("Return to number keypad")}
             accessibilityRole="button"
             hitSlop={4}
             onPress={exitFractionMode}
@@ -126,7 +128,7 @@ export default function CalcKeypad({
               pressed && styles.pressed,
             ]}
           >
-            <Text style={styles.backKeyText}>← Back</Text>
+            <Text style={styles.backKeyText}>{t("← Back")}</Text>
           </Pressable>
 
           {ROWS[0].slice(1).map((item) => (
@@ -139,7 +141,7 @@ export default function CalcKeypad({
           ))}
         </View>
 
-        <Text style={styles.fractionSectionLabel}>Common fractions</Text>
+        <Text style={styles.fractionSectionLabel}>{t("Common fractions")}</Text>
 
         {fractionRows.map((row, rowIndex) => (
           <View
@@ -171,13 +173,13 @@ export default function CalcKeypad({
             compact && styles.customFractionCardCompact,
           ]}
         >
-          <Text style={styles.customFractionTitle}>Custom fraction</Text>
+          <Text style={styles.customFractionTitle}>{t("Custom fraction")}</Text>
 
           <View style={styles.customFractionRow}>
             <View style={styles.customField}>
-              <Text style={styles.customFieldLabel}>Top</Text>
+              <Text style={styles.customFieldLabel}>{t("Top")}</Text>
               <TextInput
-                accessibilityLabel="Custom fraction numerator"
+                accessibilityLabel={t("Custom fraction numerator")}
                 keyboardType="number-pad"
                 maxLength={3}
                 onChangeText={(value) =>
@@ -198,9 +200,9 @@ export default function CalcKeypad({
             </Text>
 
             <View style={styles.customField}>
-              <Text style={styles.customFieldLabel}>Bottom</Text>
+              <Text style={styles.customFieldLabel}>{t("Bottom")}</Text>
               <TextInput
-                accessibilityLabel="Custom fraction denominator"
+                accessibilityLabel={t("Custom fraction denominator")}
                 keyboardType="number-pad"
                 maxLength={3}
                 onChangeText={(value) =>
@@ -218,7 +220,7 @@ export default function CalcKeypad({
             </View>
 
             <Pressable
-              accessibilityLabel="Add custom fraction"
+              accessibilityLabel={t("Add custom fraction")}
               accessibilityRole="button"
               onPress={submitCustomFraction}
               style={({ pressed }) => [
@@ -226,13 +228,13 @@ export default function CalcKeypad({
                 pressed && styles.pressed,
               ]}
             >
-              <Text style={styles.customAddKeyText}>Add</Text>
+              <Text style={styles.customAddKeyText}>{t("Add")}</Text>
             </Pressable>
           </View>
 
           {!!customError && (
             <Text accessibilityRole="alert" style={styles.customError}>
-              {customError}
+              {t(customError)}
             </Text>
           )}
         </View>
@@ -277,11 +279,12 @@ function FractionButton({
   fraction: FractionSpec;
   onPress: () => void;
 }) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
 
   return (
     <Pressable
-      accessibilityLabel={`${fraction.label} inch`}
+      accessibilityLabel={t(`${fraction.label} inch`)}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -305,6 +308,7 @@ function KeyButton({
   compact: boolean;
   onPress: () => void;
 }) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
 
   const variant = getVariant(item.key);
@@ -312,7 +316,7 @@ function KeyButton({
 
   return (
     <Pressable
-      accessibilityLabel={getAccessibilityLabel(item.key)}
+      accessibilityLabel={t(getAccessibilityLabel(item.key))}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -352,7 +356,7 @@ function getAccessibilityLabel(key: CalcKey): string {
     FRAC: "Choose fraction",
     "×": "Multiply",
     "÷": "Divide",
-    "+": "Add",
+    "+": "Add numbers",
     "-": "Subtract",
     "=": "Calculate",
     ".": "Decimal point",

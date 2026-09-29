@@ -8,7 +8,7 @@ export const themeCollections = [
 export type ThemeId = (typeof themeIds)[number];
 export type AppearanceMode = "system" | "light" | "dark";
 export type ResolvedMode = Exclude<AppearanceMode, "system">;
-export type AppearancePreferences = { version: 1; themeId: ThemeId; mode: AppearanceMode };
+export type AppearancePreferences = { version: 1; themeId: ThemeId; mode: AppearanceMode; language?: "system" | "en" | "es" };
 export const APPEARANCE_KEY = "electrician-toolbox:appearance:v1";
 export const defaultAppearance: AppearancePreferences = { version: 1, themeId: "forest", mode: "system" };
 export function parseAppearance(raw: string | null): AppearancePreferences {
@@ -18,7 +18,7 @@ export function parseAppearance(raw: string | null): AppearancePreferences {
     if (!value || typeof value !== "object") return { ...defaultAppearance };
     const item = value as Partial<AppearancePreferences>;
     if (item.version !== 1) return { ...defaultAppearance };
-    return { version: 1, themeId: themeIds.includes(item.themeId as ThemeId) ? item.themeId! : "forest", mode: item.mode === "light" || item.mode === "dark" ? item.mode : "system" };
+    return { version: 1, themeId: themeIds.includes(item.themeId as ThemeId) ? item.themeId! : "forest", mode: item.mode === "light" || item.mode === "dark" ? item.mode : "system", ...(item.language === "en" || item.language === "es" || item.language === "system" ? { language: item.language } : {}) };
   } catch { return { ...defaultAppearance }; }
 }
 export function resolveMode(mode: AppearanceMode, system: string | null | undefined): ResolvedMode {

@@ -3,6 +3,8 @@ import { isStoragePreparing, registerStorageParticipant } from "../utils/storage
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Appearance, Platform, StyleSheet, useColorScheme, View } from "react-native";
 import * as SystemUI from "expo-system-ui";
+import { getLocales } from "expo-localization";
+import { resolveLanguage, translate } from "../i18n/core";
 import { themeCatalog } from "./color";
 import { createAppearanceStore, defaultAppearance, resolveMode, type AppearancePreferences } from "./preferences";
 
@@ -14,7 +16,7 @@ function makeTheme(preferences: AppearancePreferences, system: string | null | u
   return { colors, mode };
 }
 export type AppTheme = ReturnType<typeof makeTheme>;
-type ThemeContextValue = { theme: AppTheme; reduceMotion: boolean; preferences: AppearancePreferences; setAppearance: (next: Partial<Pick<AppearancePreferences, "themeId" | "mode">>) => void; error: string | null; retrySave: () => void; };
+type ThemeContextValue = { theme: AppTheme; reduceMotion: boolean; preferences: AppearancePreferences; setAppearance: (next: Partial<Pick<AppearancePreferences, "themeId" | "mode" | "language">>) => void; error: string | null; retrySave: () => void; };
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
@@ -53,15 +55,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const persist = useCallback((next: AppearancePreferences) => {
     const request = ++revision.current;
     setError(null);
-    store.save(next).catch(() => { if (request === revision.current) setError("Theme changed, but couldn’t be saved. Try saving again."); });
+    store.save(next).catch(() => { if (request === revision.current) setError("Settings changed, but couldn’t be saved. Try saving again."); });
   }, []);
-  const setAppearance = useCallback((next: Partial<Pick<AppearancePreferences, "themeId" | "mode">>) => {
+  const setAppearance = useCallback((next: Partial<Pick<AppearancePreferences, "themeId" | "mode" | "language">>) => {
     if (isStoragePreparing()) return;
     const value = { ...current.current, ...next }; current.current = value; setPreferences(value); persist(value);
   }, [persist]);
   const retrySave = useCallback(() => persist(current.current), [persist]);
   const value = useMemo(() => ({ theme, reduceMotion, preferences, setAppearance, error, retrySave }), [theme, reduceMotion, preferences, setAppearance, error, retrySave]);
-  return <ThemeContext.Provider value={value}>{ready ? children : <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.colors.bg }}><ActivityIndicator color={theme.colors.primary} accessibilityLabel="Loading appearance" /></View>}</ThemeContext.Provider>;
+  const startupLanguage = resolveLanguage(preferences.language, getLocales().map(locale => locale.languageTag));
+  return <ThemeContext.Provider value={value}>{ready ? children : <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.colors.bg }}><ActivityIndicator color={theme.colors.primary} accessibilityLabel={translate("Loading appearance", {}, startupLanguage)} /></View>}</ThemeContext.Provider>;
 }
 export function useAppTheme() {
   const value = useContext(ThemeContext);

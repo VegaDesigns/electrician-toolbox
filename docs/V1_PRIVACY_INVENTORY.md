@@ -15,7 +15,7 @@ AsyncStorage is the app's persistent local store. It is not an app-encrypted vau
 
 | Storage key | Contents | Potential sensitivity |
 | --- | --- | --- |
-| `electrician-toolbox:appearance:v1` | Theme family and light/dark preference | Low; preference data |
+| `electrician-toolbox:appearance:v1` | Theme family, light/dark preference and optional app language | Low; preference data |
 | `electrician-toolbox:preferences:v1` | Workpad precision | Low; preference data |
 | `electrician-toolbox:calc-history:v1` | Expressions, results, favorites, timestamps and result presentation | Could expose job measurements entered by the user |
 | `electrician-toolbox:panel-colors:v1` | Selected scheme and custom schemes, including user-provided names/panel labels | Job or facility names may be present |
@@ -36,6 +36,8 @@ Unfinished forms and fill drafts are session-only and are not included in the ma
 | Manual backup export | Produces an unencrypted, versioned JSON file containing the saved domains; native export uses a user-chosen share destination, including Files where supported | Verify real iPhone Save to Files, cancellation, free-space failures, and fresh-install restore |
 | Manual backup import | Reads the file the user chooses; validates it; replacement requires explicit confirmation and includes recovery handling | Verify malformed/oversized files, rollback, app restart, and interruption on the installed build |
 | Help feedback | User writes a description and expected outcome, reviews the exact report, then copies or shares it | No automatic upload, screenshots, job data, histories, panel presets, device identifiers or contact details are attached |
+| Dictionary suggestions (local 0.9.4) | Transient term, proposed meaning and optional country/region draft; exact preview before user-directed Copy/native Share | No submission backend, automatic publication or saved draft. User chooses a recipient. Public inbox/moderation/privacy arrangements remain unconfigured |
+| App language (local 0.9.4) | Expo Localization reads device language preferences; chosen language is stored only in existing local appearance data | No remote translation API. Translations work offline; changing language does not translate user-authored content or change electrical jurisdiction |
 | Feedback metadata | App name/version, native build when available, operating system/version and preview type | All attached fields are visible in the report preview; do not add identifiers silently |
 | Configured support/email/policy links | Inactive unless real valid values are configured; email launches the user's mail app with the reviewed report | Owner must supply working contact, HTTPS support page and approved policy/license details |
 | Bender reference links | Open manufacturer-hosted PDFs after the user chooses a reference | Publisher's browser and destination site's data practices apply |

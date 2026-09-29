@@ -15,7 +15,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     width: "100%",
   },
 
-  headerCopy: { flex: 1 },
+  headerCopy: { flex: 1, minWidth: 0 },
   headerEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
   headerTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
   container: {
@@ -69,6 +69,8 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
 
   },
   searchIcon: { color: Colors.primary, fontSize: FontSize.title, fontWeight: "500" },
+  suggestButton: { minHeight: 48, alignSelf: "flex-start", justifyContent: "center", paddingVertical: Space.xs },
+  suggestText: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "600" },
   searchInput: { color: Colors.text, flex: 1, fontSize: FontSize.label, fontWeight: "500", minHeight: 52, outlineWidth: 0 },
   clearButton: {
     alignItems: "center",
@@ -191,9 +193,9 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   kindBadgeFormal: { backgroundColor: Colors.surface3, borderColor: Colors.borderStrong },
   kindBadgeRegional: { backgroundColor: Colors.primarySoft, borderColor: Colors.primaryMuted },
   kindBadgeText: { color: Colors.text, fontSize: FontSize.caption, fontWeight: "500" },
-  entryCopy: { flex: 1 },
+  entryCopy: { flex: 1, minWidth: 0 },
   entryTitleRow: { alignItems: "center", flexDirection: "row", gap: 6 },
-  entryTerm: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500" },
+  entryTerm: { color: Colors.text, fontSize: FontSize.label, fontWeight: "500", flexShrink: 1 },
   favoriteStar: { color: Colors.primary, fontSize: FontSize.caption },
   entryOfficial: { color: Colors.textMuted, fontSize: FontSize.caption, marginTop: 3 },
   entryArrow: { color: Colors.textSubtle, fontSize: FontSize.section, fontWeight: "500" },
@@ -261,7 +263,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     width: 40,
   },
   sheetHeader: { alignItems: "center", flexDirection: "row", gap: 9, marginBottom: 10 },
-  sheetHeadingCopy: { flex: 1 },
+  sheetHeadingCopy: { flex: 1, minWidth: 0 },
   sheetEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1 },
   sheetTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.heading, fontWeight: "500", letterSpacing: -0.3, marginTop: 1 },
   sheetFavorite: {
@@ -326,5 +328,5 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
     fontWeight: "500",
   },
   safetyTitle: { color: Colors.error, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 0.8 },
-  languageNote: { color: Colors.textSubtle, fontSize: FontSize.caption, lineHeight: 13, marginTop: 2 },
+  languageNote: { color: Colors.textSubtle, fontSize: FontSize.caption, lineHeight: 18, marginTop: 2 },
 }));

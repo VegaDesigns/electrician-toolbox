@@ -3,6 +3,7 @@ import { File, Paths } from "expo-file-system";
 import * as DocumentPicker from "expo-document-picker";
 import * as Sharing from "expo-sharing";
 import { MAX_BACKUP_BYTES } from "./schema";
+import { translate, type Language } from "../../i18n/core";
 
 /** Web gets its own picker so cancel never leaves the app waiting on Expo's unresolved web promise. */
 function pickWeb(): Promise<string | null> {
@@ -41,7 +42,7 @@ export async function chooseBackupText(): Promise<string | null> {
     if (file.uri.startsWith(Paths.cache.uri)) { try { file.delete(); } catch { /* OS may already have cleaned its cache. */ } }
   }
 }
-export async function saveBackupFile(text: string, filename: string): Promise<"download" | "share"> {
+export async function saveBackupFile(text: string, filename: string, language: Language = "en"): Promise<"download" | "share"> {
   if (Platform.OS === "web") {
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = filename;
@@ -53,7 +54,7 @@ export async function saveBackupFile(text: string, filename: string): Promise<"d
   const file = new File(Paths.cache, filename);
   try {
     file.create({ overwrite: true }); file.write(text);
-    await Sharing.shareAsync(file.uri, { mimeType: "application/json", UTI: "public.json", dialogTitle: "Save your Toolbox backup" });
+    await Sharing.shareAsync(file.uri, { mimeType: "application/json", UTI: "public.json", dialogTitle: translate("Save your Toolbox backup", {}, language) });
     return "share";
   } finally { if (file.exists) { try { file.delete(); } catch { /* Temporary copies are safe for the OS to reclaim. */ } } }
 }

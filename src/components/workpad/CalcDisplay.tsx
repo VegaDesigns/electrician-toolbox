@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "../../screens/bending/measurementI18n";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles, useAppTheme } from "../../theme";
@@ -61,6 +62,7 @@ export default function CalcDisplay({
   showUnitToggle,
   unitToggleLabel,
 }: Props) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
   const { theme: { colors } } = useAppTheme();
 
@@ -110,7 +112,7 @@ export default function CalcDisplay({
       <View style={styles.toolbar}>
       {hasResult && showUnitToggle ? (
         <Pressable
-          accessibilityLabel={`Show result in ${unitToggleLabel === "in" ? "inches" : "feet and inches"}`}
+          accessibilityLabel={t(`Show result in ${unitToggleLabel === "in" ? "inches" : "feet and inches"}`)}
           accessibilityRole="button"
           onPress={onToggleUnit}
           style={({ pressed }) => [
@@ -130,8 +132,8 @@ export default function CalcDisplay({
             paste and horizontal caret following, without a second keyboard. */}
         <TextInput
           ref={inputRef}
-          accessibilityLabel="Equation"
-          accessibilityHint="Tap to place the cursor, then use the calculator keys. Press equals to calculate."
+          accessibilityLabel={t("Equation")}
+          accessibilityHint={t("Tap to place the cursor, then use the calculator keys. Press equals to calculate.")}
           value={expression}
           placeholder={hasResult ? "" : "0"}
           placeholderTextColor={colors.text}
@@ -174,18 +176,17 @@ export default function CalcDisplay({
       </ScrollView>
 
       <Pressable disabled={!error && !interpretation && !roundingNotice}
-        accessibilityRole="button" accessibilityLabel="Read calculation details"
+        accessibilityRole="button" accessibilityLabel={t("Read calculation details")}
         onPress={() => setDetailsOpen(true)} style={styles.feedbackSlot}>
         {error ? (
           <Text accessibilityRole="alert" numberOfLines={1} style={styles.error}>
-            {error}
+            {t(error)}
           </Text>
         ) : roundingNotice ? (
-          <Text numberOfLines={1} style={styles.roundingNotice}>{roundingNotice}</Text>
+          <Text numberOfLines={1} style={styles.roundingNotice}>{t(roundingNotice)}</Text>
         ) : interpretation ? (
           <View style={styles.interpretationRow}>
-            <Text numberOfLines={1} style={styles.interpretationText}>
-              ✦ Interpreted as {interpretation}
+            <Text numberOfLines={1} style={styles.interpretationText}>{t(`✦ Interpreted as ${interpretation}`)}
             </Text>
           </View>
         ) : null}
@@ -197,38 +198,38 @@ export default function CalcDisplay({
 
         {hasResult ? (
           <Pressable
-            accessibilityLabel={copyLabel}
+            accessibilityLabel={t(copyLabel)}
             accessibilityRole="button"
             onPress={onCopy}
             style={({ pressed }) => [styles.copyButton, pressed && styles.actionPressed]}
           >
-            <Text style={styles.copyButtonText}>{copyLabel}</Text>
+            <Text style={styles.copyButtonText}>{t(copyLabel)}</Text>
           </Pressable>
         ) : null}
       </View>
       <Modal transparent visible={detailsOpen} animationType="fade" onRequestClose={() => setDetailsOpen(false)}>
         <SafeAreaProvider>
           <SafeAreaView edges={["top", "bottom"]} style={styles.detailSafe}>
-            <Pressable accessibilityLabel="Close calculation details" onPress={() => setDetailsOpen(false)} style={styles.detailScrim} feedback="none" />
+            <Pressable accessibilityLabel={t("Close calculation details")} onPress={() => setDetailsOpen(false)} style={styles.detailScrim} feedback="none" />
             <View style={styles.detailSheet}>
               <View style={styles.toolbar}>
-                <Text style={styles.detailTitle}>Calculation details</Text>
+                <Text style={styles.detailTitle}>{t("Calculation details")}</Text>
                 <Pressable accessibilityRole="button" onPress={() => setDetailsOpen(false)} style={styles.editButton}>
-                  <Text style={styles.editText}>Done</Text>
+                  <Text style={styles.editText}>{t("Done")}</Text>
                 </Pressable>
               </View>
               <ScrollView>
                 {cleanExpression ? <>
-                  <Text style={styles.detailLabel}>EQUATION</Text>
+                  <Text style={styles.detailLabel}>{t("EQUATION")}</Text>
                   <Text selectable style={[styles.detailBody, styles.fullCalculation]}>{cleanExpression}</Text>
                 </> : null}
                 {hasResult ? <>
-                  <Text style={styles.detailLabel}>ANSWER</Text>
+                  <Text style={styles.detailLabel}>{t("ANSWER")}</Text>
                   <Text selectable style={[styles.detailBody, styles.fullCalculation]}>{primary}</Text>
                 </> : null}
-                {error ? <Text style={styles.detailError}>{error}</Text> : null}
-                {roundingNotice ? <Text style={styles.detailBody}>{roundingNotice}</Text> : null}
-                {interpretation ? <Text style={styles.detailBody}>Interpreted as {interpretation}</Text> : null}
+                {error ? <Text style={styles.detailError}>{t(error)}</Text> : null}
+                {roundingNotice ? <Text style={styles.detailBody}>{t(roundingNotice)}</Text> : null}
+                {interpretation ? <Text style={styles.detailBody}>{t(`Interpreted as ${interpretation}`)}</Text> : null}
               </ScrollView>
             </View>
           </SafeAreaView>

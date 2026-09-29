@@ -2,7 +2,7 @@
   "expo": {
     "name": "Electrician Toolbox",
     "slug": "electrician-toolbox",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "orientation": "portrait",
     "icon": "./assets/images/electrician-toolbox-icon.png",
     "scheme": "electriciantoolbox",
@@ -42,7 +42,8 @@
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      ["expo-localization", { "supportedLocales": ["en", "es"] }]
     ],
     "experiments": {
       "typedRoutes": true,

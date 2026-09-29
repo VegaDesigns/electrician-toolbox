@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n";
+import { localizeBackupError } from "../../i18n/backupErrors";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -12,6 +14,7 @@ import { backupSummary, parseBackup, type ToolboxBackup } from "../../utils/back
 import { captureUserBackup, replaceFromUserBackup } from "../../utils/backup/service";
 
 export default function BackupScreen() {
+  const { t, language, locale } = useI18n();
   const s = useStyles();
   const { theme: { colors } } = useAppTheme();
   const [candidate, setCandidate] = useState<ToolboxBackup | null>(null);
@@ -31,7 +34,7 @@ export default function BackupScreen() {
   const exportBackup = () => run(async () => {
     const backup = await captureUserBackup(Constants.expoConfig?.version ?? "unknown");
     const filename = `electrician-toolbox-${backup.createdAt.replace(/[:.]/g, "-")}.json`;
-    const destination = await saveBackupFile(JSON.stringify(backup), filename);
+    const destination = await saveBackupFile(JSON.stringify(backup), filename, language);
     setStatus(destination === "download" ? "Backup download started. Check your downloads to confirm the file was saved." : "Share sheet closed. Your backup is saved only if you chose Save to Files or another destination.");
   });
   const importBackup = () => run(async () => {
@@ -50,51 +53,51 @@ export default function BackupScreen() {
   return <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
     <ScreenHeader>
       <BackButton disabled={busy} accessibilityLabel={candidate ? "Cancel backup review" : "Back to settings"} onPress={() => candidate ? closeReview() : router.canGoBack() ? router.back() : router.replace("/settings")} />
-      <Text accessibilityRole="header" style={s.title}>{candidate ? "Review backup" : "Backup & restore"}</Text>
+      <Text accessibilityRole="header" style={s.title}>{t(candidate ? "Review backup" : "Backup & restore")}</Text>
     </ScreenHeader>
     <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.intro}>{candidate ? "Nothing changes until you confirm below." : "Your work stays on this device. Save a backup you can restore if you change phones or reinstall the app."}</Text>
-      {error ? <View style={s.errorBox}><Text accessibilityRole="alert" style={s.errorText}>{error}</Text></View> : null}
-      {status ? <View style={s.notice}><Text accessibilityLiveRegion="polite" style={s.body}>{status}</Text></View> : null}
-      {busy ? <View style={s.busy}><ActivityIndicator color={colors.primary} /><Text accessibilityLiveRegion="polite" style={s.body}>Please wait…</Text></View> : null}
+      <Text style={s.intro}>{t(candidate ? "Nothing changes until you confirm below." : "Your work stays on this device. Save a backup you can restore if you change phones or reinstall the app.")}</Text>
+      {error ? <View style={s.errorBox}><Text accessibilityRole="alert" style={s.errorText}>{localizeBackupError(error, language)}</Text></View> : null}
+      {status ? <View style={s.notice}><Text accessibilityLiveRegion="polite" style={s.body}>{t(status)}</Text></View> : null}
+      {busy ? <View style={s.busy}><ActivityIndicator color={colors.primary} /><Text accessibilityLiveRegion="polite" style={s.body}>{t("Please wait…")}</Text></View> : null}
       {candidate && summary ? <>
         <View style={s.card}>
-          <Text style={s.eyebrow}>BACKUP CONTENTS</Text>
-          <Text style={s.heading}>{new Date(candidate.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</Text>
-          <Text style={s.muted}>Created in app version {candidate.appVersion}</Text>
+          <Text style={s.eyebrow}>{t("BACKUP CONTENTS")}</Text>
+          <Text style={s.heading}>{new Date(candidate.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" })}</Text>
+          <Text style={s.muted}>{t("Created in app version")}{" "}{candidate.appVersion}</Text>
           <View style={s.rows}>
             {[["Jobsite lists", summary.lists], ["Materials and notes", summary.items], ["Custom panel presets", summary.panelPresets], ["Saved calculations", summary.calculations], ["Favorite dictionary terms", summary.favoriteTerms]].map(([label, count]) =>
-              <View key={label} style={s.row}><Text style={s.rowLabel}>{label}</Text><Text style={s.count}>{count}</Text></View>)}
+              <View key={label} style={s.row}><Text style={s.rowLabel}>{t(String(label))}</Text><Text style={s.count}>{count}</Text></View>)}
           </View>
-          <Text style={s.muted}>Also restores Workpad preferences, bending setup and measurements, Wire Guide settings, dictionary recents, and appearance.</Text>
-          {summary.includesLegacy ? <Text style={s.muted}>Retained previous Job Board: {summary.legacyItems} items. These stay in the previous board, separate from Jobsite Lists.</Text> : null}
+          <Text style={s.muted}>{t("Also restores Workpad preferences, bending setup and measurements, Wire Guide settings, dictionary recents, and appearance.")}</Text>
+          {summary.includesLegacy ? <Text style={s.muted}>{t("Retained previous Job Board:")}{" "}{summary.legacyItems} {t("items. These stay in the previous board, separate from Jobsite Lists.")}</Text> : null}
         </View>
         <View style={s.warning}>
-          <Text style={s.warningTitle}>Replace, not merge</Text>
-          <Text style={s.warningText}>This replaces all saved work and settings on this device, including sections that are empty in the backup. Unfinished entry drafts and current unsaved calculations are cleared. Export your current work first if you want to keep it.</Text>
+          <Text style={s.warningTitle}>{t("Replace, not merge")}</Text>
+          <Text style={s.warningText}>{t("This replaces all saved work and settings on this device, including sections that are empty in the backup. Unfinished entry drafts and current unsaved calculations are cleared. Export your current work first if you want to keep it.")}</Text>
         </View>
         <Pressable accessibilityRole="checkbox" aria-checked={confirmed} accessibilityState={{ checked: confirmed, disabled: busy }} disabled={busy} onPress={() => setConfirmed(value => !value)} style={[s.confirm, confirmed && s.confirmSelected]}>
-          <Text style={s.check}>{confirmed ? "✓" : "□"}</Text><Text style={s.rowLabel}>I understand this replaces my current saved work and clears unfinished drafts.</Text>
+          <Text style={s.check}>{confirmed ? "✓" : "□"}</Text><Text style={s.rowLabel}>{t("I understand this replaces my current saved work and clears unfinished drafts.")}</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" disabled={busy || !confirmed} accessibilityState={{ disabled: busy || !confirmed }} onPress={restore} style={[s.destructive, (busy || !confirmed) && s.disabled]}><Text style={s.destructiveText}>Restore and replace</Text></Pressable>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={exportBackup} style={s.secondary}><Text style={s.secondaryText}>Back up current work first</Text></Pressable>
-        <Pressable accessibilityRole="button" disabled={busy} onPress={closeReview} style={s.secondary}><Text style={s.secondaryText}>Cancel restore</Text></Pressable>
+        <Pressable accessibilityRole="button" disabled={busy || !confirmed} accessibilityState={{ disabled: busy || !confirmed }} onPress={restore} style={[s.destructive, (busy || !confirmed) && s.disabled]}><Text style={s.destructiveText}>{t("Restore and replace")}</Text></Pressable>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={exportBackup} style={s.secondary}><Text style={s.secondaryText}>{t("Back up current work first")}</Text></Pressable>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={closeReview} style={s.secondary}><Text style={s.secondaryText}>{t("Cancel restore")}</Text></Pressable>
       </> : <>
         <View style={s.card}>
-          <Text style={s.heading}>Keep a copy</Text>
-          <Text style={s.body}>Includes your lists, notes, custom panel setups, saved calculations, favorites, bending measurements, and tool settings.</Text>
-          <Pressable accessibilityRole="button" disabled={busy} onPress={exportBackup} style={[s.primary, busy && s.disabled]}><Text style={s.primaryText}>Export backup</Text></Pressable>
+          <Text style={s.heading}>{t("Keep a copy")}</Text>
+          <Text style={s.body}>{t("Includes your lists, notes, custom panel setups, saved calculations, favorites, bending measurements, and tool settings.")}</Text>
+          <Pressable accessibilityRole="button" disabled={busy} onPress={exportBackup} style={[s.primary, busy && s.disabled]}><Text style={s.primaryText}>{t("Export backup")}</Text></Pressable>
         </View>
         <View style={s.card}>
-          <Text style={s.heading}>Bring your work back</Text>
-          <Text style={s.body}>Choose a Toolbox backup file. Review its contents before replacing anything.</Text>
-          <Pressable accessibilityRole="button" disabled={busy} onPress={importBackup} style={[s.secondary, busy && s.disabled]}><Text style={s.secondaryText}>Choose backup file</Text></Pressable>
+          <Text style={s.heading}>{t("Bring your work back")}</Text>
+          <Text style={s.body}>{t("Choose a Toolbox backup file. Review its contents before replacing anything.")}</Text>
+          <Pressable accessibilityRole="button" disabled={busy} onPress={importBackup} style={[s.secondary, busy && s.disabled]}><Text style={s.secondaryText}>{t("Choose backup file")}</Text></Pressable>
         </View>
         <View style={s.details}>
-          <Text style={s.eyebrow}>GOOD TO KNOW</Text>
-          <Text style={s.muted}>Backups are not automatic and do not sync between devices. Save the file somewhere outside this app, such as Files or a storage service you choose.</Text>
-          <Text style={s.muted}>The file is not encrypted. It can contain job names and notes, so only share it with people you trust.</Text>
-          <Text style={s.muted}>Unfinished entry drafts and unsaved calculations are not backed up. Retained previous Job Board data is included when present. Maximum file size: 5 MB.</Text>
+          <Text style={s.eyebrow}>{t("GOOD TO KNOW")}</Text>
+          <Text style={s.muted}>{t("Backups are not automatic and do not sync between devices. Save the file somewhere outside this app, such as Files or a storage service you choose.")}</Text>
+          <Text style={s.muted}>{t("The file is not encrypted. It can contain job names and notes, so only share it with people you trust.")}</Text>
+          <Text style={s.muted}>{t("Unfinished entry drafts and unsaved calculations are not backed up. Retained previous Job Board data is included when present. Maximum file size: 5 MB.")}</Text>
         </View>
       </>}
     </ScrollView>

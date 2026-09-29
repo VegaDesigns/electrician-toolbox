@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { conduitDraft } from "../../state/fillDrafts";
 import { useSessionField } from "../../hooks/useSessionField";
@@ -39,6 +40,7 @@ function displayWireSize(size: WireSize) {
 
 export default function ConduitFillScreen() {
   const styles = useStyles();
+  const { t } = useI18n();
 
   const [conduitType, setConduitType] = useSessionField(conduitDraft, "conduitType");
   const [conduitSize, setConduitSize] = useSessionField(conduitDraft, "conduitSize");
@@ -121,16 +123,16 @@ export default function ConduitFillScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => {
             pulse();
             returnHome();
           }} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>FILL GUIDE</Text>
-          <Text style={styles.headerTitle}>Conduit Fill</Text>
+          <Text style={styles.headerEyebrow}>{t("FILL GUIDE")}</Text>
+          <Text style={styles.headerTitle}>{t("Conduit Fill")}</Text>
         </View>
-        <ResetDraftButton label="Reset conduit calculation" onPress={() => { pulse(); conduitDraft.reset(); }} />
+        <ResetDraftButton label={t("Reset conduit calculation")} onPress={() => { pulse(); conduitDraft.reset(); }} />
       </ScreenHeader>
 
       <View style={styles.modeSwitchWrap}>
@@ -145,8 +147,8 @@ export default function ConduitFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>1</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Choose conduit</Text>
-            <Text style={styles.sectionHint}>Tap what is printed on the raceway.</Text>
+            <Text style={styles.sectionTitle}>{t("Choose conduit")}</Text>
+            <Text style={styles.sectionHint}>{t("Tap what is printed on the raceway.")}</Text>
           </View>
         </View>
 
@@ -183,7 +185,7 @@ export default function ConduitFillScreen() {
             <Text style={[
               styles.choiceText,
               selectedConduitIsOther && styles.choiceTextSelected,
-            ]}>Other {showOtherConduits ? "⌃" : "⌄"}</Text>
+            ]}>{t("Other")} {showOtherConduits ? "⌃" : "⌄"}</Text>
           </Pressable>
         </View>
 
@@ -211,8 +213,8 @@ export default function ConduitFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>2</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Choose size</Text>
-            <Text style={styles.sectionHint}>Trade size in inches.</Text>
+            <Text style={styles.sectionTitle}>{t("Choose size")}</Text>
+            <Text style={styles.sectionHint}>{t("Trade size in inches.")}</Text>
           </View>
         </View>
 
@@ -249,7 +251,7 @@ export default function ConduitFillScreen() {
             <Text style={[
               styles.sizeChoiceText,
               selectedSizeIsOther && styles.choiceTextSelected,
-            ]}>Other {showOtherSizes ? "⌃" : "⌄"}</Text>
+            ]}>{t("Other")} {showOtherSizes ? "⌃" : "⌄"}</Text>
           </Pressable>
         </View>
 
@@ -277,8 +279,8 @@ export default function ConduitFillScreen() {
         <View style={styles.introRow}>
           <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>3</Text></View>
           <View style={styles.stepCopy}>
-            <Text style={styles.sectionTitle}>Add wires</Text>
-            <Text style={styles.sectionHint}>Copper THHN / THWN-2</Text>
+            <Text style={styles.sectionTitle}>{t("Add wires")}</Text>
+            <Text style={styles.sectionHint}>{t("Copper THHN / THWN-2")}</Text>
           </View>
         </View>
 
@@ -286,14 +288,14 @@ export default function ConduitFillScreen() {
           {wires.map((wire) => (
             <View key={wire.id} style={styles.wireRow}>
               <FillQuantityControl
-                accessibilityLabel={`${displayWireSize(wire.size)} wire quantity`}
+                accessibilityLabel={t("{{size}} wire quantity", { size: displayWireSize(wire.size) })}
                 onChange={(quantity) => setQuantity(wire.id, quantity)}
                 value={wire.quantity}
               />
 
               <Pressable
-                accessibilityHint="Opens the wire size list"
-                accessibilityLabel={`Wire size ${displayWireSize(wire.size)}`}
+                accessibilityHint={t("Opens the wire size list")}
+                accessibilityLabel={t("Wire size {{size}}", { size: displayWireSize(wire.size) })}
                 accessibilityRole="button"
                 onPress={() => {
                   pulse();
@@ -302,7 +304,7 @@ export default function ConduitFillScreen() {
                 style={({ pressed }) => [styles.wireSizeButton, pressed && styles.pressed]}
               >
                 <View>
-                  <Text style={styles.wireSizeLabel}>WIRE SIZE</Text>
+                  <Text style={styles.wireSizeLabel}>{t("WIRE SIZE")}</Text>
                   <Text style={styles.wireSizeValue}>{displayWireSize(wire.size)}</Text>
                 </View>
                 <Text style={styles.chevron}>⌄</Text>
@@ -310,7 +312,7 @@ export default function ConduitFillScreen() {
 
               {wires.length > 1 ? (
                 <Pressable
-                  accessibilityLabel="Remove this wire row"
+                  accessibilityLabel={t("Remove this wire row")}
                   accessibilityRole="button"
                   onPress={() => removeWire(wire.id)}
                   style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
@@ -328,20 +330,20 @@ export default function ConduitFillScreen() {
           style={({ pressed }) => [styles.addWireButton, pressed && styles.pressed]}
         >
           <Text style={styles.addWireIcon}>＋</Text>
-          <Text style={styles.addWireText}>Add another wire size</Text>
+          <Text style={styles.addWireText}>{t("Add another wire size")}</Text>
         </Pressable>
 
         <View style={[styles.resultCard, !result.fits && styles.resultCardFail]}>
           <View style={styles.resultTopRow}>
-            <View>
-              <Text style={styles.resultEyebrow}>RESULT</Text>
+            <View style={styles.flexibleCopy}>
+              <Text style={styles.resultEyebrow}>{t("RESULT")}</Text>
               <Text style={[styles.resultStatus, !result.fits && styles.resultStatusFail]}>
-                {result.fits ? "FITS" : "TOO FULL"}
+                {result.fits ? t("FITS") : t("TOO FULL")}
               </Text>
             </View>
             <View style={[styles.fillBadge, !result.fits && styles.fillBadgeFail]}>
               <Text style={styles.fillBadgeValue}>{result.fillPercent.toFixed(1)}%</Text>
-              <Text style={styles.fillBadgeLabel}>USED</Text>
+              <Text style={styles.fillBadgeLabel}>{t("USED")}</Text>
             </View>
           </View>
 
@@ -361,35 +363,33 @@ export default function ConduitFillScreen() {
             />
           </View>
           <View style={styles.meterLabels}>
-            <Text style={styles.meterLabel}>{result.conductorCount} conductors</Text>
-            <Text style={styles.meterLabel}>{result.fillLimitPercent}% allowed</Text>
+            <Text style={styles.meterLabel}>{t("{{count}} conductors", { count: result.conductorCount })}</Text>
+            <Text style={styles.meterLabel}>{t("{{percent}}% allowed", { percent: result.fillLimitPercent })}</Text>
           </View>
 
           <View style={styles.resultDetails}>
             <View style={styles.detailBlock}>
-              <Text style={styles.detailLabel}>SELECTED</Text>
+              <Text style={styles.detailLabel}>{t("SELECTED")}</Text>
               <Text style={styles.detailValue}>{conduitSize}″ {CONDUIT_LABELS[conduitType]}</Text>
             </View>
             <View style={styles.detailRule} />
             <View style={styles.detailBlock}>
-              <Text style={styles.detailLabel}>{result.fits ? "ROOM FOR" : "USE AT LEAST"}</Text>
+              <Text style={styles.detailLabel}>{result.fits ? t("ROOM FOR") : t("USE AT LEAST")}</Text>
               <Text style={styles.detailValue}>
                 {result.fits && lastWire
-                  ? `${maxAdditional} more ${displayWireSize(lastWire.size)}`
+                  ? t("{{count}} more {{size}}", { count: maxAdditional, size: displayWireSize(lastWire.size) })
                   : minimumSize
                     ? `${minimumSize}″ ${CONDUIT_LABELS[conduitType]}`
-                    : "Larger raceway"}
+                    : t("Larger raceway")}
               </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.codeNote}>
-          <Text style={styles.codeNoteTitle}>FIELD REFERENCE</Text>
+          <Text style={styles.codeNoteTitle}>{t("FIELD REFERENCE")}</Text>
           <Text style={styles.codeNoteText}>
-            Physical fill only. Verify conductor construction, raceway dimensions,
-            adjustment requirements, local rules, and job specifications before installation.
-          </Text>
+            {t("Physical fill only. Verify conductor construction, raceway dimensions, adjustment requirements, local rules, and job specifications before installation.")}</Text>
         </View>
       </ScrollView>
 
@@ -405,16 +405,16 @@ export default function ConduitFillScreen() {
             <View style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
-                <View>
-                  <Text style={styles.sheetEyebrow}>COPPER THHN / THWN-2</Text>
-                  <Text style={styles.sheetTitle}>Choose wire size</Text>
+                <View style={styles.flexibleCopy}>
+                  <Text style={styles.sheetEyebrow}>{t("COPPER THHN / THWN-2")}</Text>
+                  <Text style={styles.sheetTitle}>{t("Choose wire size")}</Text>
                 </View>
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => setSizePickerRowId(null)}
                   style={styles.doneButton}
                 >
-                  <Text style={styles.doneButtonText}>Done</Text>
+                  <Text style={styles.doneButtonText}>{t("Done")}</Text>
                 </Pressable>
               </View>
               <ScrollView contentContainerStyle={styles.wireSizeGrid}>

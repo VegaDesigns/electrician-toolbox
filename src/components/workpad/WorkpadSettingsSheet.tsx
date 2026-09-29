@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "../../screens/bending/measurementI18n";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , FontSize, Radius, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
@@ -29,6 +30,7 @@ export default function WorkpadSettingsSheet({
   selectedResultKey,
   visible,
 }: Props) {
+  const { t } = useMeasurementI18n();
   const styles = useStyles();
 
   return (
@@ -41,7 +43,7 @@ export default function WorkpadSettingsSheet({
       <SafeAreaProvider>
         <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
           <Pressable
-            accessibilityLabel="Close Workpad settings"
+            accessibilityLabel={t("Close Workpad settings")}
             accessibilityRole="button"
             onPress={onClose}
             style={styles.scrim} feedback="none"
@@ -49,29 +51,29 @@ export default function WorkpadSettingsSheet({
           <View style={styles.sheet}>
             <View style={styles.handle} />
             <View style={styles.header}>
-              <View>
-                <Text style={styles.eyebrow}>WORKPAD</Text>
-                <Text style={styles.title}>Settings</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.eyebrow}>{t("WORKPAD")}</Text>
+                <Text style={styles.title}>{t("Settings")}</Text>
               </View>
               <Pressable
                 accessibilityRole="button"
                 onPress={onClose}
                 style={({ pressed }) => [styles.doneButton, pressed && styles.pressed]}
               >
-                <Text style={styles.doneButtonText}>Done</Text>
+                <Text style={styles.doneButtonText}>{t("Done")}</Text>
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.settingBlock}>
-              <Text style={styles.settingTitle}>Measurement precision</Text>
-              <Text style={styles.settingHint}>Round to the nearest fraction. None turns fractional rounding off.</Text>
+              <Text style={styles.settingTitle}>{t("Measurement precision")}</Text>
+              <Text style={styles.settingHint}>{t("Round to the nearest fraction. None turns fractional rounding off.")}</Text>
               <View accessibilityRole="radiogroup" style={styles.segmented}>
                 {PRECISION_OPTIONS.map((value) => {
                   const selected = precision === value;
                   return (
                     <Pressable
-                      accessibilityLabel={getPrecisionAccessibilityLabel(value)}
+                      accessibilityLabel={t(getPrecisionAccessibilityLabel(value))}
                       accessibilityRole="radio"
                       accessibilityState={{ selected }}
                       key={value}
@@ -83,29 +85,27 @@ export default function WorkpadSettingsSheet({
                       ]}
                     >
                       <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
-                        {value === "none" ? "None" : `1/${value}`}
+                        {t(value === "none" ? "None" : `1/${value}`)}
                       </Text>
                     </Pressable>
                   );
                 })}
               </View>
-              <Text style={styles.exampleLabel}>EXAMPLE</Text>
+              <Text style={styles.exampleLabel}>{t("EXAMPLE")}</Text>
               <Text style={styles.exampleValue}>4.3″  →  {formatFeetInches(4.3, precision)}</Text>
             </View>
 
             {resultOptions.length > 1 ? (
               <View style={styles.settingBlock}>
-                <Text style={styles.settingTitle}>Current answer format</Text>
-                <Text style={styles.settingHint}>
-                  Choose a detailed format for this answer only.
-                </Text>
+                <Text style={styles.settingTitle}>{t("Current answer format")}</Text>
+                <Text style={styles.settingHint}>{t("Choose a detailed format for this answer only.")}</Text>
                 <View accessibilityRole="radiogroup" style={styles.formatGrid}>
                   {resultOptions.map((option) => {
                     const selected = option.key === selectedResultKey;
 
                     return (
                       <Pressable
-                        accessibilityLabel={`${option.label}: ${option.value}`}
+                        accessibilityLabel={t(`${option.label}: ${option.value}`)}
                         accessibilityRole="radio"
                         accessibilityState={{ selected }}
                         key={option.key}
@@ -117,13 +117,13 @@ export default function WorkpadSettingsSheet({
                         ]}
                       >
                         <Text
-                          numberOfLines={1}
+                          numberOfLines={2}
                           style={[
                             styles.formatLabel,
                             selected && styles.formatLabelSelected,
                           ]}
                         >
-                          {option.label}
+                          {t(option.label)}
                         </Text>
                         <Text
                           adjustsFontSizeToFit
@@ -137,17 +137,13 @@ export default function WorkpadSettingsSheet({
                     );
                   })}
                 </View>
-                <Text style={styles.formatNote}>
-                  The next calculation returns to automatic units.
-                </Text>
+                <Text style={styles.formatNote}>{t("The next calculation returns to automatic units.")}</Text>
               </View>
             ) : null}
 
             <View style={styles.savedNote}>
               <View style={styles.savedDot} />
-              <Text style={styles.savedText}>
-                Measurement precision is saved automatically
-              </Text>
+              <Text style={styles.savedText}>{t("Measurement precision is saved automatically")}</Text>
             </View>
             </ScrollView>
           </View>
@@ -294,6 +290,6 @@ const useStyles = defineStyles(({ colors: Colors }) => ({
   },
   savedNote: { alignItems: "center", flexDirection: "row", gap: 7, paddingHorizontal: 3, paddingTop: 2 },
   savedDot: { backgroundColor: Colors.action, borderRadius: 4, height: 6, width: 6 },
-  savedText: { color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500" },
+  savedText: { flex: 1, color: Colors.textSubtle, fontSize: FontSize.caption, fontWeight: "500" },
   pressed: { opacity: 0.78, transform: [{ scale: 0.985 }],  },
 }));

@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n";
 import { useState, useSyncExternalStore } from "react";
 import { AccessibilityInfo, Modal, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +8,7 @@ import { FeedbackPressable as Pressable } from "./FeedbackPressable";
 
 /** Lives beside navigation so the restore acknowledgement survives any restored route. */
 export function BackupNotice() {
+  const { t } = useI18n();
   const state = useSyncExternalStore(subscribeBackup, getBackupState, getBackupState);
   const [lastNotice, setLastNotice] = useState({ title: state.noticeTitle, body: state.notice });
   if (state.notice && (state.notice !== lastNotice.body || state.noticeTitle !== lastNotice.title)) {
@@ -18,14 +20,14 @@ export function BackupNotice() {
   const s = useStyles();
   return <Modal visible={state.status === "ready" && !!state.notice} transparent animationType={reduceMotion ? "none" : "fade"}
     onRequestClose={dismissBackupNotice}
-    onShow={() => { AccessibilityInfo.announceForAccessibility(`${notice.title}. ${notice.body}`); }}>
+    onShow={() => { AccessibilityInfo.announceForAccessibility(`${t(notice.title)}. ${t(notice.body)}`); }}>
     <SafeAreaView edges={["top", "bottom", "left", "right"]} style={s.overlay}>
       <View accessibilityViewIsModal style={s.card}>
         <ScrollView contentContainerStyle={s.content}>
-          <Text style={s.eyebrow}>YOUR SAVED WORK</Text>
-          <Text accessibilityRole="header" style={s.title}>{notice.title}</Text>
-          <Text style={s.body}>{notice.body}</Text>
-          <Pressable accessibilityRole="button" onPress={dismissBackupNotice} style={s.continue}><Text style={s.continueText}>Continue</Text></Pressable>
+          <Text style={s.eyebrow}>{t("YOUR SAVED WORK")}</Text>
+          <Text accessibilityRole="header" style={s.title}>{t(notice.title)}</Text>
+          <Text style={s.body}>{t(notice.body)}</Text>
+          <Pressable accessibilityRole="button" onPress={dismissBackupNotice} style={s.continue}><Text style={s.continueText}>{t("Continue")}</Text></Pressable>
         </ScrollView>
       </View>
     </SafeAreaView>

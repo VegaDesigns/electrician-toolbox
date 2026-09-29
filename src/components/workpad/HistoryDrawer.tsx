@@ -1,3 +1,4 @@
+import { useMeasurementI18n } from "../../screens/bending/measurementI18n";
 import { FeedbackPressable as Pressable } from "../FeedbackPressable";
 import { Space , Radius, FontSize, Fonts } from "../../theme/tokens";
 import { defineStyles } from "../../theme";
@@ -30,6 +31,7 @@ export default function HistoryDrawer({
   onSelectItem,
   onToggleFavorite,
 }: Props) {
+  const { t, locale } = useMeasurementI18n();
   const styles = useStyles();
 
   const savedItems = items.filter((item) => item.isFavorite);
@@ -44,7 +46,7 @@ export default function HistoryDrawer({
     return (
       <View key={item.id} style={styles.card}>
         <Pressable
-          accessibilityLabel={`Use calculation ${item.expression}, result ${item.result}`}
+          accessibilityLabel={t(`Use calculation ${item.expression}, result ${item.result}`)}
           accessibilityRole="button"
           onPress={() => onSelectItem(item)}
           style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
@@ -58,13 +60,13 @@ export default function HistoryDrawer({
           </Text>
 
           <Text style={styles.timestamp}>
-            {formatHistoryTime(item.createdAt)}
+            {formatHistoryTime(item.createdAt, locale)}
           </Text>
         </Pressable>
 
         <View style={styles.actionsColumn}>
           <Pressable
-            accessibilityLabel={isSaved ? "Remove from saved" : "Save calculation"}
+            accessibilityLabel={t(isSaved ? "Remove from saved" : "Save calculation")}
             accessibilityRole="button"
             onPress={() => onToggleFavorite(item.id)}
             style={({ pressed }) => [
@@ -79,13 +81,13 @@ export default function HistoryDrawer({
                 isSaved && styles.favoriteTextActive,
               ]}
             >
-              {isSaved ? "★" : "☆"}
+              {t(isSaved ? "★" : "☆")}
             </Text>
           </Pressable>
 
           {!isSaved && (
             <Pressable
-              accessibilityLabel={`Delete calculation ${item.expression}`}
+              accessibilityLabel={t(`Delete calculation ${item.expression}`)}
               accessibilityRole="button"
               onPress={() => onDeleteItem(item.id)}
               style={({ pressed }) => [
@@ -93,7 +95,7 @@ export default function HistoryDrawer({
                 pressed && styles.pressed,
               ]}
             >
-              <Text style={styles.deleteText}>Delete</Text>
+              <Text style={styles.deleteText}>{t("Delete")}</Text>
             </Pressable>
           )}
         </View>
@@ -116,29 +118,26 @@ export default function HistoryDrawer({
           <View style={styles.handle} />
 
           <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.title}>History</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.title}>{t("History")}</Text>
               <Text style={styles.subtitle}>
-                {savedItems.length} saved · {recentItems.length} recent
-              </Text>
+                {t(`${savedItems.length} saved · ${recentItems.length} recent`)}</Text>
             </View>
 
             <Pressable
-              accessibilityLabel="Close calculation history"
+              accessibilityLabel={t("Close calculation history")}
               accessibilityRole="button"
               onPress={onClose}
               style={styles.closeButton}
             >
-              <Text style={styles.closeText}>Done</Text>
+              <Text style={styles.closeText}>{t("Done")}</Text>
             </Pressable>
           </View>
 
           {!hasItems ? (
             <View style={styles.emptyBox}>
-              <Text style={styles.emptyTitle}>No history yet</Text>
-              <Text style={styles.emptyText}>
-                Completed calculations will show up here.
-              </Text>
+              <Text style={styles.emptyTitle}>{t("No history yet")}</Text>
+              <Text style={styles.emptyText}>{t("Completed calculations will show up here.")}</Text>
             </View>
           ) : (
             <>
@@ -149,14 +148,14 @@ export default function HistoryDrawer({
               >
                 {savedItems.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Saved</Text>
+                    <Text style={styles.sectionTitle}>{t("Saved")}</Text>
                     {savedItems.map(renderHistoryCard)}
                   </View>
                 )}
 
                 {recentItems.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Recent</Text>
+                    <Text style={styles.sectionTitle}>{t("Recent")}</Text>
                     {recentItems.map(renderHistoryCard)}
                   </View>
                 )}
@@ -164,7 +163,7 @@ export default function HistoryDrawer({
 
               {hasRecentItems && (
                 <Pressable
-                  accessibilityLabel="Clear recent calculation history"
+                  accessibilityLabel={t("Clear recent calculation history")}
                   accessibilityRole="button"
                   onPress={onClear}
                   style={({ pressed }) => [
@@ -172,19 +171,19 @@ export default function HistoryDrawer({
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Text style={styles.clearText}>Clear Recent</Text>
+                  <Text style={styles.clearText}>{t("Clear Recent")}</Text>
                 </Pressable>
               )}
             </>
           )}
-          {error ? <Text accessibilityRole="alert" style={styles.errorText}>{error}</Text> : null}
+          {error ? <Text accessibilityRole="alert" style={styles.errorText}>{t(error)}</Text> : null}
           {undoCount > 0 ? (
             <View style={styles.undoRow}>
               <Text accessibilityLiveRegion="polite" style={styles.undoText}>
-                {undoCount === 1 ? "Calculation removed" : `${undoCount} calculations removed`}
+                {t(undoCount === 1 ? "Calculation removed" : `${undoCount} calculations removed`)}
               </Text>
               <Pressable accessibilityRole="button" onPress={onUndo} style={styles.undoButton}>
-                <Text style={styles.undoAction}>Undo</Text>
+                <Text style={styles.undoAction}>{t("Undo")}</Text>
               </Pressable>
             </View>
           ) : null}
@@ -195,10 +194,10 @@ export default function HistoryDrawer({
   );
 }
 
-function formatHistoryTime(createdAt: number): string {
+function formatHistoryTime(createdAt: number, locale: string): string {
   const date = new Date(createdAt);
 
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString(locale, {
     month: "short",
     day: "numeric",
     hour: "numeric",

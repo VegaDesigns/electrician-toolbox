@@ -14,6 +14,8 @@ Updated September 28, 2026. Working product name: Electrician Toolbox. Intended 
 
 ## Release checkpoints
 
+The owner has now approved saving/pushing the bilingual **0.9.4** checkpoint and proceeding with TestFlight preparation. Final local checks: TypeScript, ESLint and 201 tests pass. A tester feedback address was supplied privately in conversation, not configured as public support. Build/signing/upload/beta approval are pending live receipts. Do not invite coworkers or submit the public App Store release without confirmation. The historical 0.9.3 receipt below remains the latest completed installable build until superseded.
+
 Source checkpoint `f5ddff1` is saved and pushed. The authorized registered-device
 iPhone build **0.9.3 (9)** finished on September 28, 2026; see the exact installer
 and receipt in [the project handoff](PROJECT_STATE_HANDOFF.md). Native acceptance
@@ -51,7 +53,7 @@ A thread-linked weekly check is scheduled for Mondays at 9 a.m. local time. It r
 ## Release sequence
 
 1. Review the local changes and Word report. Resolve implementation defects before adding monetization.
-2. Save an approved code checkpoint. Build a fresh 0.9.3 preview for the owner's native acceptance; do not publish an incompatible update to 0.9.2 phones.
+2. Save the approved bilingual 0.9.4 checkpoint and prepare a fresh native build. Do not publish incompatible localization/native-module changes as an OTA update to earlier runtimes.
 3. With owner authorization, create/upload a store-distribution build using the `fieldtest` profile. It uses a separate update channel from production. Configure TestFlight test information and invite the chosen coworkers after Apple's required review. A build upload is not a public App Store release.
 4. Record coworker findings, electrical verification, rights review, restore-on-phone results and privacy/support completion.
 5. Agree on the paid package and implement it as a separate milestone. Check purchases and restore on a development/TestFlight build, not Expo Go.

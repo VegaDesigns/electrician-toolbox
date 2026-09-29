@@ -6,9 +6,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useAppTheme } from "../src/theme";
 import { BackupBoundary } from "../src/components/BackupBoundary";
 import { BackupNotice } from "../src/components/BackupNotice";
+import { LanguageProvider } from "../src/i18n";
 
 export default function RootLayout() {
-  return <BackupBoundary><ThemeProvider><ThemedNavigation /></ThemeProvider></BackupBoundary>;
+  return <BackupBoundary><ThemeProvider><LanguageProvider><ThemedNavigation /></LanguageProvider></ThemeProvider></BackupBoundary>;
 }
 
 function ThemedNavigation() {

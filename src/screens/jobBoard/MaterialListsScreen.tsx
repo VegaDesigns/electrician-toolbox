@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { useSessionField } from "../../hooks/useSessionField";
 import { materialListDraft } from "../../state/materialListDraft";
 import { FormField } from "../../components/FormField";
@@ -27,6 +28,7 @@ type Removed = { kind: "item"; listId: string; line: ListLine; index: number } |
 
 function SwipeList({ list, open, action }: { list: MaterialList; open: () => void; action: (type: "finish" | "delete") => void }) {
   const s = useLocalStyles();
+  const { t } = useI18n();
 
   const swipe = useRef<{ close: () => void } | null>(null);
   const isRevealed = useRef(false);
@@ -40,11 +42,11 @@ function SwipeList({ list, open, action }: { list: MaterialList; open: () => voi
     onSwipeableOpenStartDrag={() => { isRevealed.current = true; }}
     onSwipeableWillOpen={() => { isRevealed.current = true; ignoreTapUntil.current = Date.now() + 300; }}
     onSwipeableClose={() => { isRevealed.current = false; }}
-    renderLeftActions={() => <Pressable accessibilityRole="button" accessibilityLabel="Delete list" onPress={() => { swipe.current?.close(); action("delete"); }} style={[s.swipeAction, s.swipeDelete]}><Text style={s.swipeSymbol}>×</Text><Text style={s.swipeLabel}>Delete</Text></Pressable>}
-    renderRightActions={() => <Pressable accessibilityRole="button" accessibilityLabel="Mark completed" onPress={() => { swipe.current?.close(); action("finish"); }} style={[s.swipeAction, s.swipeFinish]}><Text style={s.swipeSymbol}>✓</Text><Text style={s.swipeLabel}>Finished</Text></Pressable>}>
+    renderLeftActions={() => <Pressable accessibilityRole="button" accessibilityLabel={t("Delete list")} onPress={() => { swipe.current?.close(); action("delete"); }} style={[s.swipeAction, s.swipeDelete]}><Text style={s.swipeSymbol}>×</Text><Text style={s.swipeLabel}>{t("Delete")}</Text></Pressable>}
+    renderRightActions={() => <Pressable accessibilityRole="button" accessibilityLabel={t("Mark completed")} onPress={() => { swipe.current?.close(); action("finish"); }} style={[s.swipeAction, s.swipeFinish]}><Text style={s.swipeSymbol}>✓</Text><Text style={s.swipeLabel}>{t("Finished")}</Text></Pressable>}>
     <Pressable accessibilityRole="button" onPress={() => { if (Date.now() < ignoreTapUntil.current) return; if (isRevealed.current) swipe.current?.close(); else open(); }} style={s.listCard}>
-      <View style={s.cardHeading}><View style={s.listMark}><Text style={s.listMarkText}>≡</Text></View><Text style={[s.title, s.cardTitle]}>{list.title.trim() || "Untitled list"}</Text><Text style={s.muted}>›</Text></View>
-      <Text style={s.muted}>{materials.length ? `${materials.filter((line) => !line.done).length} left · ${materials.length} materials` : "No materials"}{list.lines.some((line) => line.kind === "note") ? ` · Notes: ${list.lines.filter((line) => line.kind === "note").length}` : ""}</Text>
+      <View style={s.cardHeading}><View style={s.listMark}><Text style={s.listMarkText}>≡</Text></View><Text style={[s.title, s.cardTitle]}>{list.title.trim() || t("Untitled list")}</Text><Text style={s.muted}>›</Text></View>
+      <Text style={s.muted}>{materials.length ? t("{{left}} left · {{total}} materials", { left: materials.filter((line) => !line.done).length, total: materials.length }) : t("No materials")}{list.lines.some((line) => line.kind === "note") ? t(" · Notes: {{count}}", { count: list.lines.filter((line) => line.kind === "note").length }) : ""}</Text>
     </Pressable>
   </SwipeRow>;
 }
@@ -70,6 +72,7 @@ const BrowserSwipeRow = React.forwardRef<{ close: () => void }, React.ComponentP
 
 export default function MaterialListsScreen() {
   const s = useLocalStyles();
+  const { t, language } = useI18n();
   const fillStyles = useFillStyles();
   const { theme: { colors: Colors } } = useAppTheme();
 
@@ -160,11 +163,11 @@ export default function MaterialListsScreen() {
     if (!selected) return;
     setShareStatus("");
     try {
-      const message = formatMaterialList(selected);
-      if (copy) { await Clipboard.setStringAsync(message); setShareStatus("List copied."); }
-      else { await Share.share({ title: selected.title.trim() || "Jobsite list", message }); }
+      const message = formatMaterialList(selected, language);
+      if (copy) { await Clipboard.setStringAsync(message); setShareStatus(t("List copied.")); }
+      else { await Share.share({ title: selected.title.trim() || t("Jobsite list"), message }); }
       setManage(null);
-    } catch { setManage(null); setShareStatus("Couldn't share this list. Open List options to try again or copy it."); }
+    } catch { setManage(null); setShareStatus(t("Couldn't share this list. Open List options to try again or copy it.")); }
   }
   const materials = selected?.lines.filter((line) => line.kind !== "note") ?? [];
   const remaining = materials.filter((line) => !line.done).length;
@@ -180,44 +183,44 @@ export default function MaterialListsScreen() {
   return <SafeAreaView edges={["top", "bottom"]} style={s.safe}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel={selected ? "Back to lists" : "Return to toolbox home"}
+        <BackButton accessibilityLabel={selected ? t("Back to lists") : t("Return to toolbox home")}
           onPress={() => selected ? leaveGuard.requestLeave(() => materialListDraft.reset()) : returnHome()} />
-        <View style={s.lineBody}><Text style={s.eyebrow}>JOBSITE LISTS</Text><Text style={s.heading}>{selected ? "Job" : "Your lists"}</Text></View>
-        {selected ? <Pressable accessibilityRole="button" accessibilityLabel="List options" disabled={!canLeave} onPress={() => setManage("options")} style={[s.optionsButton, !canLeave && s.disabled]}><Text style={s.buttonText}>•••</Text></Pressable> : null}
+        <View style={s.lineBody}><Text style={s.eyebrow}>{t("JOBSITE LISTS")}</Text><Text style={s.heading}>{selected ? t("Job") : t("Your lists")}</Text></View>
+        {selected ? <Pressable accessibilityRole="button" accessibilityLabel={t("List options")} disabled={!canLeave} onPress={() => setManage("options")} style={[s.optionsButton, !canLeave && s.disabled]}><Text style={s.buttonText}>•••</Text></Pressable> : null}
       </ScreenHeader>
-      <StorageStatus state={stored} onRetry={stored.retry} label="Jobsite lists" />
-      {!selected ? <Pressable accessibilityRole="button" onPress={() => leaveGuard.requestLeave(() => router.push("/previous-job-board"))} style={s.smallButton}><Text style={s.link}>Previous Job Board →</Text></Pressable> : null}
+      <StorageStatus state={stored} onRetry={stored.retry} label={t("Jobsite lists")} />
+      {!selected ? <Pressable accessibilityRole="button" onPress={() => leaveGuard.requestLeave(() => router.push("/previous-job-board"))} style={s.smallButton}><Text style={s.link}>{t("Previous Job Board →")}</Text></Pressable> : null}
       {shareStatus ? <Text accessibilityLiveRegion="polite" style={s.status}>{shareStatus}</Text> : null}
       {loaded && <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
         {!selected ? <>
-          {!completedView ? <Pressable accessibilityRole="button" onPress={createList} style={s.primary}><Text style={s.primaryText}>+ New list</Text></Pressable> : null}
-          <View style={s.sectionHeader}><Text style={s.title}>{completedView ? "Completed" : "Active lists"}</Text>
-            <Pressable accessibilityRole="button" onPress={() => setCompletedView(!completedView)} style={s.smallButton}><Text style={s.link}>{completedView ? "Active lists" : `Completed (${data.lists.filter((list) => list.completed).length})`}</Text></Pressable></View>
-          {!completedView && shownLists.length ? <Text style={s.muted}>Swipe left to finish · right to delete</Text> : null}
+          {!completedView ? <Pressable accessibilityRole="button" onPress={createList} style={s.primary}><Text style={s.primaryText}>{t("+ New list")}</Text></Pressable> : null}
+          <View style={s.sectionHeader}><Text style={s.title}>{completedView ? t("Completed") : t("Active lists")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => setCompletedView(!completedView)} style={s.smallButton}><Text style={s.link}>{completedView ? t("Active lists") : t("Completed ({{count}})", { count: data.lists.filter((list) => list.completed).length })}</Text></Pressable></View>
+          {!completedView && shownLists.length ? <Text style={s.muted}>{t("Swipe left to finish · right to delete")}</Text> : null}
           {shownLists.map((list) => <SwipeList key={list.id} list={list} open={() => openList(list)} action={(type) => { openList(list); if (type === "finish") setFinishPrompt(true); else setManage("delete"); }} />)}
-          {!shownLists.length ? <View style={s.empty}><Text style={s.title}>{completedView ? "No completed lists yet" : "A fresh list for each job"}</Text><Text style={s.muted}>{completedView ? "Completed lists stay here to reopen later." : "Keep job notes and materials together."}</Text></View> : null}
+          {!shownLists.length ? <View style={s.empty}><Text style={s.title}>{completedView ? t("No completed lists yet") : t("A fresh list for each job")}</Text><Text style={s.muted}>{completedView ? t("Completed lists stay here to reopen later.") : t("Keep job notes and materials together.")}</Text></View> : null}
         </> : <>
           <View style={s.runSummary}>
-          <View style={s.sectionHeader}><Text style={s.eyebrow}>JOB NOTES & MATERIALS</Text><View style={s.countBadge}><Text style={s.countText}>{selected.completed ? "Completed" : `${remaining} left`}</Text></View></View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Rename list" disabled={!canLeave} onPress={() => { setNameDraft(selected.title); setManage("rename"); }} style={s.renameTarget}>
-            <Text style={[s.name, s.lineBody]}>{selected.title.trim() || "Name this job…"}</Text><Text style={s.pencil}>✎</Text>
+          <View style={s.sectionHeader}><Text style={s.eyebrow}>{t("JOB NOTES & MATERIALS")}</Text><View style={s.countBadge}><Text style={s.countText}>{selected.completed ? t("Completed") : t("{{count}} left", { count: remaining })}</Text></View></View>
+          <Pressable accessibilityRole="button" accessibilityLabel={t("Rename list")} disabled={!canLeave} onPress={() => { setNameDraft(selected.title); setManage("rename"); }} style={s.renameTarget}>
+            <Text style={[s.name, s.lineBody]}>{selected.title.trim() || t("Name this job…")}</Text><Text style={s.pencil}>✎</Text>
           </Pressable>
-          <Text style={s.muted}>{materials.length ? `${materials.length - remaining} of ${materials.length} materials collected` : "Notes and materials for this job"}</Text>
+          <Text style={s.muted}>{materials.length ? t("{{done}} of {{total}} materials collected", { done: materials.length - remaining, total: materials.length }) : t("Notes and materials for this job")}</Text>
           <View style={s.progressTrack}><View style={[s.progressFill, { width: `${materials.length ? ((materials.length - remaining) / materials.length) * 100 : 0}%` }]} /></View>
           </View>
           {(["note", "material"] as const).map((kind) => selected.lines.some((line) => (line.kind ?? "material") === kind) ? <View key={kind} style={s.paper}>
-          <Text style={s.groupLabel}>{kind === "note" ? "NOTES" : "MATERIALS"}</Text>
+          <Text style={s.groupLabel}>{kind === "note" ? t("NOTES") : t("MATERIALS")}</Text>
           {selected.lines.filter((line) => (line.kind ?? "material") === kind).map((line) => <View key={line.id} style={s.line}>
-            {kind === "note" ? <View style={s.checkTarget}><Text style={s.noteMarker}>-</Text></View> : <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: line.done }} accessibilityLabel={`Collected: ${line.text}`} disabled={selected.completed || editing === line.id}
+            {kind === "note" ? <View style={s.checkTarget}><Text style={s.noteMarker}>-</Text></View> : <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: line.done }} accessibilityLabel={t("Collected: {{text}}", { text: line.text })} disabled={selected.completed || editing === line.id}
               onPress={() => { void changeList(selected.id, (list) => ({ ...list, lines: list.lines.map((item) => item.id === line.id ? { ...item, done: !item.done } : item) })); }}
               style={({ pressed }) => [s.checkTarget, pressed && s.pressed]}><View style={[s.check, line.done && s.checked]}><Text style={s.checkText}>{line.done ? "✓" : ""}</Text></View></Pressable>}
             <View style={s.lineBody}>
-              <View style={s.lineContent}><Pressable accessibilityRole="button" accessibilityLabel={`Edit ${line.text}`} disabled={selected.completed || !!editing} onPress={() => startEdit(line)} style={({ pressed }) => [s.lineTextTarget, pressed && s.pressed]}>
+              <View style={s.lineContent}><Pressable accessibilityRole="button" accessibilityLabel={t("Edit {{text}}", { text: line.text })} disabled={selected.completed || !!editing} onPress={() => startEdit(line)} style={({ pressed }) => [s.lineTextTarget, pressed && s.pressed]}>
                 <Text style={[s.lineText, kind !== "note" && line.done && s.doneText]}>{line.text}</Text>
               </Pressable>
               {!selected.completed ? <>
-                <Pressable accessibilityRole="button" accessibilityLabel={`Edit wording: ${line.text}${kind !== "note" && line.previous.length ? ", previously edited" : ""}`} onPress={() => startEdit(line)} style={s.rowIcon}><Text style={s.pencil}>✎</Text>{kind !== "note" && line.previous.length ? <View pointerEvents="none" style={s.editDot} /> : null}</Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${line.text}`} disabled={saving || !!error} onPress={() => removeItem(line.id)} style={s.rowIcon}><Text style={s.removeIcon}>×</Text></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={t("Edit wording: {{text}}", { text: line.text }) + (kind !== "note" && line.previous.length ? t(", previously edited") : "")} onPress={() => startEdit(line)} style={s.rowIcon}><Text style={s.pencil}>✎</Text>{kind !== "note" && line.previous.length ? <View pointerEvents="none" style={s.editDot} /> : null}</Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel={t("Remove {{text}}", { text: line.text })} disabled={saving || !!error} onPress={() => removeItem(line.id)} style={s.rowIcon}><Text style={s.removeIcon}>×</Text></Pressable>
               </> : null}
               </View>
             </View>
@@ -225,10 +228,10 @@ export default function MaterialListsScreen() {
           </View> : null)}
           {!selected.completed ? <>
             <View style={s.actions}>
-              <Pressable accessibilityRole="button" disabled={!!editing} onPress={() => startAdd("material")} style={[s.primary, s.grow]}><Text style={s.primaryText}>+ Add item</Text></Pressable>
-              <Pressable accessibilityRole="button" disabled={!!editing} onPress={() => startAdd("note")} style={[s.secondary, s.grow]}><Text style={s.buttonText}>+ Add note</Text></Pressable>
+              <Pressable accessibilityRole="button" disabled={!!editing} onPress={() => startAdd("material")} style={[s.primary, s.grow]}><Text style={s.primaryText}>{t("+ Add item")}</Text></Pressable>
+              <Pressable accessibilityRole="button" disabled={!!editing} onPress={() => startAdd("note")} style={[s.secondary, s.grow]}><Text style={s.buttonText}>{t("+ Add note")}</Text></Pressable>
             </View>
-          </> : <Pressable accessibilityRole="button" onPress={() => { void changeList(selected.id, (list) => ({ ...list, completed: false })); }} style={s.primary}><Text style={s.primaryText}>Reopen list</Text></Pressable>}
+          </> : <Pressable accessibilityRole="button" onPress={() => { void changeList(selected.id, (list) => ({ ...list, completed: false })); }} style={s.primary}><Text style={s.primaryText}>{t("Reopen list")}</Text></Pressable>}
         </>}
       </ScrollView>}
       <Modal transparent animationType="slide" visible={loaded && (!!adding || !!editing)} onRequestClose={closeEntry}>
@@ -236,27 +239,27 @@ export default function MaterialListsScreen() {
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.entryKeyboard}>
             {adding || editing ? <View style={[fillStyles.sheet, s.entrySheet]}>
               <View style={fillStyles.sheetHandle} />
-              <View style={fillStyles.sheetHeader}><View><Text style={fillStyles.sheetEyebrow}>JOBSITE LISTS</Text><Text style={fillStyles.sheetTitle}>{editing ? "Edit" : "Add"} {isNoteEntry ? "note" : "item"}</Text></View></View>
+              <View style={fillStyles.sheetHeader}><View><Text style={fillStyles.sheetEyebrow}>{t("JOBSITE LISTS")}</Text><Text style={fillStyles.sheetTitle}>{t(editing ? (isNoteEntry ? "Edit note" : "Edit item") : (isNoteEntry ? "Add note" : "Add item"))}</Text></View></View>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.entryContent}>
                 {!isNoteEntry && editedLine?.previous.length ? <View style={s.previousPanel}>
-                  <Text style={s.muted}>Previously: <Text style={s.previousText}>{editedLine.previous[editedLine.previous.length - 1]}</Text></Text>
+                  <Text style={s.muted}>{t("Previously: ")} <Text style={s.previousText}>{editedLine.previous[editedLine.previous.length - 1]}</Text></Text>
                   <View style={s.actions}>
-                    {editedLine.previous.length > 1 ? <Pressable accessibilityRole="button" onPress={() => setShowOlderEdits(!showOlderEdits)} style={s.smallButton}><Text style={s.link}>{showOlderEdits ? "Hide history" : "View history"}</Text></Pressable> : null}
+                    {editedLine.previous.length > 1 ? <Pressable accessibilityRole="button" onPress={() => setShowOlderEdits(!showOlderEdits)} style={s.smallButton}><Text style={s.link}>{showOlderEdits ? t("Hide history") : t("View history")}</Text></Pressable> : null}
                     <Pressable accessibilityRole="button" disabled={saving || !!error} onPress={() => {
                       if (selected) void changeList(selected.id, (list) => ({ ...list, lines: list.lines.map((line) => line.id === editedLine.id ? restoreLine(line) : line) }));
                       closeEntry();
-                    }} style={s.smallButton}><Text style={s.link}>Restore previous</Text></Pressable>
+                    }} style={s.smallButton}><Text style={s.link}>{t("Restore previous")}</Text></Pressable>
                   </View>
                   {showOlderEdits ? editedLine.previous.slice(0, -1).reverse().map((text, index) => <Text key={index} style={s.muted}>{text}</Text>) : null}
                 </View> : null}
-                {!isNoteEntry ? <><Text style={s.muted}>Quantity {Number(quantity) === 0 ? "· No quantity" : ""}</Text><View style={[s.actions, { flexWrap: "nowrap" }]}>
-                  <Pressable accessibilityRole="button" accessibilityLabel="Decrease quantity" onPress={() => setQuantity(String(Math.max(0, Number(quantity) - 1)))} style={s.cancelButton}><Text style={s.buttonText}>−</Text></Pressable>
-                  <FormField accessibilityLabel="Quantity" keyboardType="number-pad" selectTextOnFocus value={quantity} onChangeText={(value) => setQuantity(value.replace(/\D/g, "").slice(0, 6))} style={[s.modalInput, { flex: 1, minWidth: 0, textAlign: "center" }]} />
-                  <Pressable accessibilityRole="button" accessibilityLabel="Increase quantity" onPress={() => setQuantity(String(Math.min(999999, Number(quantity) + 1)))} style={s.cancelButton}><Text style={s.buttonText}>+</Text></Pressable>
+                {!isNoteEntry ? <><Text style={s.muted}>{t("Quantity")} {Number(quantity) === 0 ? t("· No quantity") : ""}</Text><View style={[s.actions, { flexWrap: "nowrap" }]}>
+                  <Pressable accessibilityRole="button" accessibilityLabel={t("Decrease quantity")} onPress={() => setQuantity(String(Math.max(0, Number(quantity) - 1)))} style={s.cancelButton}><Text style={s.buttonText}>−</Text></Pressable>
+                  <FormField accessibilityLabel={t("Quantity")} keyboardType="number-pad" selectTextOnFocus value={quantity} onChangeText={(value) => setQuantity(value.replace(/\D/g, "").slice(0, 6))} style={[s.modalInput, { flex: 1, minWidth: 0, textAlign: "center" }]} />
+                  <Pressable accessibilityRole="button" accessibilityLabel={t("Increase quantity")} onPress={() => setQuantity(String(Math.min(999999, Number(quantity) + 1)))} style={s.cancelButton}><Text style={s.buttonText}>+</Text></Pressable>
                 </View></> : null}
-                <FormField key={`${editing ?? adding}`} accessibilityLabel={isNoteEntry ? "Note text" : "Material text"} autoFocus multiline={isNoteEntry} blurOnSubmit returnKeyType="done" submitBehavior="submit" onSubmitEditing={editing ? saveEdit : addLines} placeholder={isNoteEntry ? "What should you remember?" : "Couplings"} placeholderTextColor={Colors.textMuted} value={editing ? editText : entry} onChangeText={editing ? setEditText : setEntry} style={[s.modalInput, isNoteEntry && s.noteInput]} />
-                <View style={s.actions}><Pressable accessibilityRole="button" disabled={!(editing ? editText : entry).trim()} onPress={editing ? saveEdit : addLines} style={[s.primary, s.grow, !(editing ? editText : entry).trim() && s.disabled]}><Text style={s.primaryText}>{editing ? "Save" : "Add"}</Text></Pressable>
-                  <Pressable accessibilityRole="button" onPress={closeEntry} style={[s.cancelButton, s.grow]}><Text style={s.buttonText}>Cancel</Text></Pressable></View>
+                <FormField key={`${editing ?? adding}`} accessibilityLabel={isNoteEntry ? t("Note text") : t("Material text")} autoFocus multiline={isNoteEntry} blurOnSubmit returnKeyType="done" submitBehavior="submit" onSubmitEditing={editing ? saveEdit : addLines} placeholder={isNoteEntry ? t("What should you remember?") : t("Couplings")} placeholderTextColor={Colors.textMuted} value={editing ? editText : entry} onChangeText={editing ? setEditText : setEntry} style={[s.modalInput, isNoteEntry && s.noteInput]} />
+                <View style={s.actions}><Pressable accessibilityRole="button" disabled={!(editing ? editText : entry).trim()} onPress={editing ? saveEdit : addLines} style={[s.primary, s.grow, !(editing ? editText : entry).trim() && s.disabled]}><Text style={s.primaryText}>{editing ? t("Save") : t("Add")}</Text></Pressable>
+                  <Pressable accessibilityRole="button" onPress={closeEntry} style={[s.cancelButton, s.grow]}><Text style={s.buttonText}>{t("Cancel")}</Text></Pressable></View>
               </ScrollView>
             </View> : null}
           </KeyboardAvoidingView>
@@ -264,41 +267,41 @@ export default function MaterialListsScreen() {
       </Modal>
       {lastRemoval ? <TimedUndoBar
         key={`${removed.length}:${lastRemoval.kind === "item" ? lastRemoval.line.id : lastRemoval.list.id}`}
-        message={lastRemoval.kind === "item" ? "Item removed" : "List removed"}
+        message={lastRemoval.kind === "item" ? t("Item removed") : t("List removed")}
         paused={saving || !!error || pendingDraft || !!manage || finishPrompt || !!historyLine}
         onUndo={undoRemoval} onExpire={() => setRemoved([])} /> : null}
       <Modal transparent animationType="fade" visible={!!manage} onRequestClose={() => setManage(null)}>
         <SafeAreaProvider><SafeAreaView style={s.scrim} edges={["top", "bottom"]}><KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.manageWrap}>
           <View style={s.sheet}><ScrollView keyboardShouldPersistTaps="handled">
-            {manage === "options" ? <><Text style={s.title}>List options</Text>
-              <Pressable accessibilityRole="button" onPress={() => { void shareList(true); }} style={s.smallButton}><Text style={s.buttonText}>Copy list</Text></Pressable>
-              <Pressable accessibilityRole="button" onPress={() => { void shareList(false); }} style={s.smallButton}><Text style={s.buttonText}>Share list</Text></Pressable>
-              {!selected?.completed ? <Pressable accessibilityRole="button" onPress={() => { setManage(null); setFinishPrompt(true); }} style={s.smallButton}><Text style={s.buttonText}>Mark completed</Text></Pressable> : null}
-              <Pressable accessibilityRole="button" onPress={() => { setNameDraft(selected?.title ?? ""); setManage("rename"); }} style={s.smallButton}><Text style={s.buttonText}>Rename list</Text></Pressable>
-              <Pressable accessibilityRole="button" onPress={() => setManage("delete")} style={s.smallButton}><Text style={s.error}>Delete list</Text></Pressable>
-            </> : manage === "rename" ? <><Text style={s.title}>Name your list</Text>
-              <FormField accessibilityLabel="List name" autoFocus value={nameDraft} onChangeText={setNameDraft} placeholder="Hallway materials" placeholderTextColor={Colors.textMuted} style={s.editInput} returnKeyType="done" onSubmitEditing={renameList} />
-              <Pressable accessibilityRole="button" onPress={renameList} style={s.primary}><Text style={s.primaryText}>Save name</Text></Pressable>
-            </> : manage === "delete" ? <><Text style={s.title}>Delete this list?</Text><Text style={s.historyText}>{selected?.title.trim() || "Untitled list"}</Text><Text style={s.muted}>This removes the list and all its items. You can undo while the countdown bar is visible.</Text>
-              <Pressable accessibilityRole="button" onPress={removeList} style={s.secondary}><Text style={s.error}>Delete list</Text></Pressable>
+            {manage === "options" ? <><Text style={s.title}>{t("List options")}</Text>
+              <Pressable accessibilityRole="button" onPress={() => { void shareList(true); }} style={s.smallButton}><Text style={s.buttonText}>{t("Copy list")}</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => { void shareList(false); }} style={s.smallButton}><Text style={s.buttonText}>{t("Share list")}</Text></Pressable>
+              {!selected?.completed ? <Pressable accessibilityRole="button" onPress={() => { setManage(null); setFinishPrompt(true); }} style={s.smallButton}><Text style={s.buttonText}>{t("Mark completed")}</Text></Pressable> : null}
+              <Pressable accessibilityRole="button" onPress={() => { setNameDraft(selected?.title ?? ""); setManage("rename"); }} style={s.smallButton}><Text style={s.buttonText}>{t("Rename list")}</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => setManage("delete")} style={s.smallButton}><Text style={s.error}>{t("Delete list")}</Text></Pressable>
+            </> : manage === "rename" ? <><Text style={s.title}>{t("Name your list")}</Text>
+              <FormField accessibilityLabel={t("List name")} autoFocus value={nameDraft} onChangeText={setNameDraft} placeholder={t("Hallway materials")} placeholderTextColor={Colors.textMuted} style={s.editInput} returnKeyType="done" onSubmitEditing={renameList} />
+              <Pressable accessibilityRole="button" onPress={renameList} style={s.primary}><Text style={s.primaryText}>{t("Save name")}</Text></Pressable>
+            </> : manage === "delete" ? <><Text style={s.title}>{t("Delete this list?")}</Text><Text style={s.historyText}>{selected?.title.trim() || t("Untitled list")}</Text><Text style={s.muted}>{t("This removes the list and all its items. You can undo while the countdown bar is visible.")}</Text>
+              <Pressable accessibilityRole="button" onPress={removeList} style={s.secondary}><Text style={s.error}>{t("Delete list")}</Text></Pressable>
             </> : null}
-            <Pressable accessibilityRole="button" onPress={() => { setManage(null); Keyboard.dismiss(); }} style={s.cancelButton}><Text style={s.buttonText}>Cancel</Text></Pressable>
+            <Pressable accessibilityRole="button" onPress={() => { setManage(null); Keyboard.dismiss(); }} style={s.cancelButton}><Text style={s.buttonText}>{t("Cancel")}</Text></Pressable>
           </ScrollView></View>
         </KeyboardAvoidingView></SafeAreaView></SafeAreaProvider>
       </Modal>
       <Modal transparent animationType="fade" visible={!!historyLine || finishPrompt} onRequestClose={() => { setHistoryId(null); setFinishPrompt(false); }}>
         <SafeAreaProvider><SafeAreaView style={s.scrim} edges={["top", "bottom"]}>
           <View style={s.sheet}><ScrollView keyboardShouldPersistTaps="handled">
-            {historyLine ? <><Text style={s.title}>Previous wording</Text>
-              <Text style={s.muted}>Current: {historyLine.text}</Text>
+            {historyLine ? <><Text style={s.title}>{t("Previous wording")}</Text>
+              <Text style={s.muted}>{t("Current: {{text}}", { text: historyLine.text })}</Text>
               {[...historyLine.previous].reverse().map((text, index) => <Text key={index} style={s.historyText}>{text}</Text>)}
               {!selected?.completed ? <Pressable accessibilityRole="button" disabled={!!editing} onPress={() => {
                 if (selected) void changeList(selected.id, (list) => ({ ...list, lines: list.lines.map((line) => line.id === historyLine.id ? restoreLine(line) : line) })); setHistoryId(null);
-              }} style={s.primary}><Text style={s.primaryText}>Restore previous wording</Text></Pressable> : null}
-            </> : <><Text style={s.title}>Mark this list completed?</Text><Text style={s.muted}>{unchecked ? `${unchecked} notes or materials still unchecked. They will remain in the completed list.` : "Move this list to Completed? You can reopen it later."}</Text>
-              {error ? <Text style={s.error}>Could not save. Close this dialog and retry saving.</Text> : null}
-              <Pressable accessibilityRole="button" disabled={saving} onPress={() => { void finish(); }} style={s.primary}><Text style={s.primaryText}>Mark completed</Text></Pressable></>}
-            <Pressable accessibilityRole="button" onPress={() => { setHistoryId(null); setFinishPrompt(false); }} style={s.cancelButton}><Text style={s.buttonText}>{historyLine ? "Close" : "Cancel"}</Text></Pressable>
+              }} style={s.primary}><Text style={s.primaryText}>{t("Restore previous wording")}</Text></Pressable> : null}
+            </> : <><Text style={s.title}>{t("Mark this list completed?")}</Text><Text style={s.muted}>{unchecked ? t("{{count}} materials still unchecked. They will remain in the completed list.", { count: unchecked }) : t("Move this list to Completed? You can reopen it later.")}</Text>
+              {error ? <Text style={s.error}>{t("Could not save. Close this dialog and retry saving.")}</Text> : null}
+              <Pressable accessibilityRole="button" disabled={saving} onPress={() => { void finish(); }} style={s.primary}><Text style={s.primaryText}>{t("Mark completed")}</Text></Pressable></>}
+            <Pressable accessibilityRole="button" onPress={() => { setHistoryId(null); setFinishPrompt(false); }} style={s.cancelButton}><Text style={s.buttonText}>{historyLine ? t("Close") : t("Cancel")}</Text></Pressable>
           </ScrollView></View>
         </SafeAreaView></SafeAreaProvider>
       </Modal>

@@ -17,6 +17,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   headerCopy: { flex: 1 },
+  flexibleCopy: { flex: 1, minWidth: 0, paddingRight: Space.xs },
   headerEyebrow: { color: Colors.primary, fontSize: FontSize.caption, fontWeight: "500", letterSpacing: 1.2 },
   headerTitle: { fontFamily: Fonts.heading, color: Colors.text, fontSize: FontSize.section, fontWeight: "500" },
   container: {

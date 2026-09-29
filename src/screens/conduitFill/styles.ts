@@ -16,6 +16,7 @@ export const useStyles = defineStyles(({ colors: Colors }) => ({
   },
 
   headerCopy: { flex: 1 },
+  flexibleCopy: { flex: 1, minWidth: 0, paddingRight: Space.xs },
   headerEyebrow: {
     color: Colors.primary,
     fontSize: FontSize.caption,

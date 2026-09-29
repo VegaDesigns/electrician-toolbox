@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n";
+import { panelColorLabel, panelSchemeLabel } from "../../i18n/electricalPresentation";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { returnHome } from "../../utils/navigation";
 import { FeedbackPressable as Pressable } from "../../components/FeedbackPressable";
@@ -89,8 +91,14 @@ function getPaletteCaption(scheme: PanelColorScheme) {
   return scheme.voltageSystem;
 }
 
+// Only built-in names are translated. Job and panel names belong to the user.
+function schemeName(scheme: PanelColorScheme, t: (source: string) => string) {
+  return panelSchemeLabel(scheme, t);
+}
+
 export default function PanelColorsScreen() {
   const styles = useStyles();
+  const { t } = useI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   const { height, fontScale } = useWindowDimensions();
@@ -317,7 +325,10 @@ export default function PanelColorsScreen() {
 
     try {
       await Clipboard.setStringAsync(
-        `${selectedScheme.name}${selectedScheme.panelLabel ? ` • ${selectedScheme.panelLabel}` : ""} • ${selectedScheme.voltageSystem} • Circuit ${circuit} • ${getPhaseDisplayName(phase)} • Expected color: ${phaseColor.name}`,
+        t("{{scheme}} • {{voltage}} • Circuit {{circuit}} • {{phase}} • Expected color: {{color}}", {
+          scheme: `${schemeName(selectedScheme, t)}${selectedScheme.panelLabel ? ` • ${selectedScheme.panelLabel}` : ""}`,
+          voltage: selectedScheme.voltageSystem, circuit, phase: t(getPhaseDisplayName(phase)), color: panelColorLabel(phaseColor.name, t),
+        }),
       );
       setCopied(true);
       setCopyFailed(false);
@@ -393,7 +404,7 @@ export default function PanelColorsScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           disabled={storageBusy}
           onPress={() => {
             pulse();
@@ -401,7 +412,7 @@ export default function PanelColorsScreen() {
           }} />
 
         <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Panel Colors</Text>
+          <Text style={styles.headerTitle}>{t("Panel Colors")}</Text>
         </View>
       </ScreenHeader>
 
@@ -430,13 +441,13 @@ export default function PanelColorsScreen() {
         <Pressable
           accessibilityHint={
             isBrowsingNearby
-              ? `Returns to circuit ${anchorCircuit}`
+              ? t("Returns to circuit {{circuit}}", { circuit: anchorCircuit ?? "" })
               : undefined
           }
           accessibilityLabel={
             circuit && phase && phaseColor
-              ? `Circuit ${circuit}, ${getPhaseDisplayName(phase)}, ${phaseColor.name}`
-              : "Enter a circuit number using the keypad"
+              ? t("Circuit {{circuit}}, {{phase}}, {{color}}", { circuit, phase: t(getPhaseDisplayName(phase)), color: panelColorLabel(phaseColor.name, t) })
+              : t("Enter a circuit number using the keypad")
           }
           accessibilityRole={isBrowsingNearby ? "button" : undefined}
           disabled={!isBrowsingNearby}
@@ -447,7 +458,7 @@ export default function PanelColorsScreen() {
           ]}
         >
           <View style={styles.circuitLine}>
-            <Text style={styles.circuitLabel}>CIRCUIT</Text>
+            <Text style={styles.circuitLabel}>{t("CIRCUIT")}</Text>
             <Text style={styles.circuitNumber}>{circuitInput || "—"}</Text>
           </View>
 
@@ -466,37 +477,37 @@ export default function PanelColorsScreen() {
                 ]}
               >
                 <Text style={[styles.colorHeroText, { color: phaseColor.textHex }]}>
-                  {phaseColor.name.toUpperCase()}
+                  {panelColorLabel(phaseColor.name, t).toUpperCase()}
                 </Text>
               </View>
-              <Text style={styles.phaseLabel}>{getPhaseDisplayName(phase)}</Text>
+              <Text style={styles.phaseLabel}>{t(getPhaseDisplayName(phase))}</Text>
             </>
           ) : circuitInput ? (
             <View style={styles.emptyResult}>
-              <Text style={styles.emptyDescription}>Ready when you are</Text>
+              <Text style={styles.emptyDescription}>{t("Ready when you are")}</Text>
             </View>
           ) : (
             <View style={styles.emptyResult}>
-              <Text style={styles.emptyDescription}>Your phase and color appear here</Text>
+              <Text style={styles.emptyDescription}>{t("Your phase and color appear here")}</Text>
             </View>
           )}
         </Pressable>
         <View style={styles.resultActions}>
-          {isBrowsingNearby ? <Pressable accessibilityRole="button" accessibilityLabel={`Back to circuit ${anchorCircuit}`}
+          {isBrowsingNearby ? <Pressable accessibilityRole="button" accessibilityLabel={t("Back to circuit {{circuit}}", { circuit: anchorCircuit ?? "" })}
             onPress={returnToAnchor} style={styles.resultAction}>
-            <Text style={styles.copyActionText}>Back to {anchorCircuit}</Text>
+            <Text style={styles.copyActionText}>{t("Back to")} {anchorCircuit}</Text>
           </Pressable> : <View />}
-          <Pressable accessibilityRole="button" accessibilityLabel={copyFailed ? "Retry copying circuit result" : "Copy circuit result"}
+          <Pressable accessibilityRole="button" accessibilityLabel={copyFailed ? t("Retry copying circuit result") : t("Copy circuit result")}
             disabled={!circuit} onPress={copyResult} style={[styles.copyAction, !circuit && styles.actionDisabled]}>
-            <Text style={styles.copyActionText}>{copyFailed ? "Retry copy" : copied ? "✓ Copied" : "Copy"}</Text>
+            <Text style={styles.copyActionText}>{copyFailed ? t("Retry copy") : copied ? t("✓ Copied") : t("Copy")}</Text>
           </Pressable>
         </View>
         </View>
 
         <View onLayout={handleNearbyLayout} style={[styles.nearbySection, fontScale > 1.2 && { height: 106 * fontScale }]}>
           <View style={styles.nearbyHeader}>
-            <Text style={styles.sectionLabel}>NEARBY</Text>
-            <Text style={styles.swipeHint}>{nearby.length ? "Swipe to browse ↔" : ""}</Text>
+            <Text style={styles.sectionLabel}>{t("NEARBY")}</Text>
+            <Text style={styles.swipeHint}>{nearby.length ? t("Swipe to browse ↔") : ""}</Text>
           </View>
           {nearby.length > 0 ? (
             <View style={styles.nearbyViewport}>
@@ -516,7 +527,7 @@ export default function PanelColorsScreen() {
                   const isAnchor = item.circuit === anchorCircuit;
                   return (
                     <Pressable
-                      accessibilityLabel={`Circuit ${item.circuit}, ${getPhaseDisplayName(item.phase)}, ${item.color.name}${isAnchor ? ", original circuit" : ""}`}
+                      accessibilityLabel={t("Circuit {{circuit}}, {{phase}}, {{color}}", { circuit: item.circuit, phase: t(getPhaseDisplayName(item.phase)), color: panelColorLabel(item.color.name, t) }) + (isAnchor ? t(", original circuit") : "")}
                       accessibilityRole="button"
                       key={item.circuit}
                       onPress={() => {
@@ -540,8 +551,8 @@ export default function PanelColorsScreen() {
                         {item.circuit}
                       </Text>
                       <View style={[styles.nearbyDot, { backgroundColor: item.color.hex }]} />
-                      <Text numberOfLines={1} style={styles.nearbyColor}>
-                        {item.color.name.toUpperCase()}
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.nearbyColor}>
+                        {panelColorLabel(item.color.name, t).toUpperCase()}
                       </Text>
                     </Pressable>
                   );
@@ -549,7 +560,7 @@ export default function PanelColorsScreen() {
               </ScrollView>
             </View>
           ) : (
-            <View style={styles.nearbyRow} accessibilityLabel="Nearby circuits appear after Enter">
+            <View style={styles.nearbyRow} accessibilityLabel={t("Nearby circuits appear after Enter")}>
               {[0, 1, 2, 3, 4].map((slot) => <View key={slot} style={[styles.nearbyItem, styles.placeholderTile]}>
                 <Text style={styles.placeholderNumber}>—</Text>
                 <View style={styles.placeholderDot} />
@@ -558,17 +569,17 @@ export default function PanelColorsScreen() {
           )}
         </View>
 
-        <View accessibilityLabel="Circuit number keypad" style={styles.keypad}>
+        <View accessibilityLabel={t("Circuit number keypad")} style={styles.keypad}>
           <View style={styles.keypadStatusRow}>
             <Text style={styles.keypadStatus}>
-              {circuit ? "Type to start a new circuit" : "Type a circuit, then Enter"}
+              {circuit ? t("Type to start a new circuit") : t("Type a circuit, then Enter")}
             </Text>
           </View>
           {KEYPAD_ROWS.map((row) => (
             <View key={row.join("-")} style={styles.keypadRow}>
               {row.map((key) => (
                 <Pressable
-                  accessibilityLabel={key === "⌫" ? "Backspace" : key}
+                  accessibilityLabel={key === "⌫" ? t("Backspace") : t(key)}
                   accessibilityRole="button"
                   key={key}
                   onPress={() => handleKey(key)}
@@ -587,14 +598,14 @@ export default function PanelColorsScreen() {
                       key === "⌫" && styles.keyUtilityText,
                     ]}
                   >
-                    {key}
+                    {t(key)}
                   </Text>
                 </Pressable>
               ))}
             </View>
           ))}
           <Pressable
-            accessibilityLabel="Enter circuit number"
+            accessibilityLabel={t("Enter circuit number")}
             accessibilityRole="button"
             disabled={!circuitInput || !!circuit || storageBusy}
             onPress={() => handleKey("Enter")}
@@ -605,13 +616,12 @@ export default function PanelColorsScreen() {
               pressed && styles.keyPressed,
             ]}
           >
-            <Text style={styles.keyEnterText}>Enter</Text>
+            <Text style={styles.keyEnterText}>{t("Enter")}</Text>
           </Pressable>
         </View>
 
         <Text style={styles.notice}>
-          Match the panel schedule or job standard. This guide does not verify wiring or whether a circuit is energized.
-        </Text>
+          {t("Match the panel schedule or job standard. This guide does not verify wiring or whether a circuit is energized.")}</Text>
         </View>
       </ScrollView>
 
@@ -702,19 +712,20 @@ function StorageStatus({ busy, loading, error, info, onRetry, onUndo }: {
   onRetry: () => void; onUndo?: () => void;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   if (!busy && !loading && !error && !info && !onUndo) return null;
   return (
     <View style={styles.storageNotice}>
       <Text accessibilityLiveRegion="polite" accessibilityRole={error ? "alert" : undefined}
         style={[styles.storageText, !!error && styles.storageError]}>
-        {busy ? "Saving your setup…" : loading ? "Loading saved setups…" : error || info || "Preset removed."}
+        {busy ? t("Saving your setup…") : loading ? t("Loading saved setups…") : t(error || info || "Preset removed.")}
       </Text>
       {error && !busy ? <Pressable accessibilityRole="button" onPress={onRetry} style={styles.resultAction}>
-        <Text style={styles.copyActionText}>Retry</Text>
+        <Text style={styles.copyActionText}>{t("Retry")}</Text>
       </Pressable> : null}
       {onUndo && !error ? <Pressable accessibilityRole="button" disabled={busy} onPress={onUndo} style={styles.resultAction}>
-        <Text style={styles.copyActionText}>Undo</Text>
+        <Text style={styles.copyActionText}>{t("Undo")}</Text>
       </Pressable> : null}
     </View>
   );
@@ -722,20 +733,21 @@ function StorageStatus({ busy, loading, error, info, onRetry, onUndo }: {
 
 function SupportedLayout({ scheme }: { scheme: PanelColorScheme }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.layoutGuide}>
-      <Text style={styles.optionTitle}>Supported numbering</Text>
-      <Text style={styles.optionDescription}>Two circuits per row, starting at circuit 1.</Text>
+      <Text style={styles.optionTitle}>{t("Supported numbering")}</Text>
+      <Text style={styles.optionDescription}>{t("Two circuits per row, starting at circuit 1.")}</Text>
       <View style={styles.layoutRows}>
         {scheme.phaseOrder.map((phase, index) => (
           <View key={phase} style={styles.layoutRow}>
             <Text style={styles.layoutNumbers}>{index * 2 + 1}     {index * 2 + 2}</Text>
-            <Text style={styles.optionDescription}>{getPhaseDisplayName(phase)} • {getColorForPhase(scheme, phase).name}</Text>
+            <Text style={styles.optionDescription}>{t(getPhaseDisplayName(phase))} • {panelColorLabel(getColorForPhase(scheme, phase).name, t)}</Text>
           </View>
         ))}
       </View>
-      <Text style={styles.optionDescription}>Rows repeat this pattern. The voltage label does not change numbering. Other layouts, tandem labels and high-leg arrangements are not verified here.</Text>
+      <Text style={styles.optionDescription}>{t("Rows repeat this pattern. The voltage label does not change numbering. Other layouts, tandem labels and high-leg arrangements are not verified here.")}</Text>
     </View>
   );
 }
@@ -750,20 +762,21 @@ function PanelChoiceBar({
   scheme: PanelColorScheme;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.panelChoiceRow}>
       <Pressable
-        accessibilityLabel={`Panel colors: ${scheme.name}`}
+        accessibilityLabel={t("Panel colors: {{name}}", { name: schemeName(scheme, t) })}
         accessibilityRole="button"
         onPress={onPalette}
         style={({ pressed }) => [styles.paletteButton, pressed && styles.pressed]}
       >
         <View style={styles.selectorCopy}>
-          <Text style={styles.selectorLabel}>WHAT COLORS DO YOU SEE?</Text>
+          <Text style={styles.selectorLabel}>{t("WHAT COLORS DO YOU SEE?")}</Text>
           <View style={styles.activePaletteRow}>
             <PhaseSwatches scheme={scheme} />
-            <Text numberOfLines={1} style={styles.activePaletteName}>{scheme.name}</Text>
+            <Text numberOfLines={1} style={styles.activePaletteName}>{schemeName(scheme, t)}</Text>
           </View>
           <Text numberOfLines={1} style={styles.paletteContext}>
             {scheme.panelLabel ? `${scheme.panelLabel} • ` : ""}{scheme.voltageSystem}
@@ -773,13 +786,13 @@ function PanelChoiceBar({
       </Pressable>
 
       <Pressable
-        accessibilityLabel="Advanced panel settings"
+        accessibilityLabel={t("Advanced panel settings")}
         accessibilityRole="button"
         onPress={onAdvanced}
         style={({ pressed }) => [styles.advancedButton, pressed && styles.pressed]}
       >
         <Text style={styles.advancedIcon}>⚙</Text>
-        <Text style={styles.advancedButtonText}>Advanced</Text>
+        <Text style={styles.advancedButtonText}>{t("Advanced")}</Text>
       </Pressable>
     </View>
   );
@@ -821,13 +834,14 @@ function PaletteModal({
   selectedSchemeId: string;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
-        <Pressable accessibilityLabel="Close panel colors" onPress={onClose} style={styles.modalDismiss} feedback="none" />
+        <Pressable accessibilityLabel={t("Close panel colors")} onPress={onClose} style={styles.modalDismiss} feedback="none" />
         <View style={styles.selectionSheet}>
-          <SheetHeader eyebrow="QUICK SETUP" onClose={onClose} title="What colors do you see?" />
+          <SheetHeader eyebrow={t("QUICK SETUP")} onClose={onClose} title={t("What colors do you see?")} />
           <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.paletteOptionList}>
             {BUILT_IN_PANEL_SCHEMES.filter(({ isQuickChoice }) => isQuickChoice).map((scheme) => (
@@ -843,13 +857,13 @@ function PaletteModal({
           {customSchemes.length > 0 && (
             <>
               <View style={styles.savedHeader}>
-                <Text style={styles.savedLabel}>SAVED JOB COLORS</Text>
+                <Text style={styles.savedLabel}>{t("SAVED JOB COLORS")}</Text>
                 <Pressable
                   accessibilityRole="button"
                   onPress={onManage}
                   style={({ pressed }) => [styles.manageLink, pressed && styles.pressed]}
                 >
-                  <Text style={styles.manageLinkText}>MANAGE</Text>
+                  <Text style={styles.manageLinkText}>{t("MANAGE")}</Text>
                 </Pressable>
               </View>
               <View style={styles.optionList}>
@@ -872,13 +886,13 @@ function PaletteModal({
           >
             <Text style={styles.differentColorsIcon}>＋</Text>
             <View style={styles.optionCopy}>
-              <Text style={styles.optionTitle}>Save a job preset</Text>
-              <Text style={styles.optionDescription}>Save the colors used on this job</Text>
+              <Text style={styles.optionTitle}>{t("Save a job preset")}</Text>
+              <Text style={styles.optionDescription}>{t("Save the colors used on this job")}</Text>
             </View>
           </Pressable>
-          <Text style={styles.deviceNote}>Saved on this device. Not synced or backed up to an account.</Text>
+          <Text style={styles.deviceNote}>{t("Saved on this device. Not synced or backed up to an account.")}</Text>
           </ScrollView>
-          <Text style={styles.sheetNotice}>Confirm the choice against the panel schedule or job standard.</Text>
+          <Text style={styles.sheetNotice}>{t("Confirm the choice against the panel schedule or job standard.")}</Text>
         </View>
       </SafeAreaView></SafeAreaProvider>
     </Modal>
@@ -895,10 +909,11 @@ function PaletteOption({
   scheme: PanelColorScheme;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <Pressable
-      accessibilityLabel={`${scheme.name}, ${getPaletteCaption(scheme)}`}
+      accessibilityLabel={`${schemeName(scheme, t)}, ${t(getPaletteCaption(scheme))}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -909,8 +924,8 @@ function PaletteOption({
     >
       <PhaseSwatches scheme={scheme} />
       <View style={styles.optionCopy}>
-        <Text style={styles.paletteOptionTitle}>{scheme.name}</Text>
-        <Text style={styles.optionDescription}>{getPaletteCaption(scheme)}</Text>
+        <Text style={styles.paletteOptionTitle}>{schemeName(scheme, t)}</Text>
+        <Text style={styles.optionDescription}>{t(getPaletteCaption(scheme))}</Text>
       </View>
       {isSelected && <Text style={styles.optionCheck}>✓</Text>}
     </Pressable>
@@ -935,25 +950,26 @@ function AdvancedModal({
   selectedScheme: PanelColorScheme;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible={isOpen}>
       <SafeAreaProvider><SafeAreaView edges={["top", "bottom"]} style={styles.modalBackdrop}>
-        <Pressable accessibilityLabel="Close advanced settings" onPress={onClose} style={styles.modalDismiss} feedback="none" />
+        <Pressable accessibilityLabel={t("Close advanced settings")} onPress={onClose} style={styles.modalDismiss} feedback="none" />
         <View style={[styles.selectionSheet, styles.advancedSheet]}>
-          <SheetHeader eyebrow="ADVANCED" onClose={onClose} title="Panel details" />
+          <SheetHeader eyebrow={t("ADVANCED")} onClose={onClose} title={t("Panel details")} />
 
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.detailsCard}>
-              <DetailRow label="SYSTEM" value={selectedScheme.voltageSystem} />
-              <DetailRow label="LAYOUT" value={selectedScheme.configurationLabel} />
-              <DetailRow label="PATTERN" value={selectedScheme.phaseOrder.join(" → ")} />
-              <DetailRow label="NEUTRAL" value={selectedScheme.colors.neutral.name} />
-              <DetailRow label="GROUND" value={selectedScheme.colors.ground.name} />
+              <DetailRow label={t("SYSTEM")} value={selectedScheme.voltageSystem} />
+              <DetailRow label={t("LAYOUT")} value={t(selectedScheme.configurationLabel)} />
+              <DetailRow label={t("PATTERN")} value={selectedScheme.phaseOrder.join(" → ")} />
+              <DetailRow label={t("NEUTRAL")} value={panelColorLabel(selectedScheme.colors.neutral.name, t)} />
+              <DetailRow label={t("GROUND")} value={panelColorLabel(selectedScheme.colors.ground.name, t)} />
             </View>
             <SupportedLayout scheme={selectedScheme} />
 
-            <Text style={styles.savedLabel}>TECHNICAL PRESETS</Text>
+            <Text style={styles.savedLabel}>{t("TECHNICAL PRESETS")}</Text>
             <View style={styles.optionList}>
               {schemes.map((scheme) => (
                 <Pressable
@@ -969,7 +985,7 @@ function AdvancedModal({
                   <PhaseSwatches scheme={scheme} />
                   <View style={styles.optionCopy}>
                     <Text style={styles.optionTitle}>{scheme.voltageSystem}</Text>
-                    <Text style={styles.optionDescription}>{scheme.configurationLabel}</Text>
+                    <Text style={styles.optionDescription}>{t(scheme.configurationLabel)}</Text>
                   </View>
                   {scheme.id === selectedScheme.id && <Text style={styles.optionCheck}>✓</Text>}
                 </Pressable>
@@ -981,7 +997,7 @@ function AdvancedModal({
               onPress={onAddCustom}
               style={({ pressed }) => [styles.addPresetButton, pressed && styles.pressed]}
             >
-              <Text style={styles.addPresetButtonText}>＋ Save a job preset</Text>
+              <Text style={styles.addPresetButtonText}>{t("＋ Save a job preset")}</Text>
             </Pressable>
 
             {schemes.some(({ isBuiltIn }) => !isBuiltIn) && (
@@ -990,7 +1006,7 @@ function AdvancedModal({
                 onPress={onManage}
                 style={({ pressed }) => [styles.managePresetButton, pressed && styles.pressed]}
               >
-                <Text style={styles.managePresetButtonText}>Manage saved presets</Text>
+                <Text style={styles.managePresetButtonText}>{t("Manage saved presets")}</Text>
               </Pressable>
             )}
           </ScrollView>
@@ -1010,15 +1026,16 @@ function SheetHeader({
   title: string;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.sheetHeader}>
-      <View>
+      <View style={{ flex: 1, paddingRight: 12 }}>
         <Text style={styles.sheetEyebrow}>{eyebrow}</Text>
         <Text style={styles.sheetTitle}>{title}</Text>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Close panel settings" onPress={onClose} style={styles.closeButton}>
-        <Text style={styles.closeButtonText}>Done</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={t("Close panel settings")} onPress={onClose} style={styles.closeButton}>
+        <Text style={styles.closeButtonText}>{t("Done")}</Text>
       </Pressable>
     </View>
   );
@@ -1054,6 +1071,7 @@ function CustomSchemeModal({
   onSave: () => void;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   function field<K extends keyof CustomDraft>(key: K, value: CustomDraft[K]) {
     onChange({ ...draft, [key]: value });
@@ -1083,11 +1101,11 @@ function CustomSchemeModal({
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
           <Pressable disabled={busy} accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>{t("Cancel")}</Text>
           </Pressable>
           <View style={styles.editorHeaderCopy}>
-            <Text style={styles.headerEyebrow}>{isEditing ? "EDIT PRESET" : "NEW PRESET"}</Text>
-            <Text style={styles.editorTitle}>Panel setup</Text>
+            <Text style={styles.headerEyebrow}>{isEditing ? t("EDIT PRESET") : t("NEW PRESET")}</Text>
+            <Text style={styles.editorTitle}>{t("Panel setup")}</Text>
           </View>
         </View>
 
@@ -1100,22 +1118,22 @@ function CustomSchemeModal({
           {status}
           <View pointerEvents={busy ? "none" : "auto"} style={styles.editorFields}>
           <View style={styles.editorIntro}>
-            <Text style={styles.editorIntroTitle}>Match the panel in front of you.</Text>
-            <Text style={styles.editorIntroText}>Choose from known conductor colors, then confirm everything against the panel schedule or job standard.</Text>
+            <Text style={styles.editorIntroTitle}>{t("Match the panel in front of you.")}</Text>
+            <Text style={styles.editorIntroText}>{t("Choose from known conductor colors, then confirm everything against the panel schedule or job standard.")}</Text>
           </View>
 
           <DraftField
-            label="JOB / PRESET NAME"
+            label={t("JOB / PRESET NAME")}
             onChangeText={(value) => field("name", value)}
-            placeholder="Hospital Project"
+            placeholder={t("Hospital Project")}
             showDone
             value={draft.name}
           />
-          <DraftField label="PANEL ID (OPTIONAL)" onChangeText={(value) => field("panelLabel", value)}
-            placeholder="Panel L2 • Second floor" showDone value={draft.panelLabel} />
+          <DraftField label={t("PANEL ID (OPTIONAL)")} onChangeText={(value) => field("panelLabel", value)}
+            placeholder={t("Panel L2 • Second floor")} showDone value={draft.panelLabel} />
 
           <ChoiceSection
-            label="PANEL TYPE"
+            label={t("PANEL TYPE")}
             onSelect={(value) => setPanelType(value as PanelType)}
             options={[
               { label: "Three-phase", value: "three-phase" },
@@ -1125,49 +1143,47 @@ function CustomSchemeModal({
           />
 
           <ChoiceSection
-            label="VOLTAGE SYSTEM"
+            label={t("VOLTAGE SYSTEM")}
             onSelect={(value) => field("voltageSystem", value)}
             options={VOLTAGE_OPTIONS[draft.panelType].map((value) => ({ label: value, value }))}
             value={draft.voltageSystem}
           />
 
-          <Text style={styles.colorSectionLabel}>CONDUCTOR COLORS</Text>
+          <Text style={styles.colorSectionLabel}>{t("CONDUCTOR COLORS")}</Text>
           <Text style={styles.colorSectionHelp}>
-            Use the visible phase identifiers for this job. Each phase or leg needs a different selection.
-          </Text>
+            {t("Use the visible phase identifiers for this job. Each phase or leg needs a different selection.")}</Text>
           <View style={styles.colorFields}>
             <ColorChoiceRow label={phaseLabels[0]} onSelect={(value) => field("phase1", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={selectedPhaseColors.slice(1)} value={draft.phase1} />
             <ColorChoiceRow label={phaseLabels[1]} onSelect={(value) => field("phase2", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={[draft.phase1, ...(draft.panelType === "three-phase" ? [draft.phase3] : [])]} value={draft.phase2} />
             {draft.panelType === "three-phase" && (
               <ColorChoiceRow label={phaseLabels[2]} onSelect={(value) => field("phase3", value)} options={PHASE_COLOR_OPTIONS} unavailableOptions={[draft.phase1, draft.phase2]} value={draft.phase3} />
             )}
-            <ColorChoiceRow label="NEUTRAL" onSelect={(value) => field("neutral", value)} options={NEUTRAL_COLOR_OPTIONS} value={draft.neutral} />
-            <ColorChoiceRow label="GROUND" onSelect={(value) => field("ground", value)} options={GROUND_COLOR_OPTIONS} value={draft.ground} />
+            <ColorChoiceRow label={t("NEUTRAL")} onSelect={(value) => field("neutral", value)} options={NEUTRAL_COLOR_OPTIONS} value={draft.neutral} />
+            <ColorChoiceRow label={t("GROUND")} onSelect={(value) => field("ground", value)} options={GROUND_COLOR_OPTIONS} value={draft.ground} />
           </View>
 
           {hasDuplicatePhaseColors && (
             <Text accessibilityRole="alert" style={styles.colorValidationError}>
-              Choose a different identifier for each phase or leg before saving.
-            </Text>
+              {t("Choose a different identifier for each phase or leg before saving.")}</Text>
           )}
 
           <View style={styles.presetSummary}>
-            <Text style={styles.presetSummaryLabel}>PRESET SUMMARY</Text>
-            <Text style={styles.presetSummaryName}>{draft.name.trim() || "Unnamed preset"}</Text>
+            <Text style={styles.presetSummaryLabel}>{t("PRESET SUMMARY")}</Text>
+            <Text style={styles.presetSummaryName}>{draft.name.trim() || t("Unnamed preset")}</Text>
             {draft.panelLabel.trim() ? <Text style={styles.presetSummaryMeta}>{draft.panelLabel.trim()}</Text> : null}
-            <Text style={styles.presetSummaryMeta}>{draft.voltageSystem} • {draft.panelType === "three-phase" ? "Three-phase" : "Single-phase"}</Text>
+            <Text style={styles.presetSummaryMeta}>{draft.voltageSystem} • {draft.panelType === "three-phase" ? t("Three-phase") : t("Single-phase")}</Text>
             <View style={styles.presetSummaryColors}>
               {selectedPhaseColors.map((color, index) => (
                 <View key={`${color}-${index}`} style={styles.presetSummaryColor}>
                   <View style={[styles.summaryDot, { backgroundColor: makeConductorColor(color).hex }]} />
-                  <Text style={styles.presetSummaryColorText}>{phaseLabels[index]} {color}</Text>
+                  <Text style={styles.presetSummaryColorText}>{t(phaseLabels[index])} {panelColorLabel(color, t)}</Text>
                 </View>
               ))}
             </View>
-            <Text style={styles.presetSummarySupport}>Neutral {draft.neutral} • Ground {draft.ground}</Text>
-            <Text style={styles.presetSummarySupport}>Standard paired rows: 1/2, 3/4, 5/6. Voltage is a label, not a different numbering layout.</Text>
+            <Text style={styles.presetSummarySupport}>{t("Neutral")} {panelColorLabel(draft.neutral, t)} {t("• Ground")} {panelColorLabel(draft.ground, t)}</Text>
+            <Text style={styles.presetSummarySupport}>{t("Standard paired rows: 1/2, 3/4, 5/6. Voltage is a label, not a different numbering layout.")}</Text>
           </View>
-          <Text style={styles.deviceNote}>For standard paired-row panels only. Other numbering, tandem labels, and high-leg arrangements are not verified by this tool. Saved on this device only.</Text>
+          <Text style={styles.deviceNote}>{t("For standard paired-row panels only. Other numbering, tandem labels, and high-leg arrangements are not verified by this tool. Saved on this device only.")}</Text>
 
           <Pressable
             accessibilityRole="button"
@@ -1175,7 +1191,7 @@ function CustomSchemeModal({
             onPress={onSave}
             style={({ pressed }) => [styles.saveButton, !canSave && styles.saveButtonDisabled, pressed && canSave && styles.pressed]}
           >
-            <Text style={styles.saveButtonText}>{busy ? "Saving…" : isEditing ? "Save changes" : "Save and use preset"}</Text>
+            <Text style={styles.saveButtonText}>{busy ? t("Saving…") : isEditing ? t("Save changes") : t("Save and use preset")}</Text>
           </Pressable>
           </View>
         </ScrollView>
@@ -1192,6 +1208,7 @@ function ChoiceSection({ label, onSelect, options, value }: {
   value: string;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.choiceSection}>
@@ -1201,13 +1218,13 @@ function ChoiceSection({ label, onSelect, options, value }: {
           const isSelected = option.value === value;
           return (
             <Pressable
-              accessibilityLabel={`${label}: ${option.label}`}
+              accessibilityLabel={`${label}: ${t(option.label)}`}
               accessibilityRole="button"
               key={option.value}
               onPress={() => onSelect(option.value)}
               style={({ pressed }) => [styles.choiceChip, isSelected && styles.choiceChipSelected, pressed && styles.pressed]}
             >
-              <Text style={[styles.choiceChipText, isSelected && styles.choiceChipTextSelected]}>{option.label}</Text>
+              <Text style={[styles.choiceChipText, isSelected && styles.choiceChipTextSelected]}>{t(option.label)}</Text>
               {isSelected && <Text style={styles.choiceCheck}>✓</Text>}
             </Pressable>
           );
@@ -1225,12 +1242,13 @@ function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], val
   value: string;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.colorChoiceSection}>
       <View style={styles.colorChoiceHeader}>
-        <Text style={styles.fieldLabel}>{label}</Text>
-        <Text style={styles.colorChoiceValue}>{value}</Text>
+        <Text style={styles.fieldLabel}>{t(label)}</Text>
+        <Text style={styles.colorChoiceValue}>{panelColorLabel(value, t)}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.colorChipRow} horizontal showsHorizontalScrollIndicator={false}>
         {options.map((option) => {
@@ -1239,7 +1257,7 @@ function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], val
           const isUnavailable = !isSelected && unavailableOptions.includes(option);
           return (
             <Pressable
-              accessibilityLabel={`${label}: ${option}`}
+              accessibilityLabel={`${t(label)}: ${t(option)}`}
               accessibilityRole="button"
               accessibilityState={{ disabled: isUnavailable, selected: isSelected }}
               disabled={isUnavailable}
@@ -1248,7 +1266,7 @@ function ColorChoiceRow({ label, onSelect, options, unavailableOptions = [], val
               style={({ pressed }) => [styles.colorChip, isSelected && styles.colorChipSelected, isUnavailable && styles.colorChipUnavailable, pressed && styles.pressed]}
             >
               <View style={[styles.colorChipDot, { backgroundColor: color.hex }]} />
-              <Text style={[styles.colorChipText, isSelected && styles.colorChipTextSelected, isUnavailable && styles.colorChipTextUnavailable]}>{option}</Text>
+              <Text style={[styles.colorChipText, isSelected && styles.colorChipTextSelected, isUnavailable && styles.colorChipTextUnavailable]}>{t(option)}</Text>
               {isSelected && <Text style={styles.colorChipCheck}>✓</Text>}
             </Pressable>
           );
@@ -1268,6 +1286,7 @@ function ManagePresetsModal({ busy, status, isOpen, onClose, onDelete, onEdit, s
   schemes: PanelColorScheme[];
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen" visible={isOpen}>
@@ -1275,17 +1294,17 @@ function ManagePresetsModal({ busy, status, isOpen, onClose, onDelete, onEdit, s
       <SafeAreaView edges={["top", "bottom"]} style={styles.editorSafe}>
         <View style={styles.editorHeader}>
           <Pressable disabled={busy} accessibilityRole="button" onPress={onClose} style={styles.cancelButton}>
-            <Text style={styles.cancelButtonText}>Done</Text>
+            <Text style={styles.cancelButtonText}>{t("Done")}</Text>
           </Pressable>
           <View style={styles.editorHeaderCopy}>
-            <Text style={styles.headerEyebrow}>SAVED</Text>
-            <Text style={styles.editorTitle}>Manage presets</Text>
+            <Text style={styles.headerEyebrow}>{t("SAVED")}</Text>
+            <Text style={styles.editorTitle}>{t("Manage presets")}</Text>
           </View>
         </View>
         <ScrollView contentContainerStyle={styles.manageContainer} showsVerticalScrollIndicator={false}>
           {status}
-          <Text style={styles.manageIntro}>Saved on this device only. Edit a panel setup or remove one you no longer need.</Text>
-          {schemes.length === 0 ? <Text style={styles.manageIntro}>No saved presets. Your common color options are always available.</Text> : null}
+          <Text style={styles.manageIntro}>{t("Saved on this device only. Edit a panel setup or remove one you no longer need.")}</Text>
+          {schemes.length === 0 ? <Text style={styles.manageIntro}>{t("No saved presets. Your common color options are always available.")}</Text> : null}
           {schemes.map((scheme) => (
             <View key={scheme.id} style={styles.managePresetCard}>
               <View style={styles.managePresetInfo}>
@@ -1293,15 +1312,15 @@ function ManagePresetsModal({ busy, status, isOpen, onClose, onDelete, onEdit, s
                 <View style={styles.optionCopy}>
                   <Text style={styles.optionTitle}>{scheme.name}</Text>
                   {scheme.panelLabel ? <Text style={styles.optionDescription}>{scheme.panelLabel}</Text> : null}
-                  <Text style={styles.optionDescription}>{scheme.voltageSystem} • {scheme.configurationLabel}</Text>
+                  <Text style={styles.optionDescription}>{scheme.voltageSystem} • {t(scheme.configurationLabel)}</Text>
                 </View>
               </View>
               <View style={styles.manageActions}>
-                <Pressable disabled={busy} accessibilityLabel={`Edit ${scheme.name}`} accessibilityRole="button" onPress={() => onEdit(scheme)} style={({ pressed }) => [styles.editPresetButton, pressed && styles.pressed]}>
-                  <Text style={styles.editPresetButtonText}>Edit</Text>
+                <Pressable disabled={busy} accessibilityLabel={t("Edit {{name}}", { name: scheme.name })} accessibilityRole="button" onPress={() => onEdit(scheme)} style={({ pressed }) => [styles.editPresetButton, pressed && styles.pressed]}>
+                  <Text style={styles.editPresetButtonText}>{t("Edit")}</Text>
                 </Pressable>
-                <Pressable disabled={busy} accessibilityLabel={`Delete ${scheme.name}`} accessibilityRole="button" onPress={() => onDelete(scheme)} style={({ pressed }) => [styles.deletePresetButton, pressed && styles.pressed]}>
-                  <Text style={styles.deletePresetButtonText}>Delete</Text>
+                <Pressable disabled={busy} accessibilityLabel={t("Delete {{name}}", { name: scheme.name })} accessibilityRole="button" onPress={() => onDelete(scheme)} style={({ pressed }) => [styles.deletePresetButton, pressed && styles.pressed]}>
+                  <Text style={styles.deletePresetButtonText}>{t("Delete")}</Text>
                 </Pressable>
               </View>
             </View>
@@ -1321,21 +1340,22 @@ function DeletePresetModal({ busy, status, onCancel, onConfirm, scheme }: {
   scheme: PanelColorScheme | null;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <Modal animationType="fade" onRequestClose={onCancel} transparent visible={!!scheme}>
       <View style={styles.confirmBackdrop}>
         <View style={styles.confirmCard}>
-          <Text style={styles.confirmEyebrow}>DELETE PRESET</Text>
-          <Text style={styles.confirmTitle}>Delete “{scheme?.name}”?</Text>
-          <Text style={styles.confirmText}>This removes the saved setup from this device. Undo will be available until the next deletion or until you leave Panel Colors.</Text>
+          <Text style={styles.confirmEyebrow}>{t("DELETE PRESET")}</Text>
+          <Text style={styles.confirmTitle}>{t("Delete “{{name}}”?", { name: scheme?.name ?? "" })}</Text>
+          <Text style={styles.confirmText}>{t("This removes the saved setup from this device. Undo will be available until the next deletion or until you leave Panel Colors.")}</Text>
           {status}
           <View style={styles.confirmActions}>
             <Pressable disabled={busy} accessibilityRole="button" onPress={onCancel} style={styles.confirmCancelButton}>
-              <Text style={styles.confirmCancelText}>Keep it</Text>
+              <Text style={styles.confirmCancelText}>{t("Keep it")}</Text>
             </Pressable>
             <Pressable disabled={busy} accessibilityRole="button" onPress={onConfirm} style={styles.confirmDeleteButton}>
-              <Text style={styles.confirmDeleteText}>{busy ? "Removing…" : "Delete"}</Text>
+              <Text style={styles.confirmDeleteText}>{busy ? t("Removing…") : t("Delete")}</Text>
             </Pressable>
           </View>
         </View>
@@ -1358,6 +1378,7 @@ function DraftField({
   value: string;
 }) {
   const styles = useStyles();
+  const { t } = useI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   const hasValue = !!value.trim();
@@ -1368,12 +1389,12 @@ function DraftField({
         <Text style={styles.fieldLabel}>{label}</Text>
         {showDone && hasValue && (
           <Pressable
-            accessibilityLabel="Finish entering preset name"
+            accessibilityLabel={t("Finish entering preset name")}
             accessibilityRole="button"
             onPress={() => Keyboard.dismiss()}
             style={({ pressed }) => [styles.fieldDoneButton, pressed && styles.pressed]}
           >
-            <Text style={styles.fieldDoneText}>✓ DONE</Text>
+            <Text style={styles.fieldDoneText}>{t("✓ DONE")}</Text>
           </Pressable>
         )}
       </View>

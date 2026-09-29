@@ -1,3 +1,4 @@
+import { useI18n } from "../src/i18n";
 import { IconButton } from "../src/components/IconButton";
 import { router } from "expo-router";
 import { getAppReportInfo } from "../src/utils/support/appInfo";
@@ -13,42 +14,49 @@ const modes: { id: AppearanceMode; label: string }[] = [
 ];
 
 export default function SettingsScreen() {
+  const { t, preference, setLanguage } = useI18n();
   const s = useStyles();
   const { preferences, theme, setAppearance, error, retrySave } = useAppTheme();
   const appInfo = getAppReportInfo();
   return <SafeAreaView style={s.safe}>
     <ScrollView contentContainerStyle={s.container}>
       <View style={s.header}>
-        <Text accessibilityRole="header" style={s.title}>Settings</Text>
-        <IconButton icon="close" label="Close settings" onPress={returnHome} />
+        <Text accessibilityRole="header" style={s.title}>{t("Settings")}</Text>
+        <IconButton icon="close" label={t("Close settings")} onPress={returnHome} />
       </View>
-      <Text accessibilityRole="header" style={s.heading}>Make it yours.</Text>
-      <Text style={s.description}>One look, across every tool. Your choice is saved on this device.</Text>
-      <Text style={s.label}>APPEARANCE</Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel="Appearance mode" style={s.modes}>
-        {modes.map(mode => <Pressable key={mode.id} accessibilityRole="radio" aria-checked={preferences.mode === mode.id} accessibilityState={{ checked: preferences.mode === mode.id }} accessibilityLabel={`${mode.label} appearance`} onPress={() => setAppearance({ mode: mode.id })} style={({ pressed }) => [s.mode, preferences.mode === mode.id && s.selected, pressed && s.pressed]}><Text style={[s.body, preferences.mode === mode.id && s.selectedText]}>{mode.label}</Text></Pressable>)}
+      <Text accessibilityRole="header" style={s.heading}>{t("Make it yours.")}</Text>
+      <Text style={s.description}>{t("One look, across every tool. Your choice is saved on this device.")}</Text>
+      <Text style={s.label}>{t("LANGUAGE")}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={t("App language")} style={s.modes}>
+        {([['system', t('Automatic')], ['en', 'English'], ['es', 'Español']] as const).map(([id, label]) => <Pressable key={id} accessibilityRole="radio" aria-checked={preference === id} accessibilityState={{ checked: preference === id }} onPress={() => setLanguage(id)} style={[s.mode, preference === id && s.selected]}><Text style={[s.body, s.centered, preference === id && s.selectedText]}>{label}</Text></Pressable>)}
       </View>
-      <Text style={s.description}>{preferences.mode === "system" ? "Follows your device’s light or dark appearance." : `${preferences.mode === "dark" ? "Dark" : "Light"} appearance stays on until you change it.`}</Text>
-      <Text style={s.label}>COLOR THEME</Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel="Color theme" style={s.themes}>
+      <Text style={s.description}>{t("Follows your phone’s supported language. You can choose a different language here.")}</Text>
+      <Text style={s.themeDescription}>{t("Language changes labels, not units, electrical rules, or your own notes.")}</Text>
+      <Text style={s.label}>{t("APPEARANCE")}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={t("Appearance mode")} style={s.modes}>
+        {modes.map(mode => <Pressable key={mode.id} accessibilityRole="radio" aria-checked={preferences.mode === mode.id} accessibilityState={{ checked: preferences.mode === mode.id }} accessibilityLabel={t("{{mode}} appearance", { mode: t(mode.label) })} onPress={() => setAppearance({ mode: mode.id })} style={({ pressed }) => [s.mode, preferences.mode === mode.id && s.selected, pressed && s.pressed]}><Text style={[s.body, s.centered, preferences.mode === mode.id && s.selectedText]}>{t(mode.label)}</Text></Pressable>)}
+      </View>
+      <Text style={s.description}>{preferences.mode === "system" ? t("Follows your device’s light or dark appearance.") : t("{{mode}} appearance stays on until you change it.", { mode: t(preferences.mode === "dark" ? "Dark" : "Light").toLowerCase() })}</Text>
+      <Text style={s.label}>{t("COLOR THEME")}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={t("Color theme")} style={s.themes}>
         {themeCollections.map(collection => <View key={collection.name} style={s.collection}>
-          <Text accessibilityRole="header" style={s.collectionTitle}>{collection.name}</Text>
+          <Text accessibilityRole="header" style={s.collectionTitle}>{t(collection.name)}</Text>
           {collection.themes.map(id => {
           const colors = themeCatalog[id][theme.mode];
           const selected = preferences.themeId === id;
-          return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={`${themeNames[id]} theme`} aria-checked={selected} accessibilityState={{ checked: selected }} onPress={() => setAppearance({ themeId: id })} style={({ pressed }) => [s.theme, selected && s.selected, pressed && s.pressed]}>
+          return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={t("{{name}} theme", { name: t(themeNames[id]) })} aria-checked={selected} accessibilityState={{ checked: selected }} onPress={() => setAppearance({ themeId: id })} style={({ pressed }) => [s.theme, selected && s.selected, pressed && s.pressed]}>
             <View accessible={false} accessibilityElementsHidden style={s.swatches}>{[colors.bg, colors.surface2, colors.action].map((color, i) => <View key={i} style={[s.swatch, { backgroundColor: color, borderColor: colors.border }]} />)}</View>
-            <View style={s.grow}><Text style={[s.body, selected && s.selectedText]}>{themeNames[id]}</Text><Text style={s.themeDescription}>{themeDescriptions[id]}</Text></View>
+            <View style={s.grow}><Text style={[s.body, selected && s.selectedText]}>{t(themeNames[id])}</Text><Text style={s.themeDescription}>{t(themeDescriptions[id])}</Text></View>
             <Text style={s.check}>{selected ? "✓" : ""}</Text>
           </Pressable>;
           })}
         </View>)}
       </View>
-      {error ? <View accessibilityRole="alert" style={s.error}><Text style={s.errorText}>{error}</Text><Pressable accessibilityRole="button" onPress={retrySave} style={s.retry}><Text style={s.errorText}>Save again</Text></Pressable></View> : null}
-      <Text style={s.label}>SUPPORT & DATA</Text>
-      <Pressable accessibilityRole="button" onPress={() => router.push("/backup")} style={s.destination}><View style={s.grow}><Text style={s.body}>Backup & restore</Text><Text style={s.description}>Keep a copy of saved work. Restore it when needed.</Text></View><Text style={s.check}>›</Text></Pressable>
-      <Pressable accessibilityRole="button" onPress={() => router.push("/help")} style={s.destination}><View style={s.grow}><Text style={s.body}>Help & app information</Text><Text style={s.description}>Getting started, privacy, and report a problem.</Text></View><Text style={s.check}>›</Text></Pressable>
-      <View style={s.footer}><Text style={s.description}>{appInfo.appName}</Text><Text style={s.description}>Version {appInfo.version}{appInfo.build ? ` · Build ${appInfo.build}` : ""}</Text><Text style={s.themeDescription}>{appInfo.environment}</Text></View>
+      {error ? <View accessibilityRole="alert" style={s.error}><Text style={s.errorText}>{t(error)}</Text><Pressable accessibilityRole="button" onPress={retrySave} style={s.retry}><Text style={s.errorText}>{t("Save again")}</Text></Pressable></View> : null}
+      <Text style={s.label}>{t("SUPPORT & DATA")}</Text>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/backup")} style={s.destination}><View style={s.grow}><Text style={s.body}>{t("Backup & restore")}</Text><Text style={s.description}>{t("Keep a copy of saved work. Restore it when needed.")}</Text></View><Text style={s.check}>›</Text></Pressable>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/help")} style={s.destination}><View style={s.grow}><Text style={s.body}>{t("Help & app information")}</Text><Text style={s.description}>{t("Getting started, privacy, and report a problem.")}</Text></View><Text style={s.check}>›</Text></Pressable>
+      <View style={s.footer}><Text style={s.description}>{appInfo.appName}</Text><Text style={s.description}>{t("Version")} {appInfo.version}{appInfo.build ? ` · ${t("Build")} ${appInfo.build}` : ""}</Text><Text style={s.themeDescription}>{t(appInfo.environment)}</Text></View>
     </ScrollView>
   </SafeAreaView>;
 }
@@ -62,6 +70,7 @@ const useStyles = defineStyles(({ colors: c }) => ({
   description: { color: c.textMuted, fontSize: FontSize.label, lineHeight: 21 },
   label: { color: c.textMuted, fontSize: FontSize.caption, letterSpacing: 1.4, marginTop: Space.md },
   body: { color: c.text, fontSize: FontSize.body },
+  centered: { textAlign: "center", padding: Space.xs },
   close: { minWidth: Layout.touchTarget, minHeight: Layout.touchTarget, borderRadius: Radius.round, backgroundColor: c.surface2, justifyContent: "center", alignItems: "center" },
   closeText: { color: c.text, fontSize: FontSize.section },
   modes: { flexDirection: "row", gap: Space.xs },

@@ -1,3 +1,7 @@
+import { QUIZ_QUESTIONS } from "../../utils/tradeTalk/quiz";
+import { SuggestTermSheet } from "./SuggestTermSheet";
+import { localizeTradeTalkEntry } from "../../utils/tradeTalk/spanish";
+import { useI18n } from "../../i18n";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { returnHome } from "../../utils/navigation";
 import { useStoredValue } from "../../hooks/useStoredValue";
@@ -28,40 +32,6 @@ import {
 import { useStyles } from "./styles";
 
 type CategoryFilter = "all" | "slang" | "favorites" | TradeTalkCategory;
-
-type QuizQuestion = {
-  answers: string[];
-  correct: number;
-  entryId: string;
-  prompt: string;
-};
-
-const QUIZ_QUESTIONS: QuizQuestion[] = [
-  {
-    entryId: "battleship",
-    prompt: "A mechanic asks for a battleship. What are they probably hanging?",
-    answers: ["An old-work metal box", "A cable tray", "A disconnect"],
-    correct: 0,
-  },
-  {
-    entryId: "smurf-tube",
-    prompt: "What is the proper name for smurf tube?",
-    answers: ["FMC", "ENT", "RMC"],
-    correct: 1,
-  },
-  {
-    entryId: "ticker",
-    prompt: "Which tool might your crew call a ticker or beep stick?",
-    answers: ["Clamp meter", "Circuit tracer", "Non-contact voltage tester"],
-    correct: 2,
-  },
-  {
-    entryId: "dogleg",
-    prompt: "What does a dogleg describe?",
-    answers: ["A twisted offset", "A long sweep", "A four-point saddle"],
-    correct: 0,
-  },
-];
 
 const FILTERS: { id: CategoryFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -97,6 +67,7 @@ function filterEntries(filter: CategoryFilter): TradeTalkEntry[] {
 
 export default function TradeTalkScreen() {
   const styles = useStyles();
+  const { t, language } = useI18n();
   const { theme: { colors: Colors } } = useAppTheme();
 
   const [query, setQuery] = useState("");
@@ -108,13 +79,19 @@ export default function TradeTalkScreen() {
   const setRecentIds = (change: (value: string[]) => string[]) => { void stored.setValue(v => ({ ...v, recentIds: change(v.recentIds) })); };
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const [quizIndex, setQuizIndex] = useState(0);
+  const [suggesting, setSuggesting] = useState(false);
 
-  const dailyEntry = getDailyTradeTalkEntry();
+  const dailyEntry = localizeTradeTalkEntry(getDailyTradeTalkEntry(), language);
   const quiz = QUIZ_QUESTIONS[quizIndex];
   const searchResults = useMemo(() => searchTradeTalk(query, { limit: 40 }), [query]);
-  const browseEntries = useMemo(() => filter === "favorites"
-    ? TRADE_TALK_ENTRIES.filter(entry => favoriteIds.includes(entry.id))
-    : filterEntries(filter), [filter, favoriteIds]);
+  const browseEntries = useMemo(() => {
+    const entries = filter === "favorites"
+      ? TRADE_TALK_ENTRIES.filter(entry => favoriteIds.includes(entry.id))
+      : filterEntries(filter);
+    return language === "es"
+      ? [...entries].sort((left, right) => localizeTradeTalkEntry(left, language).term.localeCompare(localizeTradeTalkEntry(right, language).term, "es"))
+      : entries;
+  }, [filter, favoriteIds, language]);
   const favoriteEntries = favoriteIds
     .map(getTradeTalkEntry)
     .filter((entry): entry is TradeTalkEntry => !!entry);
@@ -126,7 +103,7 @@ export default function TradeTalkScreen() {
 
   function openEntry(entry: TradeTalkEntry) {
     pulse();
-    setSelectedEntry(entry);
+    setSelectedEntry(getTradeTalkEntry(entry.id) ?? entry);
     setRecentIds((current) => addRecentTradeTalkEntry(current, entry.id));
   }
 
@@ -154,18 +131,18 @@ export default function TradeTalkScreen() {
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
       <ScreenHeader>
-        <BackButton accessibilityLabel="Return to toolbox home"
+        <BackButton accessibilityLabel={t("Return to toolbox home")}
           onPress={() => {
             pulse();
             returnHome();
           }} />
         <View style={styles.headerCopy}>
-          <Text style={styles.headerEyebrow}>TRADE TALK</Text>
-          <Text style={styles.headerTitle}>Speak electrician.</Text>
+          <Text style={styles.headerEyebrow}>{t("TRADE TALK")}</Text>
+          <Text style={styles.headerTitle}>{t("Speak electrician.")}</Text>
         </View>
       </ScreenHeader>
 
-      <StorageStatus state={stored} onRetry={stored.retry} label="Trade Talk favorites" />
+      <StorageStatus state={stored} onRetry={stored.retry} label={t("Trade Talk favorites")} />
       {stored.ready && <ScrollView
         bounces={false}
         contentContainerStyle={styles.container}
@@ -175,21 +152,22 @@ export default function TradeTalkScreen() {
         <View style={styles.heroCard}>
           <View style={styles.heroBolt}><Text style={styles.heroBoltText}>ϟ</Text></View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>What did they just call it?</Text>
-            <Text style={styles.heroHint}>Real electrical terms. Real jobsite slang.</Text>
+            <Text style={styles.heroTitle}>{t("What did they just call it?")}</Text>
+            <Text style={styles.heroHint}>{t("Real electrical terms. Real jobsite slang.")}</Text>
           </View>
           <View style={styles.speechMarks}><Text style={styles.speechMarksText}>“ ”</Text></View>
         </View>
 
+        {language === "es" ? <Text style={styles.languageNote}>{t("English slang names are kept as heard on U.S. jobsites. Spanish descriptions use standard terms; your crew may use others.")}</Text> : null}
         <View style={styles.searchWrap}>
           <Text style={styles.searchIcon}>⌕</Text>
           <TextInput
-            accessibilityLabel="Search electrical terms and slang"
+            accessibilityLabel={t("Search electrical terms and slang")}
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={setQuery}
             onSubmitEditing={() => Keyboard.dismiss()}
-            placeholder="Try “battleship” or “1900 box”"
+            placeholder={t("Try “battleship” or “1900 box”")}
             placeholderTextColor={Colors.textMuted}
             returnKeyType="search"
             style={styles.searchInput}
@@ -197,7 +175,7 @@ export default function TradeTalkScreen() {
           />
           {query ? (
             <Pressable
-              accessibilityLabel="Clear search"
+              accessibilityLabel={t("Clear search")}
               accessibilityRole="button"
               onPress={() => {
                 pulse();
@@ -208,11 +186,15 @@ export default function TradeTalkScreen() {
           ) : null}
         </View>
 
+        <Pressable accessibilityRole="button" onPress={() => { Keyboard.dismiss(); setSuggesting(true); }} style={styles.suggestButton}>
+          <Text style={styles.suggestText}>{t("Missing a term? Suggest one")}</Text>
+        </Pressable>
+
         {isSearching ? (
           <View style={styles.searchSection}>
             <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>{searchResults.length ? "Best matches" : "No translation yet"}</Text>
-              <Text style={styles.resultCount}>{searchResults.length} FOUND</Text>
+              <Text style={styles.sectionTitle}>{searchResults.length ? t("Best matches") : t("No translation yet")}</Text>
+              <Text style={styles.resultCount}>{t("{{count}} FOUND", { count: searchResults.length })}</Text>
             </View>
             {searchResults.length ? (
               <View style={styles.entryList}>
@@ -229,8 +211,8 @@ export default function TradeTalkScreen() {
               <View style={styles.emptyCard}>
                 <Text style={styles.emptyIcon}>?</Text>
                 <View style={styles.emptyCopy}>
-                  <Text style={styles.emptyTitle}>Your crew may have invented that one.</Text>
-                  <Text style={styles.emptyHint}>Try the proper name, another spelling, or one word from the phrase.</Text>
+                  <Text style={styles.emptyTitle}>{t("Your crew may have invented that one.")}</Text>
+                  <Text style={styles.emptyHint}>{t("Try the proper name, another spelling, or one word from the phrase.")}</Text>
                 </View>
               </View>
             )}
@@ -238,13 +220,13 @@ export default function TradeTalkScreen() {
         ) : (
           <>
             <Pressable
-              accessibilityHint={`Opens ${dailyEntry.term}`}
+              accessibilityHint={t("Opens {{term}}", { term: dailyEntry.term })}
               accessibilityRole="button"
               onPress={() => openEntry(dailyEntry)}
               style={({ pressed }) => [styles.dailyCard, pressed && styles.pressed]}
             >
               <View style={styles.dailyTopRow}>
-                <View style={styles.dailyBadge}><Text style={styles.dailyBadgeText}>SLANG OF THE DAY</Text></View>
+                <View style={styles.dailyBadge}><Text style={styles.dailyBadgeText}>{t("SLANG OF THE DAY")}</Text></View>
                 <Text style={styles.dailyArrow}>↗</Text>
               </View>
               <Text style={styles.dailyTerm}>{dailyEntry.term}</Text>
@@ -254,13 +236,13 @@ export default function TradeTalkScreen() {
 
             <View style={styles.sectionRow}>
               <View>
-                <Text style={styles.sectionEyebrow}>LEARN THE LANGUAGE</Text>
-                <Text style={styles.sectionTitle}>Quick jobsite quiz</Text>
+                <Text style={styles.sectionEyebrow}>{t("LEARN THE LANGUAGE")}</Text>
+                <Text style={styles.sectionTitle}>{t("Quick jobsite quiz")}</Text>
               </View>
               <Text style={styles.quizProgress}>{quizIndex + 1}/{QUIZ_QUESTIONS.length}</Text>
             </View>
             <View style={styles.quizCard}>
-              <Text style={styles.quizPrompt}>{quiz.prompt}</Text>
+              <Text style={styles.quizPrompt}>{t(quiz.prompt)}</Text>
               <View style={styles.quizAnswers}>
                 {quiz.answers.map((answer, index) => {
                   const answered = quizAnswer !== null;
@@ -282,7 +264,7 @@ export default function TradeTalkScreen() {
                       <View style={[styles.answerLetter, correct && styles.answerLetterCorrect, incorrect && styles.answerLetterIncorrect]}>
                         <Text style={styles.answerLetterText}>{String.fromCharCode(65 + index)}</Text>
                       </View>
-                      <Text style={styles.quizAnswerText}>{answer}</Text>
+                      <Text style={styles.quizAnswerText}>{t(answer)}</Text>
                       {correct ? <Text style={styles.answerMark}>✓</Text> : incorrect ? <Text style={styles.answerMarkIncorrect}>×</Text> : null}
                     </Pressable>
                   );
@@ -290,28 +272,28 @@ export default function TradeTalkScreen() {
               </View>
               {quizAnswer !== null ? (
                 <View style={styles.quizFeedback}>
-                  <Text style={styles.quizFeedbackTitle}>{quizAnswer === quiz.correct ? "That’s it." : "Good guess—here’s the trade answer."}</Text>
+                  <Text style={styles.quizFeedbackTitle}>{quizAnswer === quiz.correct ? t("That’s it.") : t("Good guess—here’s the trade answer.")}</Text>
                   <Pressable accessibilityRole="button" onPress={nextQuiz} style={styles.nextQuizButton}>
-                    <Text style={styles.nextQuizText}>Next one →</Text>
+                    <Text style={styles.nextQuizText}>{t("Next one →")}</Text>
                   </Pressable>
                 </View>
               ) : null}
             </View>
 
             {favoriteEntries.length && filter !== "favorites" ? (
-              <EntrySection entries={favoriteEntries} eyebrow="YOUR TOOLBELT" onOpen={openEntry} title="Favorites" favoriteIds={favoriteIds} />
+              <EntrySection entries={favoriteEntries} eyebrow={t("YOUR TOOLBELT")} onOpen={openEntry} title={t("Favorites")} favoriteIds={favoriteIds} />
             ) : null}
 
             {recentEntries.length ? (
-              <EntrySection entries={recentEntries} eyebrow="PICK UP WHERE YOU LEFT OFF" onOpen={openEntry} title="Recent" favoriteIds={favoriteIds} />
+              <EntrySection entries={recentEntries} eyebrow={t("PICK UP WHERE YOU LEFT OFF")} onOpen={openEntry} title={t("Recent")} favoriteIds={favoriteIds} />
             ) : null}
 
             <View style={styles.sectionRow}>
               <View>
-                <Text style={styles.sectionEyebrow}>OFFLINE STARTER PACK</Text>
-                <Text style={styles.sectionTitle}>Browse the trade</Text>
+                <Text style={styles.sectionEyebrow}>{t("OFFLINE STARTER PACK")}</Text>
+                <Text style={styles.sectionTitle}>{t("Browse the trade")}</Text>
               </View>
-              <Text style={styles.entryCount}>{TRADE_TALK_ENTRIES.length} TERMS</Text>
+              <Text style={styles.entryCount}>{t("{{count}} TERMS", { count: TRADE_TALK_ENTRIES.length })}</Text>
             </View>
             <ScrollView
               contentContainerStyle={styles.filterRow}
@@ -333,11 +315,11 @@ export default function TradeTalkScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Text style={[styles.filterChipText, filter === option.id && styles.filterChipTextSelected]}>{option.label}</Text>
+                  <Text style={[styles.filterChipText, filter === option.id && styles.filterChipTextSelected]}>{t(option.label)}</Text>
                 </Pressable>
               ))}
             </ScrollView>
-            {filter === "favorites" && !browseEntries.length ? <Text style={styles.emptyHint}>Open a term and tap Save favorite to keep it here.</Text> : null}
+            {filter === "favorites" && !browseEntries.length ? <Text style={styles.emptyHint}>{t("Open a term and tap Save favorite to keep it here.")}</Text> : null}
             <View style={styles.entryList}>
               {browseEntries.map((entry) => (
                 <EntryRow
@@ -352,8 +334,8 @@ export default function TradeTalkScreen() {
             <View style={styles.communityNote}>
               <Text style={styles.communityIcon}>＋</Text>
               <View style={styles.communityCopy}>
-                <Text style={styles.communityTitle}>Every crew speaks a little differently.</Text>
-                <Text style={styles.communityText}>Regional packs and moderated community submissions are coming after we field-test the starter dictionary.</Text>
+                <Text style={styles.communityTitle}>{t("Every crew speaks a little differently.")}</Text>
+                <Text style={styles.communityText}>{t("Know a term we missed? Prepare a suggestion, review it, then send it to the person who invited you.")}</Text>
               </View>
             </View>
           </>
@@ -366,17 +348,19 @@ export default function TradeTalkScreen() {
         onClose={() => setSelectedEntry(null)}
         onToggleFavorite={() => selectedEntry && toggleFavorite(selectedEntry.id)}
       />
+      {suggesting ? <SuggestTermSheet onClose={() => setSuggesting(false)} /> : null}
     </SafeAreaView>
   );
 }
 
 function EntrySection({ entries, eyebrow, favoriteIds, onOpen, title }: { entries: TradeTalkEntry[]; eyebrow: string; favoriteIds: string[]; onOpen: (entry: TradeTalkEntry) => void; title: string }) {
   const styles = useStyles();
+  const { t } = useI18n();
 
   return (
     <View style={styles.savedSection}>
-      <Text style={styles.sectionEyebrow}>{eyebrow}</Text>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={styles.sectionEyebrow}>{t(eyebrow)}</Text>
+      <Text style={styles.sectionTitle}>{t(title)}</Text>
       <View style={styles.entryList}>
         {entries.map((entry) => (
           <EntryRow entry={entry} favorite={favoriteIds.includes(entry.id)} key={entry.id} onPress={() => onOpen(entry)} />
@@ -388,12 +372,14 @@ function EntrySection({ entries, eyebrow, favoriteIds, onOpen, title }: { entrie
 
 function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorite: boolean; onPress: () => void }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
+  const display = localizeTradeTalkEntry(entry, language);
 
   return (
     <Pressable
       testID={`trade-entry-${entry.id}`}
-      accessibilityLabel={entry.term}
-      accessibilityHint={`Opens the definition for ${entry.term}`}
+      accessibilityLabel={display.term}
+      accessibilityHint={t("Opens the definition for {{term}}", { term: display.term })}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [styles.entryRow, pressed && styles.pressed]}
@@ -401,10 +387,10 @@ function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorit
       <KindBadge kind={entry.kind} />
       <View style={styles.entryCopy}>
         <View style={styles.entryTitleRow}>
-          <Text style={styles.entryTerm}>{entry.term}</Text>
+          <Text style={styles.entryTerm}>{display.term}</Text>
           {favorite ? <Text style={styles.favoriteStar}>★</Text> : null}
         </View>
-        <Text numberOfLines={1} style={styles.entryOfficial}>{entry.officialName ?? CATEGORY_LABELS[entry.category]}</Text>
+        <Text numberOfLines={1} style={styles.entryOfficial}>{display.officialName ?? (language === "es" ? entry.term : t(CATEGORY_LABELS[entry.category]))}</Text>
       </View>
       <Text style={styles.entryArrow}>›</Text>
     </Pressable>
@@ -413,8 +399,9 @@ function EntryRow({ entry, favorite, onPress }: { entry: TradeTalkEntry; favorit
 
 function KindBadge({ kind }: { kind: TradeTalkKind }) {
   const styles = useStyles();
+  const { language } = useI18n();
 
-  const letters: Record<TradeTalkKind, string> = { formal: "A", slang: "S", brand: "B", regional: "R" };
+  const letters: Record<TradeTalkKind, string> = language === "es" ? { formal: "T", slang: "J", brand: "M", regional: "R" } : { formal: "A", slang: "S", brand: "B", regional: "R" };
   return (
     <View style={[styles.kindBadge, kind === "formal" && styles.kindBadgeFormal, kind === "regional" && styles.kindBadgeRegional]}>
       <Text style={styles.kindBadgeText}>{letters[kind]}</Text>
@@ -424,6 +411,8 @@ function KindBadge({ kind }: { kind: TradeTalkKind }) {
 
 function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: TradeTalkEntry | null; favorite: boolean; onClose: () => void; onToggleFavorite: () => void }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
+  const display = entry ? localizeTradeTalkEntry(entry, language) : null;
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} transparent visible={entry !== null}>
@@ -432,37 +421,38 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
           <Pressable style={styles.modalScrim} onPress={onClose} feedback="none" />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
-            {entry ? (
+            {entry && display ? (
               <>
                 <View style={styles.sheetHeader}>
                   <View style={styles.sheetHeadingCopy}>
-                    <Text style={styles.sheetEyebrow}>{KIND_LABELS[entry.kind].toUpperCase()}</Text>
-                    <Text style={styles.sheetTitle}>{entry.term}</Text>
+                    <Text style={styles.sheetEyebrow}>{t(KIND_LABELS[entry.kind]).toLocaleUpperCase(language)}</Text>
+                    <Text style={styles.sheetTitle}>{display.term}</Text>
                   </View>
                   <Pressable
-                    accessibilityLabel={favorite ? "Remove from favorites" : "Add to favorites"}
+                    accessibilityLabel={favorite ? t("Remove from favorites") : t("Add to favorites")}
                     accessibilityRole="button"
                     onPress={onToggleFavorite}
                     style={[styles.sheetFavorite, favorite && styles.sheetFavoriteSelected]}
                   ><Text style={[styles.sheetFavoriteText, favorite && styles.sheetFavoriteTextSelected]}>{favorite ? "★" : "☆"}</Text></Pressable>
                   <Pressable accessibilityRole="button" onPress={onClose} style={styles.doneButton}>
-                    <Text style={styles.doneButtonText}>Done</Text>
+                    <Text style={styles.doneButtonText}>{t("Done")}</Text>
                   </Pressable>
                 </View>
                 <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
-                  {entry.officialName ? (
+                  {display.officialName ? (
                     <View style={styles.officialCard}>
-                      <Text style={styles.officialLabel}>PROPER NAME</Text>
-                      <Text style={styles.officialValue}>{entry.officialName}</Text>
+                      <Text style={styles.officialLabel}>{t("PROPER NAME")}</Text>
+                      <Text style={styles.officialValue}>{display.officialName}</Text>
                     </View>
                   ) : null}
 
-                  <DetailBlock label="What it means" text={entry.definition} />
-                  <DetailBlock label="On the job" text={entry.fieldUse} />
+                  {language === "es" && display.term !== entry.term ? <DetailBlock label={t("ENGLISH NAME")} text={entry.term} /> : null}
+                  <DetailBlock label={t("What it means")} text={display.definition} />
+                  <DetailBlock label={t("On the job")} text={display.fieldUse} />
 
                   {entry.aliases.length ? (
                     <View style={styles.detailBlock}>
-                      <Text style={styles.detailLabel}>YOU MAY ALSO HEAR</Text>
+                      <Text style={styles.detailLabel}>{t("YOU MAY ALSO HEAR")}</Text>
                       <View style={styles.aliasWrap}>
                         {entry.aliases.map((alias) => <View style={styles.aliasChip} key={alias}><Text style={styles.aliasText}>{alias}</Text></View>)}
                       </View>
@@ -473,8 +463,8 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
                     <View style={styles.regionNote}>
                       <Text style={styles.regionIcon}>⌖</Text>
                       <View style={styles.noteCopy}>
-                        <Text style={styles.noteTitle}>REGIONAL LANGUAGE</Text>
-                        <Text style={styles.noteText}>{entry.region}. Ask what your crew means when context is unclear.</Text>
+                        <Text style={styles.noteTitle}>{t("REGIONAL LANGUAGE")}</Text>
+                        <Text style={styles.noteText}>{t("{{region}}. Ask what your crew means when context is unclear.", { region: display.region ?? "" })}</Text>
                       </View>
                     </View>
                   ) : null}
@@ -483,13 +473,13 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
                     <View style={styles.safetyNote}>
                       <Text style={styles.safetyIcon}>!</Text>
                       <View style={styles.noteCopy}>
-                        <Text style={styles.safetyTitle}>FIELD SAFETY</Text>
-                        <Text style={styles.noteText}>{entry.safetyNote}</Text>
+                        <Text style={styles.safetyTitle}>{t("FIELD SAFETY")}</Text>
+                        <Text style={styles.noteText}>{display.safetyNote}</Text>
                       </View>
                     </View>
                   ) : null}
 
-                  <Text style={styles.languageNote}>Trade names vary by company, region, generation, and local practice. Use the proper name when ordering material or when precision matters.</Text>
+                  <Text style={styles.languageNote}>{t("Trade names vary by company, region, generation, and local practice. Use the proper name when ordering material or when precision matters.")}</Text>
                 </ScrollView>
               </>
             ) : null}
@@ -502,10 +492,11 @@ function EntrySheet({ entry, favorite, onClose, onToggleFavorite }: { entry: Tra
 
 function DetailBlock({ label, text }: { label: string; text: string }) {
   const styles = useStyles();
+  const { t, language } = useI18n();
 
   return (
     <View style={styles.detailBlock}>
-      <Text style={styles.detailLabel}>{label.toUpperCase()}</Text>
+      <Text style={styles.detailLabel}>{t(label).toLocaleUpperCase(language)}</Text>
       <Text style={styles.detailText}>{text}</Text>
     </View>
   );
