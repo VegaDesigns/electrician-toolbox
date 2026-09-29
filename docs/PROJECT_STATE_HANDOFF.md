@@ -1,6 +1,14 @@
 # Electrician Toolbox — project-state handoff
 
-## TestFlight preparation authorized — September 28, 2026
+## Current checkpoint — 0.9.4 saved; TestFlight signing needs owner — September 28, 2026
+
+The bilingual source was committed and pushed successfully as [6790a5928c14f455a702d43df548e0eaf26a176a](https://github.com/VegaDesigns/electrician-toolbox/commit/6790a5928c14f455a702d43df548e0eaf26a176a) on `fix/reliability-and-ux`. GitHub verification confirmed the connected account owns this repository; the remote branch matched the starting commit before the push. The repository is public; no personal tester contact or signing secrets were added.
+
+The first store-distribution build attempt used the verified existing Expo project `@brokecoderlabs/electrician-toolbox` (`412fb0c1-3331-4880-b7ee-a5c298810996`), the `fieldtest` profile and frozen existing credentials. EAS advanced the remote iOS build counter from 9 to 10 and created the configured `fieldtest` update channel/branch, then stopped before source upload/build creation: **Credentials are not set up. Run this command again in interactive mode.** No signing credentials were generated or changed. A subsequent build listing confirmed no new build; the latest completed binary is still 0.9.3 (9) below. Build number 10 is a consumed counter value, not a completed binary; allow normal auto-increment on retry.
+
+Next: the owner signs into their Apple Developer account through the interactive EAS flow and reviews the store-signing setup prompts. Do not assume the supplied tester feedback email is their Apple sign-in ID. Do not create or revoke security credentials, accept agreements, change account access or purchase anything without the necessary owner approval. After signing is configured, create the `fieldtest` build and record its exact ID/version/source before submitting the verified binary to the matching App Store Connect record. The numeric Apple app ID and submission authentication are still unverified. No TestFlight upload, tester invitation or public release has occurred. Supersedes the older local-only status immediately below.
+
+## TestFlight preparation authorization — September 28, 2026
 
 The owner approved proceeding with TestFlight after reviewing the Spanish preview and the proposed save/push/build sequence. The bilingual 0.9.4 checkpoint is being saved on `fix/reliability-and-ux`; use the existing `fieldtest` store-distribution profile and separate update channel. The owner supplied a feedback email in conversation for Apple's tester feedback fields only; do not copy that personal address into public repository documentation or silently make it the app's public support contact.
 

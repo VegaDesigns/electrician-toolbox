@@ -1,6 +1,6 @@
 # English / Spanish implementation — local 0.9.4
 
-September 28, 2026. This is a local review checkpoint, not an installed build or public release.
+September 28, 2026. The owner subsequently approved saving/pushing this checkpoint and TestFlight preparation. Source is saved and pushed as `6790a59`; the first build attempt stopped at missing store-signing configuration before upload or build creation. This is not an installed 0.9.4 build or public release. See PROJECT_STATE_HANDOFF.md for the current receipt and owner-assisted signing next step; the implementation-time notes below are retained as history.
 
 ## Product decisions
 

@@ -14,7 +14,7 @@ Updated September 28, 2026. Working product name: Electrician Toolbox. Intended 
 
 ## Release checkpoints
 
-The owner has now approved saving/pushing the bilingual **0.9.4** checkpoint and proceeding with TestFlight preparation. Final local checks: TypeScript, ESLint and 201 tests pass. A tester feedback address was supplied privately in conversation, not configured as public support. Build/signing/upload/beta approval are pending live receipts. Do not invite coworkers or submit the public App Store release without confirmation. The historical 0.9.3 receipt below remains the latest completed installable build until superseded.
+The bilingual **0.9.4** checkpoint is saved and pushed as `6790a59` on `fix/reliability-and-ux`. Final local checks: TypeScript, ESLint and 201 tests pass. A tester feedback address was supplied privately in conversation, not configured as public support. The authorized `fieldtest` build attempt stopped before upload/build creation because store-signing credentials are not configured. It advanced the remote build counter to 10 and created the `fieldtest` update channel/branch, but no new binary exists. The next step is owner-assisted Apple sign-in and review of the signing setup. App Store Connect destination, submission authentication, upload and beta approval remain pending. Do not invite coworkers or submit the public App Store release without confirmation. The historical 0.9.3 receipt below remains the latest completed installable build until superseded; see the handoff for exact attempt details.
 
 Source checkpoint `f5ddff1` is saved and pushed. The authorized registered-device
 iPhone build **0.9.3 (9)** finished on September 28, 2026; see the exact installer
